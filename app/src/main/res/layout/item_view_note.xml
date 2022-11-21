@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contact_note_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/contact_padding_top"
+    android:paddingBottom="@dimen/contact_padding_top"
+    android:paddingLeft="@dimen/contact_padding_left"
+    android:paddingRight="@dimen/contact_padding_left"
+    android:background="@drawable/ripple_all_corners">
+
+    <com.goodwy.commons.views.MyTextView
+        android:id="@+id/contact_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.6"
+        android:lineSpacingExtra="@dimen/medium_margin"
+        android:textSize="@dimen/bigger_text_size"
+        tools:text="Note" />
+
+</RelativeLayout>

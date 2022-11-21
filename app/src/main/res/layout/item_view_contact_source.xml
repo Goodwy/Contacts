@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contact_source_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/contact_source"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:background="@drawable/ripple_all_corners"
+        android:ellipsize="end"
+        android:lines="1"
+        android:maxLines="1"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:paddingStart="@dimen/contact_padding_left"
+        android:paddingEnd="60dp"
+        android:singleLine="true"
+        android:textSize="@dimen/normal_text_size" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/contact_source_image"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="@dimen/normal_margin"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:padding="@dimen/small_margin"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:shapeAppearanceOverlay="@style/roundedImageView"
+        tools:src="@drawable/ic_whatsapp_vector" />
+
+    <ImageView
+        android:id="@+id/divider_contact_source"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginStart="@dimen/contact_padding_left"
+        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:background="@drawable/divider_settings"
+        android:alpha="0.2"
+        android:layout_alignParentBottom="true"/>
+
+</RelativeLayout>

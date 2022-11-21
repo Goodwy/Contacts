@@ -1,0 +1,113 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    compileSdkVersion 33
+
+    defaultConfig {
+        applicationId "com.goodwy.contacts"
+        minSdkVersion 23
+        targetSdkVersion 33
+        versionCode 310
+        versionName "3.1.0"
+        setProperty("archivesBaseName", "contacts")
+        buildConfigField("String", "GOOGLE_PLAY_LICENSING_KEY", "\"${getProperty(getProperties('local.properties'), 'GOOGLE_PLAY_LICENSE_KEY')}\"")
+        buildConfigField("String", "PRODUCT_ID_X1", "\"${getProperty(getProperties('local.properties'), 'PRODUCT_ID_X1')}\"")
+        buildConfigField("String", "PRODUCT_ID_X2", "\"${getProperty(getProperties('local.properties'), 'PRODUCT_ID_X2')}\"")
+        buildConfigField("String", "PRODUCT_ID_X3", "\"${getProperty(getProperties('local.properties'), 'PRODUCT_ID_X3')}\"")
+    }
+
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            release {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    flavorDimensions "variants"
+    productFlavors {
+        core {}
+        fdroid {}
+        prepaid {}
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+def getProperties(String fileName) {
+    final Properties properties = new Properties()
+    def file = rootProject.file(fileName)
+    if (file.exists()) {
+        file.withInputStream { stream -> properties.load(stream) }
+    }
+    return properties
+}
+
+static def getProperty(Properties properties, String name) {
+    return properties.getProperty(name) ?: "$name missing"
+}
+
+dependencies {
+    implementation files('libs/commons-debug.aar')
+    implementation 'com.googlecode.ez-vcard:ez-vcard:0.11.3'
+    implementation 'com.github.tibbi:IndicatorFastScroll:4524cd0b61'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'com.anjlab.android.iab.v3:library:2.0.3'
+    implementation 'me.grantland:autofittextview:0.2.1'
+    implementation 'com.github.Liverm0r:BehavioRule:1.0.1'
+
+    kapt "androidx.room:room-compiler:2.4.3"
+    implementation "androidx.room:room-runtime:2.4.3"
+    annotationProcessor "androidx.room:room-compiler:2.4.3"
+
+    implementation 'com.andrognito.patternlockview:patternlockview:1.0.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.documentfile:documentfile:1.0.1'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation "androidx.exifinterface:exifinterface:1.3.3"
+    implementation "androidx.biometric:biometric-ktx:1.2.0-alpha04"
+    implementation 'com.anjlab.android.iab.v3:library:2.0.3'
+
+    implementation 'joda-time:joda-time:2.10.13'
+    api 'com.github.tibbi:RecyclerView-FastScroller:2a56457fef'
+    api 'androidx.core:core-ktx:1.6.0'
+    api 'com.google.android.material:material:1.8.0-alpha01'
+    api 'com.google.code.gson:gson:2.8.8'
+    api 'com.duolingo.open:rtl-viewpager:1.0.3'
+
+    api 'com.github.bumptech.glide:glide:4.13.2'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.13.2'
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contact_group_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/ripple_all_corners">
+
+    <RelativeLayout
+        android:id="@+id/contact_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/contact_padding_top"
+        android:paddingBottom="@dimen/contact_padding_top"
+        android:paddingLeft="@dimen/contact_padding_left"
+        android:paddingRight="@dimen/contact_padding_left">
+
+        <TextView
+            android:id="@+id/contact_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/unknown"
+            android:textSize="@dimen/bigger_text_size"
+            tools:text="Friends" />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/divider_contact_group"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginStart="@dimen/contact_padding_left"
+        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:background="@drawable/divider_settings"
+        android:alpha="0.2"
+        android:layout_below="@+id/contact_holder"/>
+
+</RelativeLayout>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="contact_photo_size">88dp</dimen>
+    <dimen name="contact_photo_big_size">132dp</dimen>
+    <dimen name="contact_actions_size">32dp</dimen>
+    <dimen name="contact_icons_size">40dp</dimen>
+    <dimen name="dialpad_button_size">60dp</dimen>
+    <dimen name="top_contact_image_height">300dp</dimen>
+    <dimen name="notes_padding_top">8dp</dimen>
+    <dimen name="notes_padding_left">20dp</dimen>
+    <dimen name="contact_padding_top">4dp</dimen>
+    <dimen name="contact_padding_left">16dp</dimen>
+
+    <dimen name="activity_padding_left_right">0dp</dimen>
+    <dimen name="edit_contact_add_icon">28dp</dimen>
+    <dimen name="contact_edit_height">44dp</dimen> <!-- edit_contact_add_icon + 8dp + 8dp-->
+    <dimen name="contact_edit_type_width">116dp</dimen>
+    <dimen name="contact_edit_title_top">16dp</dimen>
+
+    <!--collapsing toolbar-->
+    <dimen name="toolbar_height">102dp</dimen>
+    <dimen name="image_top_margin">24dp</dimen>
+    <dimen name="image_right_margin">20dp</dimen>
+    <dimen name="image_edit_right_margin">32dp</dimen>
+    <dimen name="name_top_margin">12dp</dimen>
+    <dimen name="name_right_margin">38dp</dimen>
+    <dimen name="zero">0dp</dimen>
+</resources>

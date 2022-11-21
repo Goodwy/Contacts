@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/contact_group_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <com.goodwy.commons.views.MyTextView
+        android:id="@+id/contact_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/contact_group_remove"
+        android:alpha="0.5"
+        android:background="?attr/selectableItemBackground"
+        android:paddingStart="@dimen/contact_padding_left"
+        android:paddingTop="@dimen/normal_margin"
+        android:paddingEnd="@dimen/small_margin"
+        android:paddingBottom="@dimen/normal_margin"
+        android:text="@string/no_groups"
+        android:textSize="@dimen/bigger_text_size" />
+
+    <ImageView
+        android:id="@+id/contact_group_remove"
+        android:layout_width="@dimen/edit_contact_add_icon"
+        android:layout_height="@dimen/edit_contact_add_icon"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="@dimen/activity_margin"
+        android:layout_marginTop="@dimen/medium_margin"
+        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:layout_marginBottom="@dimen/medium_margin"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="@color/red_missed"
+        android:foreground="@drawable/button_round_pressed"
+        android:padding="@dimen/medium_margin"
+        android:src="@drawable/ic_minus_vector"
+        android:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/contact_group_add"
+        android:layout_width="@dimen/edit_contact_add_icon"
+        android:layout_height="@dimen/edit_contact_add_icon"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="@dimen/small_margin"
+        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:layout_marginTop="@dimen/medium_margin"
+        android:layout_marginBottom="@dimen/medium_margin"
+        android:foreground="@drawable/button_round_pressed"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="@color/green"
+        android:padding="@dimen/medium_margin"
+        android:src="@drawable/ic_plus_vector"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/divider_contact_group"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginStart="@dimen/contact_padding_left"
+        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:background="@drawable/divider_settings"
+        android:alpha="0.2"
+        android:layout_below="@+id/contact_group"/>
+
+</RelativeLayout>

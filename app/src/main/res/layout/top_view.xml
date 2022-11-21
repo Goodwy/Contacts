@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:translationZ="4dp">
+
+    <ImageView
+        android:id="@+id/contact_photo"
+        android:layout_width="@dimen/contact_photo_size"
+        android:layout_height="@dimen/contact_photo_size"
+        android:layout_marginTop="36dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_person" />
+
+    <com.goodwy.commons.views.MyTextView
+        android:id="@+id/contact_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@drawable/ripple_all_corners"
+        android:padding="4dp"
+        android:maxLines="2"
+        android:gravity="center"
+        android:textSize="@dimen/big_text_size"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/contact_photo"
+        tools:text="Name"/>
+
+    <LinearLayout
+        android:id="@+id/contact_company_holder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/contact_name"
+        android:orientation="vertical">
+
+        <com.goodwy.commons.views.MyTextView
+            android:id="@+id/contact_organization_company"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:background="@drawable/ripple_all_corners"
+            android:padding="2dp"
+            android:gravity="center"
+            android:alpha="0.6"
+            android:textSize="@dimen/normal_text_size"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/contact_name"
+            tools:text="Company"/>
+
+        <com.goodwy.commons.views.MyTextView
+            android:id="@+id/contact_organization_job_position"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:background="@drawable/ripple_all_corners"
+            android:padding="2dp"
+            android:gravity="center"
+            android:alpha="0.6"
+            android:textSize="@dimen/normal_text_size"
+            tools:text="Job position"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
