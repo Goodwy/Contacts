@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/import_contacts_holder"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,7 +8,6 @@
     android:paddingEnd="@dimen/activity_margin">
 
     <com.goodwy.commons.views.MyTextInputLayout
-        android:id="@+id/import_contacts_hint"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/activity_margin"

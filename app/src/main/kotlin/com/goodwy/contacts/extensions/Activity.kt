@@ -3,21 +3,22 @@ package com.goodwy.contacts.extensions
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import androidx.appcompat.content.res.AppCompatResources
 import com.goodwy.commons.activities.BaseSimpleActivity
 import com.goodwy.commons.dialogs.CallConfirmationDialog
+import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
-import com.goodwy.commons.helpers.CONTACT_ID
-import com.goodwy.commons.helpers.IS_PRIVATE
-import com.goodwy.commons.helpers.PERMISSION_CALL_PHONE
+import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.RadioItem
+import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.EditContactActivity
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.activities.ViewContactActivity
-import com.goodwy.contacts.helpers.*
-import com.goodwy.contacts.models.Contact
+import com.goodwy.contacts.helpers.DEFAULT_FILE_NAME
+import com.goodwy.contacts.helpers.VcfExporter
 
 fun SimpleActivity.startCallIntent(recipient: String) {
     handlePermission(PERMISSION_CALL_PHONE) {
@@ -26,6 +27,19 @@ fun SimpleActivity.startCallIntent(recipient: String) {
             data = Uri.fromParts("tel", recipient, null)
             launchActivityIntent(this)
         }
+    }
+}
+
+fun SimpleActivity.tryStartCallRecommendation(contact: Contact) {
+    val simpleDialer = "com.goodwy.dialer"
+    val simpleDialerDebug = "com.goodwy.dialer.debug"
+    if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleDialer) && !isPackageInstalled(simpleDialerDebug))) {
+        NewAppDialog(this, simpleDialer, getString(R.string.recommendation_dialog_dialer_g), getString(R.string.right_dialer),
+            AppCompatResources.getDrawable(this, R.mipmap.ic_dialer)) {
+            tryStartCall(contact)
+        }
+    } else {
+        tryStartCall(contact)
     }
 }
 

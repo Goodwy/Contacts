@@ -2,17 +2,14 @@ package com.goodwy.contacts.dialogs
 
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
-import com.goodwy.commons.extensions.getAlertDialogBuilder
-import com.goodwy.commons.extensions.setupDialogStuff
-import com.goodwy.commons.extensions.toast
+import com.goodwy.commons.extensions.*
+import com.goodwy.commons.helpers.ContactsHelper
+import com.goodwy.commons.helpers.SMT_PRIVATE
 import com.goodwy.commons.helpers.ensureBackgroundThread
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.extensions.getPublicContactSource
 import com.goodwy.contacts.extensions.showContactSourcePicker
-import com.goodwy.contacts.helpers.ContactsHelper
-import com.goodwy.contacts.helpers.SMT_PRIVATE
 import com.goodwy.contacts.helpers.VcfImporter
 import com.goodwy.contacts.helpers.VcfImporter.ImportResult.IMPORT_FAIL
 import kotlinx.android.synthetic.main.dialog_import_contacts.view.*

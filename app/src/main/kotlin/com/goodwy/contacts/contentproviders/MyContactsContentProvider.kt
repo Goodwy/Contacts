@@ -7,8 +7,8 @@ import android.database.MatrixCursor
 import android.net.Uri
 import com.google.gson.Gson
 import com.goodwy.commons.helpers.MyContactsContentProvider
+import com.goodwy.commons.helpers.LocalContactsHelper
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.helpers.LocalContactsHelper
 
 class MyContactsContentProvider : ContentProvider() {
     override fun insert(uri: Uri, contentValues: ContentValues?) = null

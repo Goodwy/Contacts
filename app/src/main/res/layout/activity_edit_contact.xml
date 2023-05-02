@@ -7,7 +7,6 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/contact_photo_top_shadow"
         android:layout_width="match_parent"
         android:layout_height="@dimen/top_shadow_height"
         android:layout_alignParentTop="true"
@@ -62,6 +61,7 @@
             android:id="@+id/contact_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="56dp"
             android:layout_marginTop="@dimen/bigger_margin">
 
             <ImageView
@@ -311,7 +311,6 @@
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_numbers_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.8"
@@ -348,7 +347,6 @@
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_numbers_add_new_text"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:layout_centerVertical="true"
@@ -360,7 +358,6 @@
                     android:textSize="@dimen/normal_text_size" />
 
                 <ImageView
-                    android:id="@+id/contact_numbers_add_new"
                     android:layout_width="@dimen/edit_contact_add_icon"
                     android:layout_height="@dimen/edit_contact_add_icon"
                     android:layout_alignParentEnd="true"
@@ -388,7 +385,6 @@
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_emails_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.8"
@@ -425,7 +421,6 @@
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_emails_add_new_text"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:layout_centerVertical="true"
@@ -437,7 +432,6 @@
                     android:textSize="@dimen/normal_text_size" />
 
                 <ImageView
-                    android:id="@+id/contact_emails_add_new"
                     android:layout_width="@dimen/edit_contact_add_icon"
                     android:layout_height="@dimen/edit_contact_add_icon"
                     android:layout_alignParentEnd="true"
@@ -465,7 +459,6 @@
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_addresses_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.8"
@@ -502,7 +495,6 @@
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_addresses_add_new_text"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:layout_centerVertical="true"
@@ -514,7 +506,6 @@
                     android:textStyle="italic" />
 
                 <ImageView
-                    android:id="@+id/contact_addresses_add_new"
                     android:layout_width="@dimen/edit_contact_add_icon"
                     android:layout_height="@dimen/edit_contact_add_icon"
                     android:layout_alignParentEnd="true"
@@ -542,7 +533,6 @@
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_ims_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.8"
@@ -579,7 +569,6 @@
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_ims_add_new_text"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:layout_centerVertical="true"
@@ -591,7 +580,6 @@
                     android:textStyle="italic" />
 
                 <ImageView
-                    android:id="@+id/contact_ims_add_new"
                     android:layout_width="@dimen/edit_contact_add_icon"
                     android:layout_height="@dimen/edit_contact_add_icon"
                     android:layout_alignParentEnd="true"
@@ -619,7 +607,6 @@
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_events_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.8"
@@ -656,7 +643,6 @@
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_events_add_new_text"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:layout_centerVertical="true"
@@ -668,7 +654,80 @@
                     android:textStyle="italic" />
 
                 <ImageView
-                    android:id="@+id/contact_events_add_new"
+                    android:layout_width="@dimen/edit_contact_add_icon"
+                    android:layout_height="@dimen/edit_contact_add_icon"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="@dimen/medium_margin"
+                    android:layout_marginBottom="@dimen/medium_margin"
+                    android:layout_marginEnd="@dimen/contact_padding_left"
+                    android:background="@drawable/circle_background"
+                    android:backgroundTint="@color/green"
+                    android:foreground="@drawable/button_round_pressed"
+                    android:padding="@dimen/medium_margin"
+                    android:src="@drawable/ic_plus_vector" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_relations_title_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_events_add_new_holder"
+                android:layout_marginTop="@dimen/contact_edit_title_top"
+                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingTop="@dimen/contact_padding_top"
+                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingBottom="2dp">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.8"
+                    android:text="@string/relations_g"
+                    android:textSize="@dimen/normal_text_size" />
+
+                <ImageView
+                    android:id="@+id/contact_relations_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_alignParentEnd="true"
+                    android:alpha="0.8"
+                    app:srcCompat="@drawable/ic_group_work_vector" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/contact_relations_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_relations_title_holder"
+                android:background="@color/activated_item_foreground"
+                android:orientation="vertical">
+
+                <include layout="@layout/item_edit_relation" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_relations_add_new_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_relations_holder"
+                android:background="@color/activated_item_foreground">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/contact_edit_height"
+                    android:layout_centerVertical="true"
+                    android:alpha="0.5"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:text="@string/add_related_person"
+                    android:textStyle="italic"
+                    android:textSize="@dimen/normal_text_size" />
+
+                <ImageView
                     android:layout_width="@dimen/edit_contact_add_icon"
                     android:layout_height="@dimen/edit_contact_add_icon"
                     android:layout_alignParentEnd="true"
@@ -688,7 +747,7 @@
                 android:id="@+id/contact_notes_title_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_events_add_new_holder"
+                android:layout_below="@+id/contact_relations_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
@@ -696,7 +755,6 @@
                 android:paddingRight="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_notes_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/normal_text_size"
@@ -743,7 +801,6 @@
                 android:paddingRight="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_ringtone_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/normal_text_size"
@@ -804,7 +861,6 @@
                 android:paddingRight="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_websites_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/normal_text_size"
@@ -841,7 +897,6 @@
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_websites_add_new_text"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:layout_centerVertical="true"
@@ -853,7 +908,6 @@
                     android:textStyle="italic" />
 
                 <ImageView
-                    android:id="@+id/contact_websites_add_new"
                     android:layout_width="@dimen/edit_contact_add_icon"
                     android:layout_height="@dimen/edit_contact_add_icon"
                     android:layout_alignParentEnd="true"
@@ -881,7 +935,6 @@
                 android:paddingRight="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_groups_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/normal_text_size"
@@ -918,7 +971,6 @@
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_groups_add_new_text"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:layout_centerVertical="true"
@@ -930,7 +982,6 @@
                     android:textStyle="italic" />
 
                 <ImageView
-                    android:id="@+id/contact_groups_add_new"
                     android:layout_width="@dimen/edit_contact_add_icon"
                     android:layout_height="@dimen/edit_contact_add_icon"
                     android:layout_alignParentEnd="true"
@@ -958,7 +1009,6 @@
                 android:paddingRight="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_source_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/normal_text_size"

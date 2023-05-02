@@ -1,6 +1,6 @@
 package com.goodwy.contacts.interfaces
 
-import com.goodwy.contacts.models.Contact
+import com.goodwy.commons.models.contacts.*
 
 interface RefreshContactsListener {
     fun refreshContacts(refreshTabsMask: Int)

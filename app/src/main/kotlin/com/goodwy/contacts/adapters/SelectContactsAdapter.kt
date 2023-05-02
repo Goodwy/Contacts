@@ -12,11 +12,11 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.SimpleContactsHelper
+import com.goodwy.commons.models.contacts.*
 import com.goodwy.commons.views.MyRecyclerView
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.models.Contact
 import kotlinx.android.synthetic.main.item_add_favorite_with_number.view.*
 
 class SelectContactsAdapter(
@@ -78,17 +78,6 @@ class SelectContactsAdapter(
     }
 
     override fun getItemCount() = contacts.size
-
-    fun updateItems(newItems: ArrayList<Contact>, highlightText: String = "") {
-        if (newItems.hashCode() != contacts.hashCode()) {
-            contacts = newItems.clone() as ArrayList<Contact>
-            textToHighlight = highlightText
-            notifyDataSetChanged()
-        } else if (textToHighlight != highlightText) {
-            textToHighlight = highlightText
-            notifyDataSetChanged()
-        }
-    }
 
     override fun onViewRecycled(holder: ViewHolder) {
         super.onViewRecycled(holder)

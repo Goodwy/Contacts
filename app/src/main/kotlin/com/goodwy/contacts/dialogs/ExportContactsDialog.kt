@@ -5,15 +5,13 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import com.goodwy.commons.dialogs.FilePickerDialog
 import com.goodwy.commons.extensions.*
+import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.ensureBackgroundThread
+import com.goodwy.commons.models.contacts.*
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.adapters.FilterContactSourcesAdapter
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.extensions.getVisibleContactSources
-import com.goodwy.contacts.helpers.ContactsHelper
-import com.goodwy.contacts.models.Contact
-import com.goodwy.contacts.models.ContactSource
 import kotlinx.android.synthetic.main.dialog_export_contacts.view.*
 import java.io.File
 
@@ -35,7 +33,7 @@ class ExportContactsDialog(
 
             if (hidePath) {
                 export_contacts_folder_hint.beGone()
-                export_contacts_folder.beGone()
+                //export_contacts_folder.beGone()
             } else {
                 export_contacts_folder.setOnClickListener {
                     activity.hideKeyboard(export_contacts_filename)

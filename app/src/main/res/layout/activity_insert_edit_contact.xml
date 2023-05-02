@@ -6,21 +6,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/insert_edit_app_bar_layout"
+    <com.goodwy.commons.views.MySearchMenu
+        android:id="@+id/insert_edit_menu"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/insert_edit_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/color_primary"
-            app:menu="@menu/menu_insert_or_edit"
-            app:title="@string/select_contact"
-            app:titleTextAppearance="@style/AppTheme.ActionBar.TitleTextStyle" />
-
-    </com.google.android.material.appbar.AppBarLayout>
+        android:layout_height="wrap_content" />
 
     <RelativeLayout
         android:id="@+id/insert_edit_contact_holder"
@@ -32,15 +21,13 @@
             android:id="@+id/new_contact_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/insert_or_edit_tabs_holder"
             android:background="?attr/selectableItemBackground"
             android:minHeight="@dimen/min_row_height"
             android:paddingStart="@dimen/larger_margin"
             android:paddingTop="@dimen/medium_margin"
             android:paddingEnd="@dimen/activity_margin"
             android:paddingBottom="@dimen/medium_margin"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:visibility="gone">
 
             <ImageView
                 android:id="@+id/new_contact_tmb"
@@ -48,7 +35,8 @@
                 android:layout_height="@dimen/normal_icon_size"
                 android:layout_centerVertical="true"
                 android:padding="@dimen/tiny_margin"
-                android:src="@drawable/ic_person_vector" />
+                android:src="@drawable/ic_person_vector"
+                android:contentDescription="@string/add_contact" />
 
             <TextView
                 android:id="@+id/new_contact_name"
@@ -77,25 +65,23 @@
             android:text="@string/add_to_existing_contact"
             android:textAllCaps="true"
             android:textSize="@dimen/smaller_text_size"
-            android:visibility="gone"
-            tools:visibility="visible" />
+            android:visibility="gone" />
 
         <com.goodwy.commons.views.MyViewPager
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@+id/insert_or_edit_tabs_holder"
+            android:layout_above="@+id/insert_edit_tabs_holder"
             android:layout_below="@+id/select_contact_label" />
 
         <com.google.android.material.tabs.TabLayout
-            android:id="@+id/insert_or_edit_tabs_holder"
+            android:id="@+id/insert_edit_tabs_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             app:tabIndicator="@null"
             app:tabMinWidth="150dp"
-            app:tabRippleColor="@null"
-            android:visibility="gone" />
+            app:tabRippleColor="@null"/>
 
     </RelativeLayout>
 

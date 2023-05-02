@@ -45,14 +45,14 @@
     <string name="manage_shown_contact_fields">Управление отображаемыми полями контактов</string>
     <string name="contacts">Контакты</string>
     <string name="show_only_contacts_with_numbers">Показывать только контакты с номерами телефонов</string>
-    <string name="show_private_contacts">Показывать личные контакты в Simple Dialer, Simple SMS Messenger и Simple Calendar Pro</string>
+    <string name="show_private_contacts">Показывать личные контакты в \"Простом телефоне\", \"Простых сообщениях\" и \"Простом календаре\"</string>
     <string name="merge_duplicate_contacts">Объединять дублирующие контакты</string>
     <!-- Favorites -->
     <string name="no_favorites">Похоже, вы ещё не добавили избранные контакты.</string>
     <string name="toggle_favorite">Переключить избранное</string>
     <!-- Search -->
     <string name="search_contacts">Поиск контактов</string>
-    <string name="search_favorites">Поиск избранных</string>
+    <string name="search_favorites">Поиск избранного</string>
     <string name="search_groups">Поиск групп</string>
     <!-- Export / Import -->
     <string name="import_contacts">Импортировать контакты</string>

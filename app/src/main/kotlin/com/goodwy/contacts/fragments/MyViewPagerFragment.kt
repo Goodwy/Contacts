@@ -17,12 +17,11 @@ import com.goodwy.contacts.activities.MainActivity
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.adapters.ContactsAdapter
 import com.goodwy.contacts.adapters.GroupsAdapter
-import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.extensions.getVisibleContactSources
+import com.goodwy.commons.helpers.Converters
 import com.goodwy.contacts.helpers.*
 import com.goodwy.contacts.interfaces.RefreshContactsListener
-import com.goodwy.contacts.models.Contact
-import com.goodwy.contacts.models.Group
+import com.goodwy.commons.models.contacts.*
+import com.goodwy.contacts.extensions.config
 import kotlinx.android.synthetic.main.fragment_contacts.view.*
 import kotlinx.android.synthetic.main.fragment_favorites.view.*
 import kotlinx.android.synthetic.main.fragment_groups.view.*
@@ -363,6 +362,7 @@ abstract class MyViewPagerFragment(context: Context, attributeSet: AttributeSet)
                             ?: it.value).contains(text.normalizePhoneNumber(), true)
                     } ||
                     it.emails.any { it.value.contains(text, true) } ||
+                    it.relations.any { it.name.contains(text, true) } ||
                     it.addresses.any { getProperText(it.value, shouldNormalize).contains(text, true) } ||
                     it.IMs.any { it.value.contains(text, true) } ||
                     getProperText(it.notes, shouldNormalize).contains(text, true) ||

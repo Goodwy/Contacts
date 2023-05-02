@@ -3,11 +3,11 @@ package com.goodwy.contacts.dialogs
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import com.goodwy.commons.extensions.*
+import com.goodwy.commons.helpers.ContactsHelper
+import com.goodwy.commons.models.contacts.Group
 import com.goodwy.commons.views.MyAppCompatCheckbox
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
-import com.goodwy.contacts.helpers.ContactsHelper
-import com.goodwy.contacts.models.Group
 import kotlinx.android.synthetic.main.dialog_select_groups.view.*
 import kotlinx.android.synthetic.main.item_checkbox.view.*
 import kotlinx.android.synthetic.main.item_textview.view.*

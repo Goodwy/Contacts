@@ -4,6 +4,7 @@ import android.app.Application
 import com.anjlab.android.iab.v3.BillingProcessor
 import com.anjlab.android.iab.v3.PurchaseInfo
 import com.goodwy.commons.extensions.checkUseEnglish
+import com.goodwy.commons.extensions.isPackageInstalled
 import com.goodwy.commons.extensions.toast
 
 class App : Application() {
@@ -39,10 +40,18 @@ class App : Application() {
     companion object {
         private var instance: App? = null
 
+        fun isPlayStoreInstalled(): Boolean {
+            return instance!!.isPackageInstalled("com.android.vending")
+                || instance!!.isPackageInstalled("com.google.market")
+        }
+
         fun isProVersion(): Boolean {
-            return instance!!.billingProcessor.isPurchased(BuildConfig.PRODUCT_ID_X1)
-                || instance!!.billingProcessor.isPurchased(BuildConfig.PRODUCT_ID_X2)
-                || instance!!.billingProcessor.isPurchased(BuildConfig.PRODUCT_ID_X3)
+            return if (isPlayStoreInstalled()) {
+                (instance!!.billingProcessor.isPurchased(BuildConfig.PRODUCT_ID_X1)
+                    || instance!!.billingProcessor.isPurchased(BuildConfig.PRODUCT_ID_X2)
+                    || instance!!.billingProcessor.isPurchased(BuildConfig.PRODUCT_ID_X3))
+            } else
+                false
         }
     }
 }

@@ -6,12 +6,6 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer</string>
+    <string name="show_private_contacts_g">Özel kişileri Right Dialer ve Right Messages gösterme</string>
 
-    <string name="recommendation_dialog_contacts_g">
-        <![CDATA[
-            Hey,<br><br>
-            if you like this app then we recommend you to install our call making app.<br><br>
-            Thanks
-        ]]></string>
 </resources>

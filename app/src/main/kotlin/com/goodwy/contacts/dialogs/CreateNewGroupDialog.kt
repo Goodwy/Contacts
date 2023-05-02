@@ -5,13 +5,12 @@ import androidx.appcompat.app.AlertDialog
 import com.goodwy.commons.activities.BaseSimpleActivity
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
+import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.ensureBackgroundThread
 import com.goodwy.commons.models.RadioItem
+import com.goodwy.commons.models.contacts.ContactSource
+import com.goodwy.commons.models.contacts.Group
 import com.goodwy.contacts.R
-import com.goodwy.contacts.extensions.getPrivateContactSource
-import com.goodwy.contacts.helpers.ContactsHelper
-import com.goodwy.contacts.models.ContactSource
-import com.goodwy.contacts.models.Group
 import kotlinx.android.synthetic.main.dialog_create_new_group.view.*
 
 class CreateNewGroupDialog(val activity: BaseSimpleActivity, val callback: (newGroup: Group) -> Unit) {

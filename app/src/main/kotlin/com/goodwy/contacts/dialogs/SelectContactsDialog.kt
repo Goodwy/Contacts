@@ -7,9 +7,8 @@ import com.goodwy.commons.helpers.ensureBackgroundThread
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.adapters.SelectContactsAdapter
-import com.goodwy.contacts.extensions.getVisibleContactSources
-import com.goodwy.contacts.models.Contact
-import kotlinx.android.synthetic.main.layout_select_contact.view.*
+import com.goodwy.commons.models.contacts.*
+import kotlinx.android.synthetic.main.dialog_select_contact.view.*
 import java.util.*
 
 class SelectContactsDialog(
@@ -17,7 +16,7 @@ class SelectContactsDialog(
     selectContacts: ArrayList<Contact>? = null, val callback: (addedContacts: ArrayList<Contact>, removedContacts: ArrayList<Contact>) -> Unit
 ) {
     private var dialog: AlertDialog? = null
-    private var view = activity.layoutInflater.inflate(R.layout.layout_select_contact, null)
+    private var view = activity.layoutInflater.inflate(R.layout.dialog_select_contact, null)
     private var initiallySelectedContacts = ArrayList<Contact>()
 
     init {

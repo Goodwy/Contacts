@@ -29,7 +29,7 @@
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:alpha="0.8"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             app:srcCompat="@drawable/ic_mail_vector" />
 
         <TextView

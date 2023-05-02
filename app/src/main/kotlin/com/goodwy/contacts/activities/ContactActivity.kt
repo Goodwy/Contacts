@@ -13,6 +13,7 @@ import android.net.Uri
 import android.provider.ContactsContract.CommonDataKinds.*
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.content.res.AppCompatResources
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -22,15 +23,18 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import com.goodwy.commons.dialogs.ConfirmationDialog
+import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
+import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.SimpleContactsHelper
 import com.goodwy.commons.helpers.letterBackgroundColors
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.contacts.R
 import com.goodwy.contacts.extensions.shareContacts
-import com.goodwy.contacts.helpers.ContactsHelper
-import com.goodwy.contacts.models.Contact
+import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.models.contacts.ContactRelation
+import com.goodwy.contacts.extensions.config
 
 abstract class ContactActivity : SimpleActivity() {
     protected val PICK_RINGTONE_INTENT_ID = 1500
@@ -124,6 +128,19 @@ abstract class ContactActivity : SimpleActivity() {
         shareContacts(arrayListOf(contact))
     }
 
+    fun trySendSMSRecommendation() {
+        val simpleSmsMessenger = "com.goodwy.smsmessenger"
+        val simpleSmsMessengerDebug = "com.goodwy.smsmessenger.debug"
+        if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleSmsMessenger) && !isPackageInstalled(simpleSmsMessengerDebug))) {
+            NewAppDialog(this, simpleSmsMessenger, getString(R.string.recommendation_dialog_messages_g), getString(R.string.right_sms_messenger),
+                AppCompatResources.getDrawable(this, R.mipmap.ic_sms_messenger)) {
+                trySendSMS()
+            }
+        } else {
+            trySendSMS()
+        }
+    }
+
     fun trySendSMS() {
         val numbers = contact!!.phoneNumbers
         if (numbers.size == 1) {
@@ -170,6 +187,79 @@ abstract class ContactActivity : SimpleActivity() {
                     Email.TYPE_HOME -> R.string.home
                     Email.TYPE_WORK -> R.string.work
                     Email.TYPE_MOBILE -> R.string.mobile
+                    else -> R.string.other
+                }
+            )
+        }
+    }
+
+    fun getRelationTypeText(type: Int, label: String): String {
+        return if (type == BaseTypes.TYPE_CUSTOM) {
+            label
+        } else {
+            getString(
+                when (type) {
+                    // Relation.TYPE_CUSTOM   -> R.string.custom
+                    Relation.TYPE_ASSISTANT   -> R.string.relation_assistant_g
+                    Relation.TYPE_BROTHER     -> R.string.relation_brother_g
+                    Relation.TYPE_CHILD       -> R.string.relation_child_g
+                    Relation.TYPE_DOMESTIC_PARTNER -> R.string.relation_domestic_partner_g
+                    Relation.TYPE_FATHER      -> R.string.relation_father_g
+                    Relation.TYPE_FRIEND      -> R.string.relation_friend_g
+                    Relation.TYPE_MANAGER     -> R.string.relation_manager_g
+                    Relation.TYPE_MOTHER      -> R.string.relation_mother_g
+                    Relation.TYPE_PARENT      -> R.string.relation_parent_g
+                    Relation.TYPE_PARTNER     -> R.string.relation_partner_g
+                    Relation.TYPE_REFERRED_BY -> R.string.relation_referred_by_g
+                    Relation.TYPE_RELATIVE    -> R.string.relation_relative_g
+                    Relation.TYPE_SISTER      -> R.string.relation_sister_g
+                    Relation.TYPE_SPOUSE      -> R.string.relation_spouse_g
+
+                    // Relation types defined in vCard 4.0
+                    ContactRelation.TYPE_CONTACT -> R.string.relation_contact_g
+                    ContactRelation.TYPE_ACQUAINTANCE -> R.string.relation_acquaintance_g
+                    // ContactRelation.TYPE_FRIEND -> R.string.relation_friend
+                    ContactRelation.TYPE_MET -> R.string.relation_met_g
+                    ContactRelation.TYPE_CO_WORKER -> R.string.relation_co_worker_g
+                    ContactRelation.TYPE_COLLEAGUE -> R.string.relation_colleague_g
+                    ContactRelation.TYPE_CO_RESIDENT -> R.string.relation_co_resident_g
+                    ContactRelation.TYPE_NEIGHBOR -> R.string.relation_neighbor_g
+                    // ContactRelation.TYPE_CHILD -> R.string.relation_child
+                    // ContactRelation.TYPE_PARENT -> R.string.relation_parent
+                    ContactRelation.TYPE_SIBLING -> R.string.relation_sibling_g
+                    // ContactRelation.TYPE_SPOUSE -> R.string.relation_spouse
+                    ContactRelation.TYPE_KIN -> R.string.relation_kin_g
+                    ContactRelation.TYPE_MUSE -> R.string.relation_muse_g
+                    ContactRelation.TYPE_CRUSH -> R.string.relation_crush_g
+                    ContactRelation.TYPE_DATE -> R.string.relation_date_g
+                    ContactRelation.TYPE_SWEETHEART -> R.string.relation_sweetheart_g
+                    ContactRelation.TYPE_ME -> R.string.relation_me_g
+                    ContactRelation.TYPE_AGENT -> R.string.relation_agent_g
+                    ContactRelation.TYPE_EMERGENCY -> R.string.relation_emergency_g
+
+                    ContactRelation.TYPE_SUPERIOR -> R.string.relation_superior_g
+                    ContactRelation.TYPE_SUBORDINATE -> R.string.relation_subordinate_g
+                    ContactRelation.TYPE_HUSBAND -> R.string.relation_husband_g
+                    ContactRelation.TYPE_WIFE -> R.string.relation_wife_g
+                    ContactRelation.TYPE_SON -> R.string.relation_son_g
+                    ContactRelation.TYPE_DAUGHTER -> R.string.relation_daughter_g
+                    ContactRelation.TYPE_GRANDPARENT -> R.string.relation_grandparent_g
+                    ContactRelation.TYPE_GRANDFATHER -> R.string.relation_grandfather_g
+                    ContactRelation.TYPE_GRANDMOTHER -> R.string.relation_grandmother_g
+                    ContactRelation.TYPE_GRANDCHILD -> R.string.relation_grandchild_g
+                    ContactRelation.TYPE_GRANDSON -> R.string.relation_grandson_g
+                    ContactRelation.TYPE_GRANDDAUGHTER -> R.string.relation_granddaughter_g
+                    ContactRelation.TYPE_UNCLE -> R.string.relation_uncle_g
+                    ContactRelation.TYPE_AUNT -> R.string.relation_aunt_g
+                    ContactRelation.TYPE_NEPHEW -> R.string.relation_nephew_g
+                    ContactRelation.TYPE_NIECE -> R.string.relation_niece_g
+                    ContactRelation.TYPE_FATHER_IN_LAW -> R.string.relation_father_in_law_g
+                    ContactRelation.TYPE_MOTHER_IN_LAW -> R.string.relation_mother_in_law_g
+                    ContactRelation.TYPE_SON_IN_LAW -> R.string.relation_son_in_law_g
+                    ContactRelation.TYPE_DAUGHTER_IN_LAW -> R.string.relation_daughter_in_law_g
+                    ContactRelation.TYPE_BROTHER_IN_LAW -> R.string.relation_brother_in_law_g
+                    ContactRelation.TYPE_SISTER_IN_LAW -> R.string.relation_sister_in_law_g
+
                     else -> R.string.other
                 }
             )

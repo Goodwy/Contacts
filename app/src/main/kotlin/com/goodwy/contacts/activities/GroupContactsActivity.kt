@@ -5,20 +5,20 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.goodwy.commons.extensions.*
+import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.NavigationIcon
 import com.goodwy.commons.helpers.ensureBackgroundThread
 import com.goodwy.contacts.R
 import com.goodwy.contacts.adapters.ContactsAdapter
 import com.goodwy.contacts.dialogs.SelectContactsDialog
 import com.goodwy.contacts.extensions.*
-import com.goodwy.contacts.helpers.ContactsHelper
 import com.goodwy.contacts.helpers.GROUP
 import com.goodwy.contacts.helpers.LOCATION_GROUP_CONTACTS
 import com.goodwy.contacts.interfaces.RefreshContactsListener
 import com.goodwy.contacts.interfaces.RemoveFromGroupListener
-import com.goodwy.contacts.models.Contact
-import com.goodwy.contacts.models.Group
+import com.goodwy.commons.models.contacts.*
 import kotlinx.android.synthetic.main.activity_group_contacts.*
 
 class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, RefreshContactsListener {
@@ -32,10 +32,14 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
     protected var contact: Contact? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        isMaterialActivity = true
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_group_contacts)
         updateTextColors(group_contacts_coordinator)
         setupOptionsMenu()
+
+        updateMaterialActivityViews(group_contacts_coordinator, group_contacts_list, useTransparentNavigation = true, useTopSearchMenu = false)
+        setupMaterialScrollListener(group_contacts_list, group_contacts_toolbar)
 
         group = intent.extras?.getSerializable(GROUP) as Group
         group_contacts_toolbar.title = group.title
@@ -60,6 +64,8 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
         super.onResume()
         refreshContacts()
         setupToolbar(group_contacts_toolbar, NavigationIcon.Arrow)
+        (group_contacts_fab.layoutParams as CoordinatorLayout.LayoutParams).bottomMargin =
+            navigationBarHeight + resources.getDimension(R.dimen.activity_margin).toInt()
     }
 
     private fun setupOptionsMenu() {

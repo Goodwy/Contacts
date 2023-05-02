@@ -6,10 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.goodwy.commons.extensions.getProperBackgroundColor
 import com.goodwy.commons.extensions.getProperPrimaryColor
 import com.goodwy.commons.extensions.getProperTextColor
+import com.goodwy.commons.helpers.SMT_PRIVATE
+import com.goodwy.commons.models.contacts.ContactSource
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
-import com.goodwy.contacts.helpers.SMT_PRIVATE
-import com.goodwy.contacts.models.ContactSource
 import kotlinx.android.synthetic.main.item_filter_contact_source.view.*
 
 class FilterContactSourcesAdapter(

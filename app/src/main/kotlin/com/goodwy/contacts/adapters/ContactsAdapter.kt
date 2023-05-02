@@ -29,10 +29,12 @@ import com.goodwy.commons.dialogs.ConfirmationDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
+import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.interfaces.ItemMoveCallback
 import com.goodwy.commons.interfaces.ItemTouchHelperContract
 import com.goodwy.commons.interfaces.StartReorderDragListener
 import com.goodwy.commons.models.RadioItem
+import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.views.MyRecyclerView
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
@@ -42,7 +44,6 @@ import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.*
 import com.goodwy.contacts.interfaces.RefreshContactsListener
 import com.goodwy.contacts.interfaces.RemoveFromGroupListener
-import com.goodwy.contacts.models.Contact
 import java.util.*
 
 class ContactsAdapter(
@@ -56,6 +57,7 @@ class ContactsAdapter(
     private val enableDrag: Boolean = false,
     itemClick: (Any) -> Unit
 ) : MyRecyclerViewAdapter(activity, recyclerView, itemClick), RecyclerViewFastScroller.OnPopupTextUpdate, ItemTouchHelperContract {
+
     private val NEW_GROUP_ID = -1
 
     private var config = activity.config
@@ -66,12 +68,12 @@ class ContactsAdapter(
     var showPhoneNumbers = config.showPhoneNumbers
     var fontSize = activity.getTextSize()
     var fontSizeSmall = activity.getTextSizeSmall()
+    var onDragEndListener: (() -> Unit)? = null
 
     private val itemLayout = if (showPhoneNumbers) R.layout.item_contact_with_number else R.layout.item_contact_without_number
 
     private var touchHelper: ItemTouchHelper? = null
     private var startReorderDragListener: StartReorderDragListener? = null
-    var onDragEndListener: (() -> Unit)? = null
 
     init {
         setupDragListener(true)
@@ -393,7 +395,7 @@ class ContactsAdapter(
 
             if (findViewById<TextView>(R.id.item_contact_number) != null) {
                 val phoneNumberToUse = if (textToHighlight.isEmpty()) {
-                    contact.phoneNumbers.firstOrNull()
+                    contact.phoneNumbers.firstOrNull { it.isPrimary } ?: contact.phoneNumbers.firstOrNull()
                 } else {
                     contact.phoneNumbers.firstOrNull { it.value.contains(textToHighlight) } ?: contact.phoneNumbers.firstOrNull()
                 }
@@ -472,7 +474,7 @@ class ContactsAdapter(
         notifyItemMoved(fromPosition, toPosition)
     }
 
-    override fun onRowSelected(myViewHolder: ViewHolder?) { }
+    override fun onRowSelected(myViewHolder: ViewHolder?) {}
 
     override fun onRowClear(myViewHolder: ViewHolder?) {
         onDragEndListener?.invoke()

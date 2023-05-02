@@ -1,24 +1,26 @@
 package com.goodwy.contacts.helpers
 
 import android.net.Uri
-import android.provider.ContactsContract.CommonDataKinds
+import android.provider.ContactsContract.CommonDataKinds.Email
 import android.provider.ContactsContract.CommonDataKinds.Event
 import android.provider.ContactsContract.CommonDataKinds.Im
 import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
 import android.provider.MediaStore
 import com.goodwy.commons.activities.BaseSimpleActivity
+import com.goodwy.commons.extensions.getByteArray
 import com.goodwy.commons.extensions.getDateTimeFromDateString
 import com.goodwy.commons.extensions.showErrorToast
 import com.goodwy.commons.extensions.toast
+import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.models.contacts.ContactRelation
 import com.goodwy.contacts.R
-import com.goodwy.contacts.extensions.getByteArray
 import com.goodwy.contacts.helpers.VcfExporter.ExportResult.EXPORT_FAIL
-import com.goodwy.contacts.models.Contact
 import ezvcard.Ezvcard
 import ezvcard.VCard
 import ezvcard.VCardVersion
 import ezvcard.parameter.ImageType
+import ezvcard.parameter.RelatedType
 import ezvcard.property.*
 import java.io.OutputStream
 import java.util.*
@@ -73,6 +75,9 @@ class VcfExporter {
                 contact.phoneNumbers.forEach {
                     val phoneNumber = Telephone(it.value)
                     phoneNumber.parameters.addType(getPhoneNumberTypeLabel(it.type, it.label))
+                    if (it.isPrimary) {
+                        phoneNumber.parameters.addType(getPreferredType(1))
+                    }
                     card.addTelephoneNumber(phoneNumber)
                 }
 
@@ -142,6 +147,79 @@ class VcfExporter {
                     card.addUrl(it)
                 }
 
+                contact.relations.forEach {
+                    val name = it.name.trim()
+                    if (name.isNotEmpty()) {
+                        val related = Related()
+                        related.text = name
+                        related.types.add (
+                            when (it.type) {
+                                // vCard 4.0 relation types are directly mapped to their related type
+                                ContactRelation.TYPE_CONTACT -> RelatedType.CONTACT
+                                ContactRelation.TYPE_ACQUAINTANCE ->  RelatedType.ACQUAINTANCE
+                                ContactRelation.TYPE_FRIEND ->  RelatedType.FRIEND
+                                ContactRelation.TYPE_MET ->  RelatedType.MET
+                                ContactRelation.TYPE_CO_WORKER ->  RelatedType.CO_WORKER
+                                ContactRelation.TYPE_COLLEAGUE ->  RelatedType.COLLEAGUE
+                                ContactRelation.TYPE_CO_RESIDENT ->  RelatedType.CO_RESIDENT
+                                ContactRelation.TYPE_NEIGHBOR ->  RelatedType.NEIGHBOR
+                                ContactRelation.TYPE_CHILD ->  RelatedType.CHILD
+                                ContactRelation.TYPE_PARENT ->  RelatedType.PARENT
+                                ContactRelation.TYPE_SIBLING ->  RelatedType.SIBLING
+                                ContactRelation.TYPE_SPOUSE ->  RelatedType.SPOUSE
+                                ContactRelation.TYPE_KIN ->  RelatedType.KIN
+                                ContactRelation.TYPE_MUSE ->  RelatedType.MUSE
+                                ContactRelation.TYPE_CRUSH ->  RelatedType.CRUSH
+                                ContactRelation.TYPE_DATE ->  RelatedType.DATE
+                                ContactRelation.TYPE_SWEETHEART ->  RelatedType.SWEETHEART
+                                ContactRelation.TYPE_ME ->  RelatedType.ME
+                                ContactRelation.TYPE_AGENT ->  RelatedType.AGENT
+                                ContactRelation.TYPE_EMERGENCY ->  RelatedType.EMERGENCY
+
+                                // Android relation types are mapped to a suitable substitute (with loss of precision!)
+                                ContactRelation.TYPE_ASSISTANT -> RelatedType.COLLEAGUE
+                                ContactRelation.TYPE_BROTHER -> RelatedType.SIBLING
+                                ContactRelation.TYPE_DOMESTIC_PARTNER -> RelatedType.FRIEND
+                                ContactRelation.TYPE_FATHER ->  RelatedType.PARENT
+                                ContactRelation.TYPE_MANAGER -> RelatedType.COLLEAGUE
+                                ContactRelation.TYPE_MOTHER ->  RelatedType.PARENT
+                                ContactRelation.TYPE_PARTNER -> RelatedType.FRIEND
+                                ContactRelation.TYPE_REFERRED_BY -> RelatedType.CONTACT
+                                ContactRelation.TYPE_RELATIVE -> RelatedType.KIN
+                                ContactRelation.TYPE_SISTER -> RelatedType.SIBLING
+
+                                // Custom relation types are mapped to a suitable substitute (with loss of precision!)
+                                ContactRelation.TYPE_SUPERIOR -> RelatedType.COLLEAGUE
+                                ContactRelation.TYPE_SUBORDINATE -> RelatedType.COLLEAGUE
+
+                                ContactRelation.TYPE_HUSBAND -> RelatedType.SPOUSE
+                                ContactRelation.TYPE_WIFE -> RelatedType.SPOUSE
+                                ContactRelation.TYPE_SON -> RelatedType.CHILD
+                                ContactRelation.TYPE_DAUGHTER -> RelatedType.CHILD
+                                ContactRelation.TYPE_GRANDPARENT -> RelatedType.KIN
+                                ContactRelation.TYPE_GRANDFATHER -> RelatedType.KIN
+                                ContactRelation.TYPE_GRANDMOTHER -> RelatedType.KIN
+                                ContactRelation.TYPE_GRANDCHILD -> RelatedType.KIN
+                                ContactRelation.TYPE_GRANDSON -> RelatedType.KIN
+                                ContactRelation.TYPE_GRANDDAUGHTER -> RelatedType.KIN
+                                ContactRelation.TYPE_UNCLE -> RelatedType.KIN
+                                ContactRelation.TYPE_AUNT -> RelatedType.KIN
+                                ContactRelation.TYPE_NEPHEW -> RelatedType.KIN
+                                ContactRelation.TYPE_NIECE -> RelatedType.KIN
+                                ContactRelation.TYPE_FATHER_IN_LAW -> RelatedType.KIN
+                                ContactRelation.TYPE_MOTHER_IN_LAW -> RelatedType.KIN
+                                ContactRelation.TYPE_SON_IN_LAW -> RelatedType.KIN
+                                ContactRelation.TYPE_DAUGHTER_IN_LAW -> RelatedType.KIN
+                                ContactRelation.TYPE_BROTHER_IN_LAW -> RelatedType.KIN
+                                ContactRelation.TYPE_SISTER_IN_LAW -> RelatedType.KIN
+                                else -> RelatedType.CONTACT
+                            }
+                        )
+                        card.addRelated(related)
+                    }
+                }
+
+
                 if (contact.thumbnailUri.isNotEmpty()) {
                     val photoByteArray = MediaStore.Images.Media.getBitmap(activity.contentResolver, Uri.parse(contact.thumbnailUri)).getByteArray()
                     val photo = Photo(photoByteArray, ImageType.JPEG)
@@ -179,7 +257,7 @@ class VcfExporter {
         Phone.TYPE_MOBILE -> CELL
         Phone.TYPE_HOME -> HOME
         Phone.TYPE_WORK -> WORK
-        Phone.TYPE_MAIN -> PREF
+        Phone.TYPE_MAIN -> MAIN
         Phone.TYPE_FAX_WORK -> WORK_FAX
         Phone.TYPE_FAX_HOME -> HOME_FAX
         Phone.TYPE_PAGER -> PAGER
@@ -188,10 +266,10 @@ class VcfExporter {
     }
 
     private fun getEmailTypeLabel(type: Int, label: String) = when (type) {
-        CommonDataKinds.Email.TYPE_HOME -> HOME
-        CommonDataKinds.Email.TYPE_WORK -> WORK
-        CommonDataKinds.Email.TYPE_MOBILE -> MOBILE
-        CommonDataKinds.Email.TYPE_OTHER -> OTHER
+        Email.TYPE_HOME -> HOME
+        Email.TYPE_WORK -> WORK
+        Email.TYPE_MOBILE -> MOBILE
+        Email.TYPE_OTHER -> OTHER
         else -> label
     }
 
@@ -201,4 +279,6 @@ class VcfExporter {
         StructuredPostal.TYPE_OTHER -> OTHER
         else -> label
     }
+
+    private fun getPreferredType(value: Int) = "$PREF=$value"
 }

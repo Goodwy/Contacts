@@ -3,15 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Действия в мессенджерах</string>
 
     <!-- Settings -->
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer</string>
+    <string name="show_private_contacts_g">Показывать личные контакты в Right Dialer и Right Messages</string>
 
-    <string name="recommendation_dialog_contacts_g">
-        <![CDATA[
-            Hey,<br><br>
-            if you like this app then we recommend you to install our call making app.<br><br>
-            Thanks
-        ]]></string>
 </resources>

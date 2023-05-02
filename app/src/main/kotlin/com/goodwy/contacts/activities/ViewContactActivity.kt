@@ -30,12 +30,12 @@ import com.goodwy.commons.dialogs.SelectAlarmSoundDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.PhoneNumber
+import com.goodwy.commons.models.contacts.*
 import com.goodwy.contacts.R
 import com.goodwy.contacts.dialogs.ChooseSocialDialog
 import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.*
-import com.goodwy.contacts.models.*
 import kotlinx.android.synthetic.main.activity_view_contact.*
 import kotlinx.android.synthetic.main.item_view_address.view.*
 import kotlinx.android.synthetic.main.item_view_contact_source.view.*
@@ -47,6 +47,7 @@ import kotlinx.android.synthetic.main.item_view_im.view.*
 import kotlinx.android.synthetic.main.item_view_messengers_actions.view.*
 import kotlinx.android.synthetic.main.item_view_note.view.*
 import kotlinx.android.synthetic.main.item_view_phone_number.view.*
+import kotlinx.android.synthetic.main.item_view_relation.view.*
 import kotlinx.android.synthetic.main.item_website.view.*
 import kotlinx.android.synthetic.main.top_view.*
 
@@ -71,6 +72,12 @@ class ViewContactActivity : ContactActivity() {
 
         if (checkAppSideloading()) {
             return
+        }
+
+        updateMaterialActivityViews(contact_wrapper, contact_holder, useTransparentNavigation = false, useTopSearchMenu = false)
+        setWindowTransparency(true) { _, _, leftNavigationBarSize, rightNavigationBarSize ->
+            contact_wrapper.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
+            updateNavigationBarColor(getProperBackgroundColor())
         }
 
         showFields = config.showContactFields
@@ -110,7 +117,7 @@ class ViewContactActivity : ContactActivity() {
             window.navigationBarColor = 0xFFf2f2f6.toInt()
         } else window.decorView.setBackgroundColor(color)
 
-        if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+        if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
             contact_send_sms.background = whiteButton
             contact_start_call.background = whiteButton
             contact_video_call.background = whiteButton
@@ -124,7 +131,7 @@ class ViewContactActivity : ContactActivity() {
             contact_send_email.setPadding(paddingLeftRight, paddingTop ,paddingLeftRight ,paddingBottom)
         } else window.decorView.setBackgroundColor(color)
 
-        var drawableSMS = resources.getDrawable(R.drawable.ic_sms_vector)
+        var drawableSMS = resources.getDrawable(R.drawable.ic_messages)
         drawableSMS = DrawableCompat.wrap(drawableSMS!!)
         DrawableCompat.setTint(drawableSMS, getProperPrimaryColor())
         DrawableCompat.setTintMode(drawableSMS, PorterDuff.Mode.SRC_IN)
@@ -367,6 +374,7 @@ class ViewContactActivity : ContactActivity() {
         setupAddresses()
         setupIMs()
         setupEvents()
+        setupRelations()
         setupWebsites()
         setupGroups()
         setupContactSources()
@@ -453,7 +461,7 @@ class ViewContactActivity : ContactActivity() {
             val duplicateContactsDefaultNumbers = duplicateContacts.flatMap { it.phoneNumbers }.filter { it.isPrimary }
             val defaultNumbers = (contactDefaultsNumbers + duplicateContactsDefaultNumbers).toSet()
 
-            if (defaultNumbers.size > 1) {
+            if (defaultNumbers.size > 1 && defaultNumbers.distinctBy { it.normalizedNumber }.size > 1) {
                 phoneNumbers.forEach { it.isPrimary = false }
             } else if (defaultNumbers.size == 1) {
                 if (mergeDuplicate) {
@@ -503,7 +511,7 @@ class ViewContactActivity : ContactActivity() {
                     }
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_numbers_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_numbers_holder.setPadding(padding, padding ,padding ,padding)
@@ -553,7 +561,7 @@ class ViewContactActivity : ContactActivity() {
                     contact_messengers_actions_holder.addView(this)
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_messengers_actions_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_messengers_actions_holder.setPadding(padding, padding ,padding ,padding)
@@ -814,8 +822,8 @@ class ViewContactActivity : ContactActivity() {
         //contact_send_email.isEnabled = contact!!.emails.isNotEmpty()
         contact_send_email.alpha = if (contact!!.emails.isNotEmpty()) 1f else 0.5f
 
-        if (contact!!.phoneNumbers.isNotEmpty()) contact_send_sms.setOnClickListener { trySendSMS() }
-        if (contact!!.phoneNumbers.isNotEmpty()) contact_start_call.setOnClickListener { tryStartCall(contact!!) }
+        if (contact!!.phoneNumbers.isNotEmpty()) contact_send_sms.setOnClickListener { trySendSMSRecommendation() }
+        if (contact!!.phoneNumbers.isNotEmpty()) contact_start_call.setOnClickListener { tryStartCallRecommendation(contact!!) }
         if (videoActions.isNotEmpty()) contact_video_call.setOnClickListener { showVideoCallAction(videoActions) }
         if (contact!!.emails.isNotEmpty()) contact_send_email.setOnClickListener { trySendEmail() }
 
@@ -845,7 +853,7 @@ class ViewContactActivity : ContactActivity() {
                     }
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_emails_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_emails_holder.setPadding(padding, padding ,padding ,padding)
@@ -861,6 +869,51 @@ class ViewContactActivity : ContactActivity() {
             contact_emails_holder.beVisible()
         } else {
             contact_emails_holder.beGone()
+        }
+    }
+
+    private fun setupRelations() {
+        var relations: ArrayList<ContactRelation> = contact!!.relations
+
+        if (mergeDuplicate) {
+            duplicateContacts.forEach {
+                relations.addAll(it.relations)
+            }
+        }
+
+        relations.sortBy { it.type }
+        fullContact!!.relations = relations
+
+        contact_relations_holder.removeAllViews()
+
+        if (relations.isNotEmpty() && showFields and SHOW_RELATIONS_FIELD != 0) {
+            val isFirstItem = relations.first()
+            val isLastItem = relations.last()
+            relations.forEach {
+                layoutInflater.inflate(R.layout.item_view_relation, contact_relations_holder, false).apply {
+                    val relation = it
+                    contact_relations_holder.addView(this)
+                    contact_relation.text = relation.name
+                    contact_relation_type.text = getRelationTypeText(relation.type, relation.label)
+                    copyOnLongClick(relation.name)
+
+                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
+                        contact_relations_holder.background = whiteButton
+                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
+                        contact_relations_holder.setPadding(padding, padding ,padding ,padding)
+                    }
+
+                    contact_relation_holder.contact_relation_icon.isVisible = isFirstItem == relation
+                    contact_relation_holder.contact_relation_icon.setColorFilter(getProperTextColor())
+                    contact_relation_holder.divider_contact_relation.setBackgroundColor(getProperTextColor())
+                    contact_relation_holder.divider_contact_relation.isGone = isLastItem == relation
+                    contact_relation_holder.contact_relation.setTextColor(getProperPrimaryColor())
+                }
+            }
+            contact_relations_holder.beVisible()
+        } else {
+            contact_relations_holder.beGone()
         }
     }
 
@@ -893,7 +946,7 @@ class ViewContactActivity : ContactActivity() {
                     }
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_addresses_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_addresses_holder.setPadding(padding, padding ,padding ,padding)
@@ -937,7 +990,7 @@ class ViewContactActivity : ContactActivity() {
                     copyOnLongClick(IM.value)
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_ims_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_ims_holder.setPadding(padding, padding ,padding ,padding)
@@ -981,7 +1034,7 @@ class ViewContactActivity : ContactActivity() {
                     copyOnLongClick(it.value)
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_events_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_events_holder.setPadding(padding, padding ,padding ,padding)
@@ -1034,7 +1087,7 @@ class ViewContactActivity : ContactActivity() {
                     }
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_websites_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_websites_holder.setPadding(padding, padding ,padding ,padding)
@@ -1080,7 +1133,7 @@ class ViewContactActivity : ContactActivity() {
                     copyOnLongClick(group.title)
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_groups_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_groups_holder.setPadding(padding, padding ,padding ,padding)
@@ -1133,7 +1186,7 @@ class ViewContactActivity : ContactActivity() {
                     }
 
                     val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                         contact_sources_holder.background = whiteButton
                         val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                         contact_sources_holder.setPadding(padding, padding ,padding ,padding)
@@ -1205,7 +1258,7 @@ class ViewContactActivity : ContactActivity() {
                 copyOnLongClick(notes)
 
                 val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                     contact_notes.background = whiteButton
                     val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                     contact_notes.setPadding(padding, padding ,padding ,padding)
@@ -1222,7 +1275,7 @@ class ViewContactActivity : ContactActivity() {
             contact_ringtone_holder.beVisible()
 
             val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-            if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+            if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
                 contact_ringtone_holder.background = whiteButton
                 val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
                 contact_ringtone_holder.setPadding(padding, padding ,padding ,padding)

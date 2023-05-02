@@ -4,10 +4,8 @@
     <dimen name="contact_photo_big_size">132dp</dimen>
     <dimen name="contact_actions_size">32dp</dimen>
     <dimen name="contact_icons_size">40dp</dimen>
-    <dimen name="dialpad_button_size">60dp</dimen>
     <dimen name="top_contact_image_height">300dp</dimen>
     <dimen name="notes_padding_top">8dp</dimen>
-    <dimen name="notes_padding_left">20dp</dimen>
     <dimen name="contact_padding_top">4dp</dimen>
     <dimen name="contact_padding_left">16dp</dimen>
 
@@ -20,9 +18,11 @@
     <!--collapsing toolbar-->
     <dimen name="toolbar_height">102dp</dimen>
     <dimen name="image_top_margin">24dp</dimen>
-    <dimen name="image_right_margin">20dp</dimen>
+    <dimen name="image_right_margin">22dp</dimen>
     <dimen name="image_edit_right_margin">32dp</dimen>
     <dimen name="name_top_margin">12dp</dimen>
     <dimen name="name_right_margin">38dp</dimen>
     <dimen name="zero">0dp</dimen>
+
+    <dimen name="top_toolbar_search_height">48dp</dimen>
 </resources>

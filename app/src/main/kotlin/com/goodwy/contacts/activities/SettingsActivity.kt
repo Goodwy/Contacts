@@ -3,9 +3,12 @@ package com.goodwy.contacts.activities
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import com.goodwy.commons.activities.FAQActivity
+import com.goodwy.commons.dialogs.BottomSheetChooserDialog
 import com.goodwy.commons.dialogs.FilePickerDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.dialogs.SettingsIconDialog
@@ -13,6 +16,8 @@ import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.FAQItem
 import com.goodwy.commons.models.RadioItem
+import com.goodwy.commons.models.SimpleListItem
+import com.goodwy.contacts.App.Companion.isPlayStoreInstalled
 import com.goodwy.contacts.App.Companion.isProVersion
 import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
@@ -21,12 +26,13 @@ import com.goodwy.contacts.dialogs.ImportContactsDialog
 import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.dialogs.ManageVisibleTabsDialog
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.extensions.getTempFile
 import com.goodwy.contacts.helpers.*
+import com.goodwy.contacts.helpers.VcfExporter
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.util.*
+import kotlin.system.exitProcess
 
 class SettingsActivity : SimpleActivity() {
 
@@ -36,8 +42,19 @@ class SettingsActivity : SimpleActivity() {
     private var ignoredExportContactSources = HashSet<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        isMaterialActivity = true
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        updateMaterialActivityViews(settings_coordinator, settings_holder, useTransparentNavigation = false, useTopSearchMenu = false)
+        setupMaterialScrollListener(settings_nested_scrollview, settings_toolbar)
+        // TODO TRANSPARENT Navigation Bar
+        if (config.transparentNavigationBar) {
+            setWindowTransparency(true) { _, bottomNavigationBarSize, leftNavigationBarSize, rightNavigationBarSize ->
+                settings_coordinator.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
+                updateNavigationBarColor(getProperBackgroundColor())
+            }
+        }
     }
 
     override fun onResume() {
@@ -45,22 +62,29 @@ class SettingsActivity : SimpleActivity() {
         setupToolbar(settings_toolbar, NavigationIcon.Arrow)
 
         setupPurchaseThankYou()
+
         setupCustomizeColors()
-        setupDefaultTab()
-        setupManageShownTabs()
-        setupBottomNavigationBar()
-        setupScreenSlideAnimation()
-        setupUseIconTabs()
-        setupUseColoredContacts()
         setupShowDialpadButton()
         setupMaterialDesign3()
         setupSettingsIcon()
+        setupUseColoredContacts()
+
+        setupDefaultTab()
+        setupManageShownTabs()
+        //setupBottomNavigationBar()
+        setupNavigationBarStyle()
+        setupUseIconTabs()
+        setupScreenSlideAnimation()
+        setupOpenSearch()
 
         setupImportContacts()
         setupExportContacts()
         setupManageShownContactFields()
         setupMergeDuplicateContacts()
         setupShowCallConfirmation()
+        setupShowPrivateContacts()
+        setupOnContactClick()
+        setupShowContactsWithNumbers()
         setupFontSize()
         setupUseEnglish()
         setupLanguage()
@@ -68,34 +92,46 @@ class SettingsActivity : SimpleActivity() {
         setupShowDividers()
         setupShowContactThumbnails()
         setupShowPhoneNumbers()
-        setupShowContactsWithNumbers()
         setupStartNameWithSurname()
-        setupShowPrivateContacts()
-        setupOnContactClick()
 
         setupTipJar()
         setupAbout()
         updateTextColors(settings_holder)
 
-        arrayOf(divider_general, divider_list_view, divider_other).forEach {
-            it.setBackgroundColor(getProperTextColor())
-        }
-        arrayOf(settings_appearance_label, settings_general_label, settings_list_view_label, settings_other_label).forEach {
+        arrayOf(
+            settings_appearance_label,
+            settings_tabs_label,
+            settings_general_label,
+            settings_list_view_label,
+            settings_other_label).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
 
-        /*arrayOf(
+        arrayOf(
             settings_color_customization_holder,
-            settings_general_settings_holder,
-            settings_main_screen_holder,
-            settings_list_view_holder
+            settings_tabs_holder,
+            settings_general_holder,
+            settings_list_view_holder,
+            settings_other_holder
         ).forEach {
-            it.background.applyColorFilter(getProperBackgroundColor().getContrastColor())
-        }*/
+            it.background.applyColorFilter(getBottomNavigationBackgroundColor())
+        }
+
+        arrayOf(
+            settings_customize_colors_chevron,
+            settings_manage_shown_tabs_chevron,
+            settings_import_contacts_chevron,
+            settings_export_contacts_chevron,
+            settings_manage_contact_fields_chevron,
+            settings_tip_jar_chevron,
+            settings_about_chevron
+        ).forEach {
+            it.applyColorFilter(getProperTextColor())
+        }
     }
 
     private fun setupPurchaseThankYou() {
-        settings_purchase_thank_you_holder.beGoneIf(/*isOrWasThankYouInstalled() || */isProVersion())
+        settings_purchase_thank_you_holder.beGoneIf(isProVersion() || config.isPro)
         settings_purchase_thank_you_holder.setOnClickListener {
             launchPurchase() //launchPurchaseThankYouIntent()
         }
@@ -111,19 +147,13 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupCustomizeColors() {
-        settings_customize_colors_chevron.applyColorFilter(getProperTextColor())
-        settings_customize_colors_label.text = if (isOrWasThankYouInstalled() || isProVersion()) {
+        settings_customize_colors_label.text = if (isProVersion() || config.isPro) {
             getString(R.string.customize_colors)
         } else {
             getString(R.string.customize_colors_locked)
         }
         settings_customize_colors_holder.setOnClickListener {
-            //handleCustomizeColorsClick()
-            if (isOrWasThankYouInstalled() || isProVersion()) {
-                startCustomizationActivity(false)
-            } else {
-                launchPurchase()
-            }
+            startCustomizationActivity(false, isProVersion() || config.isPro, BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3, playStoreInstalled = isPlayStoreInstalled())
         }
     }
 
@@ -154,6 +184,14 @@ class SettingsActivity : SimpleActivity() {
                 config.tabsChanged = true
                 settings_screen_slide_animation.text = getScreenSlideAnimationText()
             }
+        }
+    }
+
+    private fun setupOpenSearch() {
+        settings_open_search.isChecked = config.openSearch
+        settings_open_search_holder.setOnClickListener {
+            settings_open_search.toggle()
+            config.openSearch = settings_open_search.isChecked
         }
     }
 
@@ -191,6 +229,28 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    private fun setupNavigationBarStyle() {
+        settings_navigation_bar_style.text = getNavigationBarStyleText()
+        settings_navigation_bar_style_holder.setOnClickListener {
+            launchNavigationBarStyleDialog()
+        }
+    }
+
+    private fun launchNavigationBarStyleDialog() {
+        BottomSheetChooserDialog.createChooser(
+            fragmentManager = supportFragmentManager,
+            title = R.string.tab_navigation,
+            items = arrayOf(
+                SimpleListItem(0, R.string.top, R.drawable.ic_tab_top, selected = !config.bottomNavigationBar),
+                SimpleListItem(1, R.string.bottom, R.drawable.ic_tab_bottom, selected = config.bottomNavigationBar)
+            )
+        ) {
+            config.bottomNavigationBar = it.id == 1
+            config.tabsChanged = true
+            settings_navigation_bar_style.text = getNavigationBarStyleText()
+        }
+    }
+
     private fun setupFontSize() {
         settings_font_size.text = getFontSizeText()
         settings_font_size_holder.setOnClickListener {
@@ -215,7 +275,7 @@ class SettingsActivity : SimpleActivity() {
         settings_use_english_holder.setOnClickListener {
             settings_use_english.toggle()
             config.useEnglish = settings_use_english.isChecked
-            System.exit(0)
+            exitProcess(0)
         }
     }
 
@@ -276,6 +336,14 @@ class SettingsActivity : SimpleActivity() {
         settings_show_private_contacts_holder.setOnClickListener {
             settings_show_private_contacts.toggle()
             config.showPrivateContacts = settings_show_private_contacts.isChecked
+        }
+        settings_show_private_contacts_faq.imageTintList = ColorStateList.valueOf(getProperTextColor())
+        val faqItems = arrayListOf(
+            FAQItem(R.string.faq_100_title_commons_g, R.string.faq_100_text_commons_g),
+            FAQItem(R.string.faq_101_title_commons_g, R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
+        )
+        settings_show_private_contacts_faq.setOnClickListener {
+            openFAQ(faqItems)
         }
     }
 
@@ -501,7 +569,7 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupTipJar() {
-        settings_tip_jar_holder.beVisibleIf(isOrWasThankYouInstalled() || isProVersion())
+        settings_tip_jar_holder.beVisibleIf(isProVersion() || config.isPro)
         settings_tip_jar_chevron.applyColorFilter(getProperTextColor())
         settings_tip_jar_holder.setOnClickListener {
             launchPurchase()
@@ -528,10 +596,19 @@ class SettingsActivity : SimpleActivity() {
         )
 
         startAboutActivity(R.string.app_name_g, licenses, BuildConfig.VERSION_NAME, faqItems, true,
-            BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3)
+            BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3, playStoreInstalled = isPlayStoreInstalled())
     }
 
     private fun launchPurchase() {
-        startPurchaseActivity(R.string.app_name_g, BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3, showLifebuoy = true)
+        startPurchaseActivity(R.string.app_name_g, BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3, playStoreInstalled = isPlayStoreInstalled())
+    }
+
+    private fun openFAQ(faqItems: ArrayList<FAQItem>) {
+        Intent(applicationContext, FAQActivity::class.java).apply {
+            putExtra(APP_ICON_IDS, getAppIconIDs())
+            putExtra(APP_LAUNCHER_NAME, getAppLauncherName())
+            putExtra(APP_FAQ, faqItems)
+            startActivity(this)
+        }
     }
 }

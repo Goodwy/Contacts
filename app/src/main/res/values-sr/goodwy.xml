@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name_g">Right Contacts</string>
+
+    <!-- Visible fields -->
+    <string name="messengers_actions_g">Messengers actions</string>
+
+    <!-- Settings -->
+    <string name="show_private_contacts_g">Прикажите приватне контакте за Right Dialer и Right Messages</string>
+</resources>

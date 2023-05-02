@@ -6,10 +6,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <com.goodwy.commons.views.MySearchMenu
+        android:id="@+id/main_menu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/main_app_bar_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:visibility="gone">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/main_toolbar"
@@ -26,7 +32,9 @@
         android:id="@+id/main_holder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:layout_marginTop="150dp"
+        android:fillViewport="true"
+        android:scrollbars="none">
 
         <RelativeLayout
             android:id="@+id/main_top_tabs_container"
@@ -88,14 +96,15 @@
 
         <com.goodwy.commons.views.MyFloatingActionButton
             android:id="@+id/main_dialpad_button"
+            style="?attr/floatingActionButtonSmallStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_marginEnd="@dimen/bigger_margin"
+            android:layout_marginEnd="@dimen/big_margin"
             android:layout_marginBottom="@dimen/activity_margin"
             android:contentDescription="@string/dialpad"
             android:elevation="@dimen/medium_margin"
-            android:padding="@dimen/activity_margin"
+            android:padding="@dimen/medium_margin"
             android:src="@drawable/ic_dialpad_vector"
             app:backgroundTint="@color/color_primary"
             app:layout_constraintBottom_toTopOf="@+id/main_add_button"

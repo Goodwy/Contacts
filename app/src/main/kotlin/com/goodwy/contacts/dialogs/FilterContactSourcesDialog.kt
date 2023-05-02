@@ -3,15 +3,14 @@ package com.goodwy.contacts.dialogs
 import androidx.appcompat.app.AlertDialog
 import com.goodwy.commons.extensions.getAlertDialogBuilder
 import com.goodwy.commons.extensions.setupDialogStuff
+import com.goodwy.commons.helpers.SMT_PRIVATE
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.adapters.FilterContactSourcesAdapter
+import com.goodwy.commons.extensions.getVisibleContactSources
+import com.goodwy.commons.helpers.ContactsHelper
+import com.goodwy.commons.models.contacts.*
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.extensions.getVisibleContactSources
-import com.goodwy.contacts.helpers.ContactsHelper
-import com.goodwy.contacts.helpers.SMT_PRIVATE
-import com.goodwy.contacts.models.Contact
-import com.goodwy.contacts.models.ContactSource
 import kotlinx.android.synthetic.main.dialog_filter_contact_sources.view.*
 
 class FilterContactSourcesDialog(val activity: SimpleActivity, private val callback: () -> Unit) {

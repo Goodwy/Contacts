@@ -7,9 +7,7 @@ import android.view.ViewGroup
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.goodwy.commons.adapters.MyRecyclerViewAdapter
 import com.goodwy.commons.dialogs.ConfirmationDialog
-import com.goodwy.commons.extensions.beVisibleIf
-import com.goodwy.commons.extensions.getTextSize
-import com.goodwy.commons.extensions.highlightTextPart
+import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.SimpleContactsHelper
 import com.goodwy.commons.helpers.TAB_GROUPS
 import com.goodwy.commons.helpers.ensureBackgroundThread
@@ -17,11 +15,10 @@ import com.goodwy.commons.views.MyRecyclerView
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.dialogs.RenameGroupDialog
+import com.goodwy.commons.helpers.ContactsHelper
+import com.goodwy.commons.models.contacts.Group
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.extensions.groupsDB
-import com.goodwy.contacts.helpers.ContactsHelper
 import com.goodwy.contacts.interfaces.RefreshContactsListener
-import com.goodwy.contacts.models.Group
 import kotlinx.android.synthetic.main.item_group.view.*
 import java.util.*
 
