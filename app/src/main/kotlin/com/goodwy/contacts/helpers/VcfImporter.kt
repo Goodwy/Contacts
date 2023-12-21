@@ -7,16 +7,16 @@ import android.provider.ContactsContract.CommonDataKinds.Im
 import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
 import android.widget.Toast
+import com.goodwy.commons.extensions.getCachePhoto
 import com.goodwy.commons.extensions.groupsDB
 import com.goodwy.commons.extensions.normalizePhoneNumber
 import com.goodwy.commons.extensions.showErrorToast
-import com.goodwy.commons.extensions.getCachePhoto
-import com.goodwy.contacts.extensions.getCachePhotoUri
 import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.DEFAULT_MIMETYPE
 import com.goodwy.commons.models.PhoneNumber
 import com.goodwy.commons.models.contacts.*
 import com.goodwy.contacts.activities.SimpleActivity
+import com.goodwy.contacts.extensions.getCachePhotoUri
 import com.goodwy.contacts.helpers.VcfImporter.ImportResult.IMPORT_FAIL
 import com.goodwy.contacts.helpers.VcfImporter.ImportResult.IMPORT_OK
 import com.goodwy.contacts.helpers.VcfImporter.ImportResult.IMPORT_PARTIAL
@@ -27,7 +27,7 @@ import ezvcard.util.PartialDate
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URLDecoder
-import java.util.*
+import java.util.Date
 
 class VcfImporter(val activity: SimpleActivity) {
     enum class ImportResult {
@@ -271,6 +271,7 @@ class VcfImporter(val activity: SimpleActivity) {
                 Phone.TYPE_HOME
             }
         }
+
         WORK -> {
             if (subtype?.toUpperCase() == FAX) {
                 Phone.TYPE_FAX_WORK
@@ -278,6 +279,7 @@ class VcfImporter(val activity: SimpleActivity) {
                 Phone.TYPE_WORK
             }
         }
+
         MAIN -> Phone.TYPE_MAIN
         WORK_FAX -> Phone.TYPE_FAX_WORK
         HOME_FAX -> Phone.TYPE_FAX_HOME

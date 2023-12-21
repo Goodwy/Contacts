@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.goodwy.contacts"
     android:installLocation="auto">
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -24,10 +27,15 @@
         <package android:name="com.goodwy.dialer" />
         <package android:name="com.goodwy.contacts.debug" />
         <package android:name="com.goodwy.contacts" />
-        <package android:name="com.goodwy.contacts.debug" />
-        <package android:name="com.goodwy.contacts" />
         <package android:name="com.goodwy.smsmessenger.debug" />
         <package android:name="com.goodwy.smsmessenger" />
+        <package android:name="com.goodwy.voicerecorder.debug" />
+        <package android:name="com.goodwy.voicerecorder" />
+        <package android:name="com.goodwy.gallery.debug" />
+        <package android:name="com.goodwy.gallery" />
+        <package android:name="com.goodwy.filemanager.debug" />
+        <package android:name="com.goodwy.filemanager" />
+        <package android:name="com.goodwy.audiobooklite" />
     </queries>
 
     <uses-feature
@@ -40,6 +48,7 @@
         android:appCategory="social"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_launcher_name"
+        android:localeConfig="@xml/locale_config"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -126,7 +135,8 @@
             android:configChanges="orientation"
             android:exported="true"
             android:parentActivityName=".activities.MainActivity"
-            android:theme="@style/TranslucentTheme">
+            android:theme="@style/TranslucentTheme"
+            android:windowSoftInputMode="adjustResize">
 
             <intent-filter>
                 <action android:name="android.intent.action.EDIT" />
@@ -217,6 +227,22 @@
             android:exported="false"
             android:label="@string/customize_colors"
             android:parentActivityName=".activities.SettingsActivity" />
+
+        <receiver
+            android:name=".receivers.BootCompletedReceiver"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receivers.AutomaticBackupReceiver"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

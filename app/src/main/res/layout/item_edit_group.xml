@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <com.goodwy.commons.views.MyTextView
-        android:id="@+id/contact_group"
+    <TextView
+        android:id="@+id/contactGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
@@ -61,6 +61,6 @@
         android:layout_marginEnd="@dimen/contact_padding_left"
         android:background="@drawable/divider_settings"
         android:alpha="0.2"
-        android:layout_below="@+id/contact_group"/>
+        android:layout_below="@+id/contactGroup"/>
 
 </RelativeLayout>

@@ -9,14 +9,14 @@ import android.os.Bundle
 import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds.Email
 import android.provider.ContactsContract.CommonDataKinds.Phone
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.viewpager.widget.ViewPager
+import com.goodwy.commons.databinding.BottomTablayoutItemBinding
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
-import com.goodwy.commons.models.contacts.*
+import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.R
 import com.goodwy.contacts.adapters.ViewPagerAdapter
+import com.goodwy.contacts.databinding.ActivityInsertEditContactBinding
 import com.goodwy.contacts.dialogs.ChangeSortingDialog
 import com.goodwy.contacts.dialogs.FilterContactSourcesDialog
 import com.goodwy.contacts.extensions.config
@@ -25,16 +25,16 @@ import com.goodwy.contacts.helpers.ADD_NEW_CONTACT_NUMBER
 import com.goodwy.contacts.helpers.KEY_EMAIL
 import com.goodwy.contacts.helpers.KEY_NAME
 import com.goodwy.contacts.interfaces.RefreshContactsListener
-import kotlinx.android.synthetic.main.activity_insert_edit_contact.*
-import kotlinx.android.synthetic.main.fragment_contacts.*
-import kotlinx.android.synthetic.main.fragment_favorites.*
 
 class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
-    private val START_INSERT_ACTIVITY = 1
-    private val START_EDIT_ACTIVITY = 2
+    companion object {
+        private const val START_INSERT_ACTIVITY = 1
+        private const val START_EDIT_ACTIVITY = 2
+    }
 
     private var isSelectContactIntent = false
     private var specialMimeType: String? = null
+    private val binding by viewBinding(ActivityInsertEditContactBinding::inflate)
 
     private val contactsFavoritesList = arrayListOf(
         TAB_FAVORITES,
@@ -43,10 +43,10 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_insert_edit_contact)
+        setContentView(binding.root)
         setupOptionsMenu()
         isSelectContactIntent = intent.action == Intent.ACTION_PICK
-        updateMaterialActivityViews(insert_edit_coordinator, insert_edit_contact_holder, useTransparentNavigation = false, useTopSearchMenu = true)
+        updateMaterialActivityViews(binding.insertEditCoordinator, binding.insertEditContactHolder, useTransparentNavigation = false, useTopSearchMenu = true)
 
         if (isSelectContactIntent) {
             specialMimeType = when (intent.data) {
@@ -56,8 +56,8 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
             }
         }
 
-        new_contact_holder.beGoneIf(isSelectContactIntent)
-        //select_contact_label.beGoneIf(isSelectContactIntent)
+        binding.newContactHolder.beGoneIf(isSelectContactIntent)
+        //binding.selectContactLabel.beGoneIf(isSelectContactIntent)
 
         if (checkAppSideloading()) {
             return
@@ -66,7 +66,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
         setupTabs()
 
         //val phoneNumber = getPhoneNumberFromIntent(intent) ?: ""
-        insert_edit_menu.updateTitle(getString(R.string.add_number))
+        binding.insertEditMenu.updateTitle(getString(com.goodwy.commons.R.string.add_number))
 
         // we do not really care about the permission request result. Even if it was denied, load private contacts
         handlePermission(PERMISSION_READ_CONTACTS) {
@@ -89,21 +89,21 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
     }
 
     private fun setupOptionsMenu() {
-        insert_edit_menu.getToolbar().inflateMenu(R.menu.menu_insert_or_edit)
-        insert_edit_menu.toggleHideOnScroll(false)
-        insert_edit_menu.setupMenu()
+        binding.insertEditMenu.getToolbar().inflateMenu(R.menu.menu_insert_or_edit)
+        binding.insertEditMenu.toggleHideOnScroll(false)
+        binding.insertEditMenu.setupMenu()
 
-        insert_edit_menu.onSearchClosedListener = {
+        binding.insertEditMenu.onSearchClosedListener = {
             getAllFragments().forEach {
-                it?.onSearchClosed()
+                it.onSearchClosed()
             }
         }
 
-        insert_edit_menu.onSearchTextChangedListener = { text ->
+        binding.insertEditMenu.onSearchTextChangedListener = { text ->
             getCurrentFragment()?.onSearchQueryChanged(text)
         }
 
-        insert_edit_menu.getToolbar().setOnMenuItemClickListener { menuItem ->
+        binding.insertEditMenu.getToolbar().setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.sort -> showSortingDialog()
                 R.id.filter -> showFilterDialog()
@@ -115,7 +115,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
 
     private fun updateMenuColors() {
         updateStatusbarColor(getProperBackgroundColor())
-        insert_edit_menu.updateColors()
+        binding.insertEditMenu.updateColors()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
@@ -127,101 +127,117 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
     }
 
     override fun onBackPressed() {
-        if (insert_edit_menu.isSearchOpen) {
-            insert_edit_menu.closeSearch()
+        if (binding.insertEditMenu.isSearchOpen) {
+            binding.insertEditMenu.closeSearch()
         } else {
             super.onBackPressed()
         }
     }
 
     private fun initFragments() {
-        view_pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+        binding.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {}
 
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
 
             override fun onPageSelected(position: Int) {
-                insert_edit_tabs_holder.getTabAt(position)?.select()
+                binding.insertEditTabsHolder.getTabAt(position)?.select()
                 getAllFragments().forEach {
-                    it?.finishActMode()
+                    it.finishActMode()
                 }
             }
         })
 
-        view_pager.onGlobalLayout {
+        binding.viewPager.onGlobalLayout {
             refreshContacts(getTabsMask())
         }
 
-        select_contact_label?.setTextColor(getProperPrimaryColor())
-        //new_contact_tmb?.setImageDrawable(resources.getColoredDrawableWithColor(R.drawable.ic_add_person_vector, getProperTextColor()))
+        binding.selectContactLabel.setTextColor(getProperPrimaryColor())
+//        binding.newContactTmb.setImageDrawable(
+//            resources.getColoredDrawableWithColor(
+//                com.goodwy.commons.R.drawable.ic_add_person_vector,
+//                getProperTextColor()
+//            )
+//        )
         val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon("+"))
-        new_contact_tmb?.setImageDrawable(placeholderImage)
-        new_contact_name.setTextColor(getProperTextColor())
-        new_contact_holder?.setOnClickListener {
+        binding.newContactTmb.setImageDrawable(placeholderImage)
+        binding.newContactName.setTextColor(getProperTextColor())
+        binding.newContactHolder.setOnClickListener {
             createNewContact()
         }
     }
 
     private fun setupTabs() {
-        insert_edit_tabs_holder.removeAllTabs()
+        binding.insertEditTabsHolder.removeAllTabs()
         contactsFavoritesList.forEachIndexed { index, value ->
             if (config.showTabs and value != 0) {
-                insert_edit_tabs_holder.newTab().setCustomView(R.layout.bottom_tablayout_item).apply {
-                    customView?.findViewById<ImageView>(R.id.tab_item_icon)?.setImageDrawable(getTabIcon(index))
-                    customView?.findViewById<TextView>(R.id.tab_item_label)?.text = getTabLabel(index)
-                    insert_edit_tabs_holder.addTab(this)
+                binding.insertEditTabsHolder.newTab().setCustomView(com.goodwy.commons.R.layout.bottom_tablayout_item).apply tab@{
+                    customView?.let {
+                        BottomTablayoutItemBinding.bind(it)
+                    }?.apply {
+                        tabItemIcon.setImageDrawable(getTabIcon(index))
+                        tabItemLabel.text = getTabLabel(index)
+                        binding.insertEditTabsHolder.addTab(this@tab)
+                    }
                 }
             }
         }
 
-        insert_edit_tabs_holder.onTabSelectionChanged(
+        binding.insertEditTabsHolder.onTabSelectionChanged(
             tabUnselectedAction = {
-                updateBottomTabItemColors(it.customView, false, getSelectedTabDrawableIds()[it.position])
+                updateBottomTabItemColors(it.customView, false, getDeselectedTabDrawableIds()[it.position])
             },
             tabSelectedAction = {
-                insert_edit_menu.closeSearch()
-                view_pager.currentItem = it.position
+                binding.insertEditMenu.closeSearch()
+                binding.viewPager.currentItem = it.position
                 updateBottomTabItemColors(it.customView, true, getSelectedTabDrawableIds()[it.position])
             }
         )
 
-        insert_edit_tabs_holder.beGoneIf(insert_edit_tabs_holder.tabCount == 1)
+        binding.insertEditTabsHolder.beGoneIf(binding.insertEditTabsHolder.tabCount == 1)
     }
 
-    private fun getCurrentFragment(): MyViewPagerFragment? {
-        return if (view_pager.currentItem == 0) {
-            contacts_fragment
+    private fun getCurrentFragment(): MyViewPagerFragment<*>? {
+        return if (binding.viewPager.currentItem == 0) {
+            findViewById(R.id.contacts_fragment)
         } else {
-            favorites_fragment
+            findViewById(R.id.favorites_fragment)
         }
     }
 
-    private fun getAllFragments() = arrayListOf(contacts_fragment, favorites_fragment)
+    private fun getAllFragments() = arrayListOf<MyViewPagerFragment<*>>(findViewById(R.id.favorites_fragment), findViewById(R.id.contacts_fragment))
 
     private fun setupTabColors() {
-        val activeView = insert_edit_tabs_holder.getTabAt(view_pager.currentItem)?.customView
-        updateBottomTabItemColors(activeView, true, getSelectedTabDrawableIds()[view_pager.currentItem])
+        val activeView = binding.insertEditTabsHolder.getTabAt(binding.viewPager.currentItem)?.customView
+        updateBottomTabItemColors(activeView, true, getSelectedTabDrawableIds()[binding.viewPager.currentItem])
 
-        getInactiveTabIndexes(view_pager.currentItem).forEach { index ->
-            val inactiveView = insert_edit_tabs_holder.getTabAt(index)?.customView
+        getInactiveTabIndexes(binding.viewPager.currentItem).forEach { index ->
+            val inactiveView = binding.insertEditTabsHolder.getTabAt(index)?.customView
             updateBottomTabItemColors(inactiveView, false, getDeselectedTabDrawableIds()[index])
         }
 
         val bottomBarColor = getBottomNavigationBackgroundColor()
-        insert_edit_tabs_holder.setBackgroundColor(bottomBarColor)
-        updateNavigationBarColor(bottomBarColor)
+        binding.insertEditTabsHolder.setBackgroundColor(bottomBarColor)
+        if (binding.insertEditTabsHolder.tabCount != 1) updateNavigationBarColor(bottomBarColor)
+        else {
+            // TODO TRANSPARENT Navigation Bar
+            setWindowTransparency(true) { _, bottomNavigationBarSize, leftNavigationBarSize, rightNavigationBarSize ->
+                binding.insertEditCoordinator.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
+
+            }
+        }
     }
 
-    private fun getInactiveTabIndexes(activeIndex: Int) = (0 until insert_edit_tabs_holder.tabCount).filter { it != activeIndex }
+    private fun getInactiveTabIndexes(activeIndex: Int) = (0 until binding.insertEditTabsHolder.tabCount).filter { it != activeIndex }
 
     private fun getSelectedTabDrawableIds() = arrayOf(
-        R.drawable.ic_star_vector,
-        R.drawable.ic_person_rounded
+        R.drawable.ic_star_vector_scaled,
+        R.drawable.ic_person_rounded_scaled
     )
 
     private fun getDeselectedTabDrawableIds() = arrayOf(
-        R.drawable.ic_star_vector,
-        R.drawable.ic_person_rounded
+        com.goodwy.commons.R.drawable.ic_star_vector,
+        com.goodwy.commons.R.drawable.ic_person_rounded
     )
 
     override fun refreshContacts(refreshTabsMask: Int) {
@@ -229,8 +245,8 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
             return
         }
 
-        if (view_pager.adapter == null) {
-            view_pager.adapter = ViewPagerAdapter(this, contactsFavoritesList, getTabsMask())
+        if (binding.viewPager.adapter == null) {
+            binding.viewPager.adapter = ViewPagerAdapter(this, contactsFavoritesList, getTabsMask())
         }
 
         ContactsHelper(this).getContacts {
@@ -258,13 +274,17 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
             }
 
             if (refreshTabsMask and TAB_CONTACTS != 0) {
-                contacts_fragment?.skipHashComparing = true
-                contacts_fragment?.refreshContacts(contacts, placeholderText)
+                findViewById<MyViewPagerFragment<*>>(R.id.contacts_fragment)?.apply {
+                    skipHashComparing = true
+                    refreshContacts(contacts, placeholderText)
+                }
             }
 
             if (refreshTabsMask and TAB_FAVORITES != 0) {
-                favorites_fragment?.skipHashComparing = true
-                favorites_fragment?.refreshContacts(contacts, placeholderText)
+                findViewById<MyViewPagerFragment<*>>(R.id.favorites_fragment)?.apply {
+                    skipHashComparing = true
+                    refreshContacts(contacts, placeholderText)
+                }
             }
         }
     }
@@ -305,6 +325,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
                 val contactId = ContactsHelper(this).getContactMimeTypeId(contact.id.toString(), specialMimeType!!)
                 Uri.withAppendedPath(ContactsContract.Data.CONTENT_URI, contactId)
             }
+
             else -> getContactPublicUri(contact)
         }
     }
@@ -333,7 +354,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
             try {
                 startActivityForResult(this, START_INSERT_ACTIVITY)
             } catch (e: ActivityNotFoundException) {
-                toast(R.string.no_app_found)
+                toast(com.goodwy.commons.R.string.no_app_found)
             } catch (e: Exception) {
                 showErrorToast(e)
             }
@@ -348,7 +369,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
 
     fun showFilterDialog() {
         FilterContactSourcesDialog(this) {
-            contacts_fragment?.forceListRedraw = true
+            findViewById<MyViewPagerFragment<*>>(R.id.contacts_fragment)?.forceListRedraw = true
             refreshContacts(getTabsMask())
         }
     }

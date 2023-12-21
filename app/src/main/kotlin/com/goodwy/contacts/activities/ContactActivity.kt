@@ -30,10 +30,10 @@ import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.SimpleContactsHelper
 import com.goodwy.commons.helpers.letterBackgroundColors
 import com.goodwy.commons.models.RadioItem
-import com.goodwy.contacts.R
-import com.goodwy.contacts.extensions.shareContacts
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.models.contacts.ContactRelation
+import com.goodwy.contacts.R
+import com.goodwy.contacts.extensions.shareContacts
 import com.goodwy.contacts.extensions.config
 
 abstract class ContactActivity : SimpleActivity() {
@@ -95,10 +95,10 @@ abstract class ContactActivity : SimpleActivity() {
             .override(wantedWidth, wantedHeight)
             .listener(object : RequestListener<Drawable> {
                 override fun onResourceReady(
-                    resource: Drawable?,
-                    model: Any?,
-                    target: Target<Drawable>?,
-                    dataSource: DataSource?,
+                    resource: Drawable,
+                    model: Any,
+                    target: Target<Drawable>,
+                    dataSource: DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
                     photoView.background = ColorDrawable(0)
@@ -106,7 +106,7 @@ abstract class ContactActivity : SimpleActivity() {
                     return false
                 }
 
-                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                     showPhotoPlaceholder(photoView)
                     bottomShadow.beGone()
                     return true
@@ -132,8 +132,8 @@ abstract class ContactActivity : SimpleActivity() {
         val simpleSmsMessenger = "com.goodwy.smsmessenger"
         val simpleSmsMessengerDebug = "com.goodwy.smsmessenger.debug"
         if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleSmsMessenger) && !isPackageInstalled(simpleSmsMessengerDebug))) {
-            NewAppDialog(this, simpleSmsMessenger, getString(R.string.recommendation_dialog_messages_g), getString(R.string.right_sms_messenger),
-                AppCompatResources.getDrawable(this, R.mipmap.ic_sms_messenger)) {
+            NewAppDialog(this, simpleSmsMessenger, getString(com.goodwy.commons.R.string.recommendation_dialog_messages_g), getString(com.goodwy.commons.R.string.right_sms_messenger),
+                AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_sms_messenger)) {
                 trySendSMS()
             }
         } else {
@@ -184,10 +184,10 @@ abstract class ContactActivity : SimpleActivity() {
         } else {
             getString(
                 when (type) {
-                    Email.TYPE_HOME -> R.string.home
-                    Email.TYPE_WORK -> R.string.work
-                    Email.TYPE_MOBILE -> R.string.mobile
-                    else -> R.string.other
+                    Email.TYPE_HOME -> com.goodwy.commons.R.string.home
+                    Email.TYPE_WORK -> com.goodwy.commons.R.string.work
+                    Email.TYPE_MOBILE -> com.goodwy.commons.R.string.mobile
+                    else -> com.goodwy.commons.R.string.other
                 }
             )
         }
@@ -199,68 +199,68 @@ abstract class ContactActivity : SimpleActivity() {
         } else {
             getString(
                 when (type) {
-                    // Relation.TYPE_CUSTOM   -> R.string.custom
-                    Relation.TYPE_ASSISTANT   -> R.string.relation_assistant_g
-                    Relation.TYPE_BROTHER     -> R.string.relation_brother_g
-                    Relation.TYPE_CHILD       -> R.string.relation_child_g
-                    Relation.TYPE_DOMESTIC_PARTNER -> R.string.relation_domestic_partner_g
-                    Relation.TYPE_FATHER      -> R.string.relation_father_g
-                    Relation.TYPE_FRIEND      -> R.string.relation_friend_g
-                    Relation.TYPE_MANAGER     -> R.string.relation_manager_g
-                    Relation.TYPE_MOTHER      -> R.string.relation_mother_g
-                    Relation.TYPE_PARENT      -> R.string.relation_parent_g
-                    Relation.TYPE_PARTNER     -> R.string.relation_partner_g
-                    Relation.TYPE_REFERRED_BY -> R.string.relation_referred_by_g
-                    Relation.TYPE_RELATIVE    -> R.string.relation_relative_g
-                    Relation.TYPE_SISTER      -> R.string.relation_sister_g
-                    Relation.TYPE_SPOUSE      -> R.string.relation_spouse_g
+                    // Relation.TYPE_CUSTOM   -> com.goodwy.commons.R.string.custom
+                    Relation.TYPE_ASSISTANT   -> com.goodwy.commons.R.string.relation_assistant_g
+                    Relation.TYPE_BROTHER     -> com.goodwy.commons.R.string.relation_brother_g
+                    Relation.TYPE_CHILD       -> com.goodwy.commons.R.string.relation_child_g
+                    Relation.TYPE_DOMESTIC_PARTNER -> com.goodwy.commons.R.string.relation_domestic_partner_g
+                    Relation.TYPE_FATHER      -> com.goodwy.commons.R.string.relation_father_g
+                    Relation.TYPE_FRIEND      -> com.goodwy.commons.R.string.relation_friend_g
+                    Relation.TYPE_MANAGER     -> com.goodwy.commons.R.string.relation_manager_g
+                    Relation.TYPE_MOTHER      -> com.goodwy.commons.R.string.relation_mother_g
+                    Relation.TYPE_PARENT      -> com.goodwy.commons.R.string.relation_parent_g
+                    Relation.TYPE_PARTNER     -> com.goodwy.commons.R.string.relation_partner_g
+                    Relation.TYPE_REFERRED_BY -> com.goodwy.commons.R.string.relation_referred_by_g
+                    Relation.TYPE_RELATIVE    -> com.goodwy.commons.R.string.relation_relative_g
+                    Relation.TYPE_SISTER      -> com.goodwy.commons.R.string.relation_sister_g
+                    Relation.TYPE_SPOUSE      -> com.goodwy.commons.R.string.relation_spouse_g
 
                     // Relation types defined in vCard 4.0
-                    ContactRelation.TYPE_CONTACT -> R.string.relation_contact_g
-                    ContactRelation.TYPE_ACQUAINTANCE -> R.string.relation_acquaintance_g
-                    // ContactRelation.TYPE_FRIEND -> R.string.relation_friend
-                    ContactRelation.TYPE_MET -> R.string.relation_met_g
-                    ContactRelation.TYPE_CO_WORKER -> R.string.relation_co_worker_g
-                    ContactRelation.TYPE_COLLEAGUE -> R.string.relation_colleague_g
-                    ContactRelation.TYPE_CO_RESIDENT -> R.string.relation_co_resident_g
-                    ContactRelation.TYPE_NEIGHBOR -> R.string.relation_neighbor_g
-                    // ContactRelation.TYPE_CHILD -> R.string.relation_child
-                    // ContactRelation.TYPE_PARENT -> R.string.relation_parent
-                    ContactRelation.TYPE_SIBLING -> R.string.relation_sibling_g
-                    // ContactRelation.TYPE_SPOUSE -> R.string.relation_spouse
-                    ContactRelation.TYPE_KIN -> R.string.relation_kin_g
-                    ContactRelation.TYPE_MUSE -> R.string.relation_muse_g
-                    ContactRelation.TYPE_CRUSH -> R.string.relation_crush_g
-                    ContactRelation.TYPE_DATE -> R.string.relation_date_g
-                    ContactRelation.TYPE_SWEETHEART -> R.string.relation_sweetheart_g
-                    ContactRelation.TYPE_ME -> R.string.relation_me_g
-                    ContactRelation.TYPE_AGENT -> R.string.relation_agent_g
-                    ContactRelation.TYPE_EMERGENCY -> R.string.relation_emergency_g
+                    ContactRelation.TYPE_CONTACT -> com.goodwy.commons.R.string.relation_contact_g
+                    ContactRelation.TYPE_ACQUAINTANCE -> com.goodwy.commons.R.string.relation_acquaintance_g
+                    // ContactRelation.TYPE_FRIEND -> com.goodwy.commons.R.string.relation_friend
+                    ContactRelation.TYPE_MET -> com.goodwy.commons.R.string.relation_met_g
+                    ContactRelation.TYPE_CO_WORKER -> com.goodwy.commons.R.string.relation_co_worker_g
+                    ContactRelation.TYPE_COLLEAGUE -> com.goodwy.commons.R.string.relation_colleague_g
+                    ContactRelation.TYPE_CO_RESIDENT -> com.goodwy.commons.R.string.relation_co_resident_g
+                    ContactRelation.TYPE_NEIGHBOR -> com.goodwy.commons.R.string.relation_neighbor_g
+                    // ContactRelation.TYPE_CHILD -> com.goodwy.commons.R.string.relation_child
+                    // ContactRelation.TYPE_PARENT -> com.goodwy.commons.R.string.relation_parent
+                    ContactRelation.TYPE_SIBLING -> com.goodwy.commons.R.string.relation_sibling_g
+                    // ContactRelation.TYPE_SPOUSE -> com.goodwy.commons.R.string.relation_spouse
+                    ContactRelation.TYPE_KIN -> com.goodwy.commons.R.string.relation_kin_g
+                    ContactRelation.TYPE_MUSE -> com.goodwy.commons.R.string.relation_muse_g
+                    ContactRelation.TYPE_CRUSH -> com.goodwy.commons.R.string.relation_crush_g
+                    ContactRelation.TYPE_DATE -> com.goodwy.commons.R.string.relation_date_g
+                    ContactRelation.TYPE_SWEETHEART -> com.goodwy.commons.R.string.relation_sweetheart_g
+                    ContactRelation.TYPE_ME -> com.goodwy.commons.R.string.relation_me_g
+                    ContactRelation.TYPE_AGENT -> com.goodwy.commons.R.string.relation_agent_g
+                    ContactRelation.TYPE_EMERGENCY -> com.goodwy.commons.R.string.relation_emergency_g
 
-                    ContactRelation.TYPE_SUPERIOR -> R.string.relation_superior_g
-                    ContactRelation.TYPE_SUBORDINATE -> R.string.relation_subordinate_g
-                    ContactRelation.TYPE_HUSBAND -> R.string.relation_husband_g
-                    ContactRelation.TYPE_WIFE -> R.string.relation_wife_g
-                    ContactRelation.TYPE_SON -> R.string.relation_son_g
-                    ContactRelation.TYPE_DAUGHTER -> R.string.relation_daughter_g
-                    ContactRelation.TYPE_GRANDPARENT -> R.string.relation_grandparent_g
-                    ContactRelation.TYPE_GRANDFATHER -> R.string.relation_grandfather_g
-                    ContactRelation.TYPE_GRANDMOTHER -> R.string.relation_grandmother_g
-                    ContactRelation.TYPE_GRANDCHILD -> R.string.relation_grandchild_g
-                    ContactRelation.TYPE_GRANDSON -> R.string.relation_grandson_g
-                    ContactRelation.TYPE_GRANDDAUGHTER -> R.string.relation_granddaughter_g
-                    ContactRelation.TYPE_UNCLE -> R.string.relation_uncle_g
-                    ContactRelation.TYPE_AUNT -> R.string.relation_aunt_g
-                    ContactRelation.TYPE_NEPHEW -> R.string.relation_nephew_g
-                    ContactRelation.TYPE_NIECE -> R.string.relation_niece_g
-                    ContactRelation.TYPE_FATHER_IN_LAW -> R.string.relation_father_in_law_g
-                    ContactRelation.TYPE_MOTHER_IN_LAW -> R.string.relation_mother_in_law_g
-                    ContactRelation.TYPE_SON_IN_LAW -> R.string.relation_son_in_law_g
-                    ContactRelation.TYPE_DAUGHTER_IN_LAW -> R.string.relation_daughter_in_law_g
-                    ContactRelation.TYPE_BROTHER_IN_LAW -> R.string.relation_brother_in_law_g
-                    ContactRelation.TYPE_SISTER_IN_LAW -> R.string.relation_sister_in_law_g
+                    ContactRelation.TYPE_SUPERIOR -> com.goodwy.commons.R.string.relation_superior_g
+                    ContactRelation.TYPE_SUBORDINATE -> com.goodwy.commons.R.string.relation_subordinate_g
+                    ContactRelation.TYPE_HUSBAND -> com.goodwy.commons.R.string.relation_husband_g
+                    ContactRelation.TYPE_WIFE -> com.goodwy.commons.R.string.relation_wife_g
+                    ContactRelation.TYPE_SON -> com.goodwy.commons.R.string.relation_son_g
+                    ContactRelation.TYPE_DAUGHTER -> com.goodwy.commons.R.string.relation_daughter_g
+                    ContactRelation.TYPE_GRANDPARENT -> com.goodwy.commons.R.string.relation_grandparent_g
+                    ContactRelation.TYPE_GRANDFATHER -> com.goodwy.commons.R.string.relation_grandfather_g
+                    ContactRelation.TYPE_GRANDMOTHER -> com.goodwy.commons.R.string.relation_grandmother_g
+                    ContactRelation.TYPE_GRANDCHILD -> com.goodwy.commons.R.string.relation_grandchild_g
+                    ContactRelation.TYPE_GRANDSON -> com.goodwy.commons.R.string.relation_grandson_g
+                    ContactRelation.TYPE_GRANDDAUGHTER -> com.goodwy.commons.R.string.relation_granddaughter_g
+                    ContactRelation.TYPE_UNCLE -> com.goodwy.commons.R.string.relation_uncle_g
+                    ContactRelation.TYPE_AUNT -> com.goodwy.commons.R.string.relation_aunt_g
+                    ContactRelation.TYPE_NEPHEW -> com.goodwy.commons.R.string.relation_nephew_g
+                    ContactRelation.TYPE_NIECE -> com.goodwy.commons.R.string.relation_niece_g
+                    ContactRelation.TYPE_FATHER_IN_LAW -> com.goodwy.commons.R.string.relation_father_in_law_g
+                    ContactRelation.TYPE_MOTHER_IN_LAW -> com.goodwy.commons.R.string.relation_mother_in_law_g
+                    ContactRelation.TYPE_SON_IN_LAW -> com.goodwy.commons.R.string.relation_son_in_law_g
+                    ContactRelation.TYPE_DAUGHTER_IN_LAW -> com.goodwy.commons.R.string.relation_daughter_in_law_g
+                    ContactRelation.TYPE_BROTHER_IN_LAW -> com.goodwy.commons.R.string.relation_brother_in_law_g
+                    ContactRelation.TYPE_SISTER_IN_LAW -> com.goodwy.commons.R.string.relation_sister_in_law_g
 
-                    else -> R.string.other
+                    else -> com.goodwy.commons.R.string.other
                 }
             )
         }
@@ -272,9 +272,9 @@ abstract class ContactActivity : SimpleActivity() {
         } else {
             getString(
                 when (type) {
-                    StructuredPostal.TYPE_HOME -> R.string.home
-                    StructuredPostal.TYPE_WORK -> R.string.work
-                    else -> R.string.other
+                    StructuredPostal.TYPE_HOME -> com.goodwy.commons.R.string.home
+                    StructuredPostal.TYPE_WORK -> com.goodwy.commons.R.string.work
+                    else -> com.goodwy.commons.R.string.other
                 }
             )
         }
@@ -300,41 +300,9 @@ abstract class ContactActivity : SimpleActivity() {
     }
 
     fun getEventTextId(type: Int) = when (type) {
-        Event.TYPE_ANNIVERSARY -> R.string.anniversary
-        Event.TYPE_BIRTHDAY -> R.string.birthday
-        else -> R.string.other
-    }
-
-    private fun getBigLetterPlaceholder(name: String): Bitmap {
-        val letter = name.getNameLetter()
-        val height = resources.getDimension(R.dimen.top_contact_image_height).toInt()
-        val bitmap = Bitmap.createBitmap(realScreenSize.x, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val view = TextView(this)
-        view.layout(0, 0, bitmap.width, bitmap.height)
-
-        val circlePaint = Paint().apply {
-            color = letterBackgroundColors[Math.abs(name.hashCode()) % letterBackgroundColors.size].toInt()
-            isAntiAlias = true
-            style = Paint.Style.FILL
-        }
-
-        val wantedTextSize = bitmap.height / 2f
-        val textPaint = Paint().apply {
-            color = circlePaint.color.getContrastColor()
-            isAntiAlias = true
-            textAlign = Paint.Align.CENTER
-            textSize = wantedTextSize
-            style = Paint.Style.FILL
-        }
-
-        canvas.drawPaint(circlePaint)
-
-        val xPos = canvas.width / 2f
-        val yPos = canvas.height / 2 - (textPaint.descent() + textPaint.ascent()) / 2
-        canvas.drawText(letter, xPos, yPos, textPaint)
-        view.draw(canvas)
-        return bitmap
+        Event.TYPE_ANNIVERSARY -> com.goodwy.commons.R.string.anniversary
+        Event.TYPE_BIRTHDAY -> com.goodwy.commons.R.string.birthday
+        else -> com.goodwy.commons.R.string.other
     }
 
     protected fun getDefaultRingtoneUri() = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)

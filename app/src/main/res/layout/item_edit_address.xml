@@ -13,11 +13,21 @@
         android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical|end"
         android:maxLines="2"
+        android:ellipsize="end"
         android:minWidth="70dp"
         android:paddingStart="@dimen/contact_padding_left"
-        android:paddingEnd="@dimen/activity_margin"
+        android:paddingEnd="@dimen/medium_margin"
         android:textSize="@dimen/normal_text_size"
         tools:text="@string/home" />
+
+    <ImageView
+        android:id="@+id/dividerVerticalContactAddress"
+        android:layout_width="1px"
+        android:layout_height="@dimen/contact_edit_vertical_divider_height"
+        android:layout_toEndOf="@+id/contact_address_type"
+        android:layout_centerVertical="true"
+        android:alpha="0.2"
+        android:background="@drawable/divider_settings" />
 
     <com.goodwy.commons.views.MyEditText
         android:id="@+id/contact_address"
@@ -30,7 +40,7 @@
         android:hint="@string/address"
         android:inputType="textCapWords|textMultiLine"
         android:paddingStart="@dimen/medium_margin"
-        android:paddingEnd="@dimen/contact_padding_left"
+        android:paddingEnd="@dimen/medium_margin"
         android:paddingTop="@dimen/smaller_margin"
         android:paddingBottom="@dimen/smaller_margin"
         android:textCursorDrawable="@null"
@@ -55,7 +65,7 @@
         tools:visibility="visible" />
 
     <ImageView
-        android:id="@+id/divider_contact_address"
+        android:id="@+id/dividerContactAddress"
         android:layout_width="match_parent"
         android:layout_height="1px"
         android:layout_alignParentBottom="true"

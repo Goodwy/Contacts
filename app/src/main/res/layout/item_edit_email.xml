@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/contact_email_holder"
+    android:id="@+id/contactEmailHolder"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -13,11 +13,21 @@
         android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical|end"
         android:maxLines="2"
+        android:ellipsize="end"
         android:minWidth="70dp"
         android:paddingStart="@dimen/contact_padding_left"
-        android:paddingEnd="@dimen/activity_margin"
+        android:paddingEnd="@dimen/medium_margin"
         android:textSize="@dimen/normal_text_size"
         tools:text="@string/home" />
+
+    <ImageView
+        android:id="@+id/dividerVerticalContactEmail"
+        android:layout_width="1px"
+        android:layout_height="@dimen/contact_edit_vertical_divider_height"
+        android:layout_toEndOf="@+id/contact_email_type"
+        android:layout_centerVertical="true"
+        android:alpha="0.2"
+        android:background="@drawable/divider_settings" />
 
     <com.goodwy.commons.views.MyEditText
         android:id="@+id/contact_email"
@@ -32,7 +42,7 @@
         android:lines="1"
         android:maxLines="1"
         android:paddingStart="@dimen/medium_margin"
-        android:paddingEnd="@dimen/contact_padding_left"
+        android:paddingEnd="@dimen/medium_margin"
         android:singleLine="true"
         android:textCursorDrawable="@null"
         android:textSize="@dimen/bigger_text_size" />
@@ -56,7 +66,7 @@
         tools:visibility="visible" />
 
     <ImageView
-        android:id="@+id/divider_contact_email"
+        android:id="@+id/dividerContactEmail"
         android:layout_width="match_parent"
         android:layout_height="1px"
         android:layout_below="@+id/contact_email"

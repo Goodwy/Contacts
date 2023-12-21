@@ -5,10 +5,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:paddingHorizontal="@dimen/activity_padding_left_right"
     android:translationZ="4dp">
 
     <ImageView
-        android:id="@+id/contact_photo"
+        android:id="@+id/contactPhoto"
         android:layout_width="@dimen/contact_photo_size"
         android:layout_height="@dimen/contact_photo_size"
         android:layout_marginTop="36dp"
@@ -18,60 +19,61 @@
         tools:src="@drawable/ic_person" />
 
     <com.goodwy.commons.views.MyTextView
-        android:id="@+id/contact_name"
+        android:id="@+id/contactName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginHorizontal="11dp"
         android:background="@drawable/ripple_all_corners"
+        android:ellipsize="end"
         android:padding="4dp"
-        android:maxLines="2"
+        android:maxLines="1"
         android:gravity="center"
         android:textSize="@dimen/big_text_size"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/contact_photo"
+        app:layout_constraintTop_toBottomOf="@+id/contactPhoto"
         tools:text="Name"/>
 
     <LinearLayout
-        android:id="@+id/contact_company_holder"
+        android:id="@+id/contactCompanyHolder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/contact_name"
-        android:orientation="vertical">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/contactName">
 
         <com.goodwy.commons.views.MyTextView
-            android:id="@+id/contact_organization_company"
+            android:id="@+id/contactOrganizationCompany"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="50dp"
-            android:layout_marginRight="50dp"
-            android:background="@drawable/ripple_all_corners"
-            android:padding="2dp"
-            android:gravity="center"
+            android:layout_marginHorizontal="11dp"
             android:alpha="0.6"
+            android:background="@drawable/ripple_all_corners"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:padding="2dp"
+            android:maxLines="1"
             android:textSize="@dimen/normal_text_size"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/contact_name"
-            tools:text="Company"/>
+            android:visibility="gone"
+            tools:text="Company"
+            tools:visibility="visible" />
 
         <com.goodwy.commons.views.MyTextView
-            android:id="@+id/contact_organization_job_position"
+            android:id="@+id/contactOrganizationJobPosition"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="50dp"
-            android:layout_marginRight="50dp"
-            android:background="@drawable/ripple_all_corners"
-            android:padding="2dp"
-            android:gravity="center"
+            android:layout_marginHorizontal="11dp"
             android:alpha="0.6"
+            android:background="@drawable/ripple_all_corners"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:padding="2dp"
+            android:maxLines="1"
             android:textSize="@dimen/normal_text_size"
-            tools:text="Job position"/>
-
+            android:visibility="gone"
+            tools:text="Job position"
+            tools:visibility="visible" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

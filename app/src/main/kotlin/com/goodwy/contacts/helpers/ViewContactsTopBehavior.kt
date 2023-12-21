@@ -7,29 +7,32 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import com.behaviorule.arturdumchev.library.*
 import com.goodwy.contacts.R
+import com.goodwy.contacts.databinding.ActivityViewContactBinding
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
-import kotlinx.android.synthetic.main.activity_view_contact.view.*
-import kotlinx.android.synthetic.main.top_view.view.*
 
 class ViewContactsTopBehavior(
     context: Context?,
     attrs: AttributeSet?
 ) : BehaviorByRules(context, attrs) {
+    private lateinit var binding: ActivityViewContactBinding
 
     override fun calcAppbarHeight(child: View): Int = with(child) {
         return height
     }
 
-    override fun View.provideAppbar(): AppBarLayout = contact_appbar
-    override fun View.provideCollapsingToolbar(): CollapsingToolbarLayout = collapsing_toolbar
+    override fun View.provideAppbar(): AppBarLayout {
+        binding = ActivityViewContactBinding.bind(this)
+        return  binding.contactAppbar
+    }
+    override fun View.provideCollapsingToolbar(): CollapsingToolbarLayout = binding.collapsingToolbar
     override fun canUpdateHeight(progress: Float): Boolean = progress >= GONE_VIEW_THRESHOLD
 
     override fun View.setUpViews(): List<RuledView> {
         val height = height
         return listOf(
             RuledView(
-                top_details,
+                binding.topDetails.root,
                 BRuleYOffset(
                     min = -(height/4).toFloat(),
                     max = pixels(R.dimen.zero),
@@ -37,7 +40,7 @@ class ViewContactsTopBehavior(
                 )
             ),
             RuledView(
-                contact_photo,
+                binding.topDetails.contactPhoto,
                 BRuleXOffset(
                     min = 0f, max = pixels(R.dimen.image_right_margin),
                     interpolator = ReverseInterpolator(LinearInterpolator())
@@ -49,7 +52,7 @@ class ViewContactsTopBehavior(
                 BRuleScale(min = 0.5f, max = 1f)
             ),
             RuledView(
-                contact_name,
+                binding.topDetails.contactName,
                 BRuleXOffset(
                     min = 0f, max = pixels(R.dimen.name_right_margin),
                     interpolator = ReverseInterpolator(LinearInterpolator())
@@ -61,25 +64,46 @@ class ViewContactsTopBehavior(
                 BRuleScale(min = 0.8f, max = 1f)
             ),
             RuledView(
-                contact_company_holder,
-                BRuleAppear(visibleUntil = GONE_VIEW_THRESHOLD)
+                binding.topDetails.contactCompanyHolder,
+                BRuleXOffset(
+                    min = 0f, max = pixels(R.dimen.name_right_margin),
+                    interpolator = ReverseInterpolator(LinearInterpolator())
+                ),
+                BRuleYOffset(
+                    min = -pixels(com.goodwy.commons.R.dimen.section_margin), max = pixels(R.dimen.zero),
+                    interpolator = LinearInterpolator()
+                ),
+                BRuleScale(min = 0.8f, max = 1f),
+                BRuleAppear(visibleUntil = GONE_VIEW_THRESHOLD),
+            ),
+            RuledView(
+                binding.topDetails.contactOrganizationCompany,
+                BRuleAlpha(min = 0f, max = 0.6f),
+            ),
+            RuledView(
+                binding.topDetails.contactOrganizationJobPosition,
+                BRuleYOffset(
+                    min = pixels(com.goodwy.commons.R.dimen.medium_margin), max = pixels(com.goodwy.commons.R.dimen.big_margin),
+                    interpolator = LinearInterpolator()
+                ),
+                BRuleAlpha(min = 0f, max = 0.6f),
             )
         )
     }
 
-    private fun actionBarSize(context: Context?): Float {
-        val styledAttributes = context!!.theme?.obtainStyledAttributes(IntArray(1) { android.R.attr.actionBarSize })
-        val actionBarSize = styledAttributes?.getDimension(0, 0F)
-        styledAttributes?.recycle()
-        return actionBarSize ?: context.pixels(R.dimen.toolbar_height)
-    }
-
-    private fun getScreenWidth(): Int {
-        return Resources.getSystem().displayMetrics.widthPixels
-    }
+//    private fun actionBarSize(context: Context?): Float {
+//        val styledAttributes = context!!.theme?.obtainStyledAttributes(IntArray(1) { android.R.attr.actionBarSize })
+//        val actionBarSize = styledAttributes?.getDimension(0, 0F)
+//        styledAttributes?.recycle()
+//        return actionBarSize ?: context.pixels(R.dimen.toolbar_height)
+//    }
+//
+//    private fun getScreenWidth(): Int {
+//        return Resources.getSystem().displayMetrics.widthPixels
+//    }
 
 
     companion object {
-        const val GONE_VIEW_THRESHOLD = 0.8f
+        const val GONE_VIEW_THRESHOLD = 0.4f
     }
 }

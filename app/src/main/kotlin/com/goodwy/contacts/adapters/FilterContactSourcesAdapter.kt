@@ -8,14 +8,13 @@ import com.goodwy.commons.extensions.getProperPrimaryColor
 import com.goodwy.commons.extensions.getProperTextColor
 import com.goodwy.commons.helpers.SMT_PRIVATE
 import com.goodwy.commons.models.contacts.ContactSource
-import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
-import kotlinx.android.synthetic.main.item_filter_contact_source.view.*
+import com.goodwy.contacts.databinding.ItemFilterContactSourceBinding
 
 class FilterContactSourcesAdapter(
     val activity: SimpleActivity,
     private val contactSources: List<ContactSource>,
-    private val displayContactSources: ArrayList<String>
+    private val displayContactSources: List<String>
 ) : RecyclerView.Adapter<FilterContactSourcesAdapter.ViewHolder>() {
 
     private val selectedKeys = HashSet<Int>()
@@ -45,8 +44,7 @@ class FilterContactSourcesAdapter(
     fun getSelectedContactSources() = contactSources.filter { selectedKeys.contains(it.hashCode()) }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = activity.layoutInflater.inflate(R.layout.item_filter_contact_source, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(ItemFilterContactSourceBinding.inflate(activity.layoutInflater, parent, false).root)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -59,13 +57,13 @@ class FilterContactSourcesAdapter(
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         fun bindView(contactSource: ContactSource): View {
             val isSelected = selectedKeys.contains(contactSource.hashCode())
-            itemView.apply {
-                filter_contact_source_checkbox.isChecked = isSelected
-                filter_contact_source_checkbox.setColors(activity.getProperTextColor(), activity.getProperPrimaryColor(), activity.getProperBackgroundColor())
+            ItemFilterContactSourceBinding.bind(itemView).apply {
+                filterContactSourceCheckbox.isChecked = isSelected
+                filterContactSourceCheckbox.setColors(activity.getProperTextColor(), activity.getProperPrimaryColor(), activity.getProperBackgroundColor())
                 val countText = if (contactSource.count >= 0) " (${contactSource.count})" else ""
                 val displayName = "${contactSource.publicName}$countText"
-                filter_contact_source_checkbox.text = displayName
-                filter_contact_source_holder.setOnClickListener { viewClicked(!isSelected, contactSource) }
+                filterContactSourceCheckbox.text = displayName
+                filterContactSourceHolder.setOnClickListener { viewClicked(!isSelected, contactSource) }
             }
 
             return itemView

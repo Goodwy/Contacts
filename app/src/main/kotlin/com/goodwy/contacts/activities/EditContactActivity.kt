@@ -11,16 +11,18 @@ import android.media.AudioManager
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.provider.ContactsContract.CommonDataKinds
 import android.provider.ContactsContract.CommonDataKinds.*
 import android.provider.MediaStore
 import android.telephony.PhoneNumberUtils
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.doAfterTextChanged
 import com.goodwy.commons.dialogs.ConfirmationAdvancedDialog
 import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
@@ -30,64 +32,37 @@ import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.PhoneNumber
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.contacts.*
+import com.goodwy.commons.models.contacts.ContactRelation
 import com.goodwy.commons.models.contacts.Email
 import com.goodwy.commons.models.contacts.Event
 import com.goodwy.commons.models.contacts.Organization
-import com.goodwy.commons.models.contacts.ContactRelation
+import com.goodwy.commons.views.MyAutoCompleteTextView
 import com.goodwy.contacts.R
+import com.goodwy.contacts.adapters.AutoCompleteTextViewAdapter
+import com.goodwy.contacts.databinding.*
 import com.goodwy.contacts.dialogs.CustomLabelDialog
 import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.dialogs.MyDatePickerDialog
 import com.goodwy.contacts.dialogs.SelectGroupsDialog
-import com.goodwy.contacts.extensions.*
+import com.goodwy.contacts.extensions.config
+import com.goodwy.contacts.extensions.getCachePhotoUri
+import com.goodwy.contacts.extensions.getPackageDrawable
+import com.goodwy.contacts.extensions.showContactSourcePicker
 import com.goodwy.contacts.helpers.*
-import kotlinx.android.synthetic.main.activity_edit_contact.*
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_addresses_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_emails_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_events_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_groups_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_ims_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_notes
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_numbers_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_organization_company
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_organization_job_position
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_photo_bottom_shadow
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_relations_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_ringtone
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_ringtone_chevron
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_ringtone_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_scrollview
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_toggle_favorite
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_toolbar
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_websites_holder
-import kotlinx.android.synthetic.main.activity_edit_contact.contact_wrapper
-import kotlinx.android.synthetic.main.activity_view_contact.*
-import kotlinx.android.synthetic.main.item_edit_address.*
-import kotlinx.android.synthetic.main.item_edit_address.view.*
-import kotlinx.android.synthetic.main.item_edit_email.*
-import kotlinx.android.synthetic.main.item_edit_email.view.*
-import kotlinx.android.synthetic.main.item_edit_group.*
-import kotlinx.android.synthetic.main.item_edit_group.view.*
-import kotlinx.android.synthetic.main.item_edit_im.*
-import kotlinx.android.synthetic.main.item_edit_im.view.*
-import kotlinx.android.synthetic.main.item_edit_phone_number.*
-import kotlinx.android.synthetic.main.item_edit_phone_number.view.*
-import kotlinx.android.synthetic.main.item_edit_relation.*
-import kotlinx.android.synthetic.main.item_edit_relation.view.*
-import kotlinx.android.synthetic.main.item_edit_website.view.*
-import kotlinx.android.synthetic.main.item_event.*
-import kotlinx.android.synthetic.main.item_event.view.*
-import kotlinx.android.synthetic.main.top_edit_view.contact_photo
+import java.util.Locale
 
 class EditContactActivity : ContactActivity() {
-    private val INTENT_TAKE_PHOTO = 1
-    private val INTENT_CHOOSE_PHOTO = 2
-    private val INTENT_CROP_PHOTO = 3
+    companion object {
+        private const val INTENT_TAKE_PHOTO = 1
+        private const val INTENT_CHOOSE_PHOTO = 2
+        private const val INTENT_CROP_PHOTO = 3
 
-    private val TAKE_PHOTO = 1
-    private val CHOOSE_PHOTO = 2
-    private val REMOVE_PHOTO = 3
+        private const val TAKE_PHOTO = 1
+        private const val CHOOSE_PHOTO = 2
+        private const val REMOVE_PHOTO = 3
+
+        private const val AUTO_COMPLETE_DELAY = 5000L
+    }
 
     private var mLastSavePromptTS = 0L
     private var wasActivityInitialized = false
@@ -99,6 +74,7 @@ class EditContactActivity : ContactActivity() {
     private var numberViewToColor: EditText? = null
     private var emailViewToColor: EditText? = null
     private var originalContactSource = ""
+    private val binding by viewBinding(ActivityEditContactBinding::inflate)
     private val white = 0xFFFFFFFF.toInt()
     private val gray = 0xFFEBEBEB.toInt()
 
@@ -109,19 +85,20 @@ class EditContactActivity : ContactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         showTransparentTop = true
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_edit_contact)
+        setContentView(binding.root)
 
         if (checkAppSideloading()) {
             return
         }
 
-        updateMaterialActivityViews(contact_wrapper, contact_holder, useTransparentNavigation = false, useTopSearchMenu = false)
-        setWindowTransparency(true) { _, _, leftNavigationBarSize, rightNavigationBarSize ->
-            contact_wrapper.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
-            updateNavigationBarColor(getProperBackgroundColor())
-        }
+        updateMaterialActivityViews(binding.contactWrapper, binding.contactHolder, useTransparentNavigation = false, useTopSearchMenu = false)
+//        setWindowTransparency(true) { _, _, leftNavigationBarSize, rightNavigationBarSize ->
+//            binding.contactWrapper.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
+//            updateNavigationBarColor(getProperBackgroundColor())
+//        }
 
-        contact_wrapper.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        binding.contactWrapper.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        setupInsets()
         setupMenu()
 
         val action = intent.action
@@ -134,13 +111,13 @@ class EditContactActivity : ContactActivity() {
                         if (it) {
                             initContact()
                         } else {
-                            toast(R.string.no_contacts_permission)
+                            toast(com.goodwy.commons.R.string.no_contacts_permission)
                             hideKeyboard()
                             finish()
                         }
                     }
                 } else {
-                    toast(R.string.no_contacts_permission)
+                    toast(com.goodwy.commons.R.string.no_contacts_permission)
                     hideKeyboard()
                     finish()
                 }
@@ -169,7 +146,7 @@ class EditContactActivity : ContactActivity() {
         if (resultCode == RESULT_OK) {
             when (requestCode) {
                 INTENT_TAKE_PHOTO, INTENT_CHOOSE_PHOTO -> startCropPhotoIntent(lastPhotoIntentUri, resultData?.data)
-                INTENT_CROP_PHOTO -> updateContactPhoto(lastPhotoIntentUri.toString(), contact_photo, contact_photo_bottom_shadow)
+                INTENT_CROP_PHOTO -> updateContactPhoto(lastPhotoIntentUri.toString(), binding.topDetails.contactPhoto, binding.contactPhotoBottomShadow)
             }
         }
     }
@@ -200,7 +177,7 @@ class EditContactActivity : ContactActivity() {
             ensureBackgroundThread {
                 contact = ContactsHelper(this).getContactWithId(contactId, intent.getBooleanExtra(IS_PRIVATE, false))
                 if (contact == null) {
-                    toast(R.string.unknown_error_occurred)
+                    toast(com.goodwy.commons.R.string.unknown_error_occurred)
                     hideKeyboard()
                     finish()
                 } else {
@@ -215,7 +192,7 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun gotContact() {
-        contact_scrollview.beVisible()
+        binding.contactScrollview.beVisible()
         if (contact == null) {
             setupNewContact()
         } else {
@@ -256,55 +233,72 @@ class EditContactActivity : ContactActivity() {
         setupRingtone()
 
         if (contact!!.photoUri.isEmpty() && contact!!.photo == null) {
-            showPhotoPlaceholder(contact_photo)
+            showPhotoPlaceholder(binding.topDetails.contactPhoto)
+            //binding.contactPhotoBottomShadow.beGone()
         } else {
-            updateContactPhoto(contact!!.photoUri, contact_photo, contact_photo_bottom_shadow, contact!!.photo)
+            updateContactPhoto(contact!!.photoUri, binding.topDetails.contactPhoto, binding.contactPhotoBottomShadow, contact!!.photo)
         }
 
         val textColor = getProperTextColor()
         arrayOf(
-            contact_numbers_icon, contact_emails_icon, contact_addresses_icon, contact_ims_icon, contact_events_icon, contact_relations_icon,
-            contact_notes_icon, contact_ringtone_icon, contact_ringtone_chevron, contact_websites_icon, contact_groups_title_icon, contact_source_title_icon
+            binding.contactNumbersIcon,
+            binding.contactEmailsIcon,
+            binding.contactAddressesIcon,
+            binding.contactImsIcon,
+            binding.contactEventsIcon,
+            binding.contactRelationsIcon,
+            binding.contactNotesIcon,
+            binding.contactRingtoneIcon,
+            binding.contactWebsitesIcon,
+            binding.contactGroupsTitleIcon,
+            binding.contactSourceTitleIcon
         ).forEach {
             it.applyColorFilter(textColor)
         }
 
-        contact_toggle_favorite.setOnClickListener { toggleFavorite() }
-        contact_photo.setOnClickListener { trySetPhotoRecommendation() }
-        contact_change_photo.setOnClickListener { trySetPhotoRecommendation() }
-        contact_numbers_add_new_holder.setOnClickListener { addNewPhoneNumberField() }
-        contact_emails_add_new_holder.setOnClickListener { addNewEmailField() }
-        contact_addresses_add_new_holder.setOnClickListener { addNewAddressField() }
-        contact_ims_add_new_holder.setOnClickListener { addNewIMField() }
-        contact_events_add_new_holder.setOnClickListener { addNewEventField() }
-        contact_relations_add_new_holder.setOnClickListener { addNewRelationField() }
-        contact_websites_add_new_holder.setOnClickListener { addNewWebsiteField() }
-        contact_groups_add_new_holder.setOnClickListener { showSelectGroupsDialog() }
-        contact_source.setOnClickListener { showSelectContactSourceDialog() }
+        binding.contactToggleFavorite.setOnClickListener { toggleFavorite() }
+        binding.topDetails.contactPhoto.setOnClickListener { trySetPhotoRecommendation() }
+        binding.contactChangePhoto.setOnClickListener { trySetPhotoRecommendation() }
+        binding.contactNumbersAddNewHolder.setOnClickListener { addNewPhoneNumberField() }
+        binding.contactEmailsAddNewHolder.setOnClickListener { addNewEmailField() }
+        binding.contactAddressesAddNewHolder.setOnClickListener { addNewAddressField() }
+        binding.contactImsAddNewHolder.setOnClickListener { addNewIMField() }
+        binding.contactEventsAddNewHolder.setOnClickListener { addNewEventField() }
+        binding.contactWebsitesAddNewHolder.setOnClickListener { addNewWebsiteField() }
+        binding.contactGroupsAddNewHolder.setOnClickListener { showSelectGroupsDialog() }
+        binding.contactSource.setOnClickListener { showSelectContactSourceDialog() }
+        binding.contactRelationsAddNewHolder.setOnClickListener { addNewRelationField() }
 
-        contact_change_photo.setOnLongClickListener { toast(R.string.change_photo); true; }
+        binding.contactChangePhoto.setOnLongClickListener { toast(R.string.change_photo); true; }
 
         setupFieldVisibility()
 
-        contact_toggle_favorite.apply {
+        binding.contactToggleFavorite.apply {
             setImageDrawable(getStarDrawable(contact!!.starred == 1))
             tag = contact!!.starred
             setOnLongClickListener { toast(R.string.toggle_favorite); true; }
         }
 
+        val nameTextViews = arrayOf(binding.contactFirstName, binding.contactMiddleName, binding.contactSurname).filter { it.isVisible() }
+        if (nameTextViews.isNotEmpty()) {
+            setupAutoComplete(nameTextViews)
+        }
+
         val properPrimaryColor = getProperPrimaryColor()
-        updateTextColors(contact_scrollview)
+        updateTextColors(binding.contactScrollview)
         numberViewToColor?.setTextColor(properPrimaryColor)
         emailViewToColor?.setTextColor(properPrimaryColor)
         wasActivityInitialized = true
 
-        contact_toolbar.menu.apply {
+        binding.contactToolbar.menu.apply {
             findItem(R.id.delete).isVisible = contact?.id != 0
             findItem(R.id.share).isVisible = contact?.id != 0
             findItem(R.id.open_with).isVisible = contact?.id != 0 && contact?.isPrivate() == false
 
+            val contrastColor = getProperBackgroundColor().getContrastColor()
+            val iconColor = if (baseConfig.topAppBarColorIcon) properPrimaryColor else contrastColor
             val favoriteIcon = getStarDrawable(contact!!.starred == 1)
-            favoriteIcon.setTint(getProperBackgroundColor().getContrastColor())
+            favoriteIcon.setTint(iconColor)
             findItem(R.id.favorite).icon = favoriteIcon
         }
     }
@@ -312,7 +306,13 @@ class EditContactActivity : ContactActivity() {
     override fun onBackPressed() {
         if (System.currentTimeMillis() - mLastSavePromptTS > SAVE_DISCARD_PROMPT_INTERVAL && hasContactChanged()) {
             mLastSavePromptTS = System.currentTimeMillis()
-            ConfirmationAdvancedDialog(this, "", R.string.save_before_closing, R.string.save, R.string.discard) {
+            ConfirmationAdvancedDialog(
+                this,
+                "",
+                com.goodwy.commons.R.string.save_before_closing,
+                com.goodwy.commons.R.string.save,
+                com.goodwy.commons.R.string.discard
+            ) {
                 if (it) {
                     saveContact()
                 } else {
@@ -324,11 +324,25 @@ class EditContactActivity : ContactActivity() {
         }
     }
 
+    private fun setupInsets() {
+        binding.contactWrapper.setOnApplyWindowInsetsListener { _, insets ->
+            val windowInsets = WindowInsetsCompat.toWindowInsetsCompat(insets)
+            val imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime())
+            binding.contactScrollview.run {
+                setPadding(paddingLeft, paddingTop, paddingRight, imeInsets.bottom)
+            }
+            insets
+        }
+    }
+
     private fun setupMenu() {
-        //(contact_appbar.layoutParams as RelativeLayout.LayoutParams).topMargin = statusBarHeight
-        (contact_wrapper.layoutParams as FrameLayout.LayoutParams).topMargin = statusBarHeight
-        contact_toolbar.overflowIcon = resources.getColoredDrawableWithColor(R.drawable.ic_three_dots_vector, getProperBackgroundColor().getContrastColor())
-        contact_toolbar.menu.apply {
+        val contrastColor = getProperBackgroundColor().getContrastColor()
+        val primaryColor = getProperPrimaryColor()
+        val iconColor = if (baseConfig.topAppBarColorIcon) primaryColor else contrastColor
+        //(binding.contactAppbar.layoutParams as RelativeLayout.LayoutParams).topMargin = statusBarHeight
+        (binding.contactWrapper.layoutParams as FrameLayout.LayoutParams).topMargin = statusBarHeight
+        binding.contactToolbar.overflowIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_three_dots_vector, iconColor)
+        binding.contactToolbar.menu.apply {
             updateMenuItemColors(this)
             findItem(R.id.favorite).setOnMenuItemClickListener {
                 val newIsStarred = if (contact!!.starred == 1) 0 else 1
@@ -342,7 +356,7 @@ class EditContactActivity : ContactActivity() {
                 }
                 contact!!.starred = newIsStarred
                 val favoriteIcon = getStarDrawable(contact!!.starred == 1)
-                favoriteIcon.setTint(getProperBackgroundColor().getContrastColor())
+                favoriteIcon.setTint(iconColor)
                 findItem(R.id.favorite).icon = favoriteIcon
                 true
             }
@@ -375,9 +389,8 @@ class EditContactActivity : ContactActivity() {
             }
         }
 
-        val color = getProperBackgroundColor().getContrastColor()
-        contact_toolbar.setNavigationIconTint(color)
-        contact_toolbar.setNavigationOnClickListener {
+        binding.contactToolbar.setNavigationIconTint(iconColor)
+        binding.contactToolbar.setNavigationOnClickListener {
             hideKeyboard()
             finish()
         }
@@ -395,7 +408,7 @@ class EditContactActivity : ContactActivity() {
 
     private fun startCropPhotoIntent(primaryUri: Uri?, backupUri: Uri?) {
         if (primaryUri == null) {
-            toast(R.string.unknown_error_occurred)
+            toast(com.goodwy.commons.R.string.unknown_error_occurred)
             return
         }
 
@@ -435,7 +448,7 @@ class EditContactActivity : ContactActivity() {
             try {
                 startActivityForResult(this, INTENT_CROP_PHOTO)
             } catch (e: ActivityNotFoundException) {
-                toast(R.string.no_app_found)
+                toast(com.goodwy.commons.R.string.no_app_found)
             } catch (e: Exception) {
                 showErrorToast(e)
             }
@@ -445,81 +458,81 @@ class EditContactActivity : ContactActivity() {
     private fun setupFieldVisibility() {
         val showFields = config.showContactFields
 
-        contact_prefix.beVisibleIf(showFields and SHOW_PREFIX_FIELD != 0)
-        contact_first_name.beVisibleIf(showFields and SHOW_FIRST_NAME_FIELD != 0)
-        contact_middle_name.beVisibleIf(showFields and SHOW_MIDDLE_NAME_FIELD != 0)
-        contact_surname.beVisibleIf(showFields and SHOW_SURNAME_FIELD != 0)
-        contact_suffix.beVisibleIf(showFields and SHOW_SUFFIX_FIELD != 0)
-        contact_nickname.beVisibleIf(showFields and SHOW_NICKNAME_FIELD != 0)
+        binding.contactPrefix.beVisibleIf(showFields and SHOW_PREFIX_FIELD != 0)
+        binding.contactFirstName.beVisibleIf(showFields and SHOW_FIRST_NAME_FIELD != 0)
+        binding.contactMiddleName.beVisibleIf(showFields and SHOW_MIDDLE_NAME_FIELD != 0)
+        binding.contactSurname.beVisibleIf(showFields and SHOW_SURNAME_FIELD != 0)
+        binding.contactSuffix.beVisibleIf(showFields and SHOW_SUFFIX_FIELD != 0)
+        binding.contactNickname.beVisibleIf(showFields and SHOW_NICKNAME_FIELD != 0)
 
         val isOrganizationVisible = showFields and SHOW_ORGANIZATION_FIELD != 0
-        contact_organization_company.beVisibleIf(isOrganizationVisible)
-        contact_organization_job_position.beVisibleIf(isOrganizationVisible)
+        binding.contactOrganizationCompany.beVisibleIf(isOrganizationVisible)
+        binding.contactOrganizationJobPosition.beVisibleIf(isOrganizationVisible)
+        binding.dividerContactOrganizationCompany.beVisibleIf(isOrganizationVisible)
 
-        divider_contact_prefix.beVisibleIf(showFields and SHOW_PREFIX_FIELD != 0 &&
+        binding.dividerContactPrefix.beVisibleIf(showFields and SHOW_PREFIX_FIELD != 0 &&
             (isOrganizationVisible || showFields and SHOW_NICKNAME_FIELD != 0 || showFields and SHOW_SUFFIX_FIELD != 0
                 || showFields and SHOW_SURNAME_FIELD != 0 || showFields and SHOW_MIDDLE_NAME_FIELD != 0 || showFields and SHOW_FIRST_NAME_FIELD != 0))
-        divider_contact_first_name.beVisibleIf(showFields and SHOW_FIRST_NAME_FIELD != 0 &&
+        binding.dividerContactFirstName.beVisibleIf(showFields and SHOW_FIRST_NAME_FIELD != 0 &&
             (isOrganizationVisible || showFields and SHOW_NICKNAME_FIELD != 0 || showFields and SHOW_SUFFIX_FIELD != 0
                 || showFields and SHOW_SURNAME_FIELD != 0 || showFields and SHOW_MIDDLE_NAME_FIELD != 0))
-        divider_contact_middle_name.beVisibleIf(showFields and SHOW_MIDDLE_NAME_FIELD != 0 &&
+        binding.dividerContactMiddleName.beVisibleIf(showFields and SHOW_MIDDLE_NAME_FIELD != 0 &&
             (isOrganizationVisible || showFields and SHOW_NICKNAME_FIELD != 0 || showFields and SHOW_SUFFIX_FIELD != 0 || showFields and SHOW_SURNAME_FIELD != 0))
-        divider_contact_surname.beVisibleIf(showFields and SHOW_SURNAME_FIELD != 0 &&
+        binding.dividerContactSurname.beVisibleIf(showFields and SHOW_SURNAME_FIELD != 0 &&
             (isOrganizationVisible || showFields and SHOW_NICKNAME_FIELD != 0 || showFields and SHOW_SUFFIX_FIELD != 0))
-        divider_contact_suffix.beVisibleIf(showFields and SHOW_SUFFIX_FIELD != 0 && (isOrganizationVisible || showFields and SHOW_NICKNAME_FIELD != 0))
-        divider_contact_nickname.beVisibleIf(showFields and SHOW_NICKNAME_FIELD != 0 && isOrganizationVisible)
-        divider_contact_organization_company.beVisibleIf(isOrganizationVisible)
+        binding.dividerContactSuffix.beVisibleIf(showFields and SHOW_SUFFIX_FIELD != 0 && (isOrganizationVisible || showFields and SHOW_NICKNAME_FIELD != 0))
+        binding.dividerContactNickname.beVisibleIf(showFields and SHOW_NICKNAME_FIELD != 0 && isOrganizationVisible)
 
-        contact_source_holder.beVisibleIf(showFields and SHOW_CONTACT_SOURCE_FIELD != 0)
-        contact_source_title_holder.beVisibleIf(showFields and SHOW_CONTACT_SOURCE_FIELD != 0)
+        binding.contactSourceHolder.beVisibleIf(showFields and SHOW_CONTACT_SOURCE_FIELD != 0)
+        binding.contactSourceTitleHolder.beVisibleIf(showFields and SHOW_CONTACT_SOURCE_FIELD != 0)
 
         val arePhoneNumbersVisible = showFields and SHOW_PHONE_NUMBERS_FIELD != 0
-        contact_numbers_title_holder.beVisibleIf(arePhoneNumbersVisible)
-        contact_numbers_holder.beVisibleIf(arePhoneNumbersVisible)
-        contact_numbers_add_new_holder.beVisibleIf(arePhoneNumbersVisible)
+        binding.contactNumbersTitleHolder.beVisibleIf(arePhoneNumbersVisible)
+        binding.contactNumbersHolder.beVisibleIf(arePhoneNumbersVisible)
+        binding.contactNumbersAddNewHolder.beVisibleIf(arePhoneNumbersVisible)
 
         val areEmailsVisible = showFields and SHOW_EMAILS_FIELD != 0
-        contact_emails_title_holder.beVisibleIf(areEmailsVisible)
-        contact_emails_holder.beVisibleIf(areEmailsVisible)
-        contact_emails_add_new_holder.beVisibleIf(areEmailsVisible)
+        binding.contactEmailsTitleHolder.beVisibleIf(areEmailsVisible)
+        binding.contactEmailsHolder.beVisibleIf(areEmailsVisible)
+        binding.contactEmailsAddNewHolder.beVisibleIf(areEmailsVisible)
 
         val areAddressesVisible = showFields and SHOW_ADDRESSES_FIELD != 0
-        contact_addresses_title_holder.beVisibleIf(areAddressesVisible)
-        contact_addresses_holder.beVisibleIf(areAddressesVisible)
-        contact_addresses_add_new_holder.beVisibleIf(areAddressesVisible)
+        binding.contactAddressesTitleHolder.beVisibleIf(areAddressesVisible)
+        binding.contactAddressesHolder.beVisibleIf(areAddressesVisible)
+        binding.contactAddressesAddNewHolder.beVisibleIf(areAddressesVisible)
 
         val areIMsVisible = showFields and SHOW_IMS_FIELD != 0
-        contact_ims_title_holder.beVisibleIf(areIMsVisible)
-        contact_ims_holder.beVisibleIf(areIMsVisible)
-        contact_ims_add_new_holder.beVisibleIf(areIMsVisible)
+        binding.contactImsTitleHolder.beVisibleIf(areIMsVisible)
+        binding.contactImsHolder.beVisibleIf(areIMsVisible)
+        binding.contactImsAddNewHolder.beVisibleIf(areIMsVisible)
 
         val areEventsVisible = showFields and SHOW_EVENTS_FIELD != 0
-        contact_events_title_holder.beVisibleIf(areEventsVisible)
-        contact_events_holder.beVisibleIf(areEventsVisible)
-        contact_events_add_new_holder.beVisibleIf(areEventsVisible)
+        binding.contactEventsTitleHolder.beVisibleIf(areEventsVisible)
+        binding.contactEventsHolder.beVisibleIf(areEventsVisible)
+        binding.contactEventsAddNewHolder.beVisibleIf(areEventsVisible)
 
         val areWebsitesVisible = showFields and SHOW_WEBSITES_FIELD != 0
-        contact_websites_title_holder.beVisibleIf(areWebsitesVisible)
-        contact_websites_holder.beVisibleIf(areWebsitesVisible)
-        contact_websites_add_new_holder.beVisibleIf(areWebsitesVisible)
+        binding.contactWebsitesTitleHolder.beVisibleIf(areWebsitesVisible)
+        binding.contactWebsitesHolder.beVisibleIf(areWebsitesVisible)
+        binding.contactWebsitesAddNewHolder.beVisibleIf(areWebsitesVisible)
 
         val areRelationsVisible = showFields and SHOW_RELATIONS_FIELD != 0
-        contact_relations_title_holder.beVisibleIf(areRelationsVisible)
-        contact_relations_holder.beVisibleIf(areRelationsVisible)
-        contact_relations_add_new_holder.beVisibleIf(areRelationsVisible)
+        binding.contactRelationsTitleHolder.beVisibleIf(areRelationsVisible)
+        binding.contactRelationsHolder.beVisibleIf(areRelationsVisible)
+        binding.contactRelationsAddNewHolder.beVisibleIf(areRelationsVisible)
 
         val areGroupsVisible = showFields and SHOW_GROUPS_FIELD != 0
-        contact_groups_title_holder.beVisibleIf(areGroupsVisible)
-        contact_groups_holder.beVisibleIf(areGroupsVisible)
-        //contact_groups_add_new_holder.beVisibleIf(areGroupsVisible)
+        binding.contactGroupsTitleHolder.beVisibleIf(areGroupsVisible)
+        binding.contactGroupsHolder.beVisibleIf(areGroupsVisible)
+        //binding.contactGroupsAddNewHolder.beVisibleIf(areGroupsVisible)
 
         val areNotesVisible = showFields and SHOW_NOTES_FIELD != 0
-        contact_notes.beVisibleIf(areNotesVisible)
-        contact_notes_title_holder.beVisibleIf(areNotesVisible)
+        binding.contactNotes.beVisibleIf(areNotesVisible)
+        binding.contactNotesTitleHolder.beVisibleIf(areNotesVisible)
 
         val isRingtoneVisible = showFields and SHOW_RINGTONE_FIELD != 0
-        contact_ringtone_holder.beVisibleIf(isRingtoneVisible)
-        contact_ringtone_title_holder.beVisibleIf(isRingtoneVisible)
+        binding.contactRingtoneHolder.beVisibleIf(isRingtoneVisible)
+        binding.contactRingtoneTitleHolder.beVisibleIf(isRingtoneVisible)
     }
 
     private fun setupEditContact() {
@@ -540,69 +553,70 @@ class EditContactActivity : ContactActivity() {
 
     private fun setupNames() {
         contact!!.apply {
-            contact_prefix.setText(prefix)
-            contact_first_name.setText(firstName)
-            contact_middle_name.setText(middleName)
-            contact_surname.setText(surname)
-            contact_suffix.setText(suffix)
-            contact_nickname.setText(nickname)
+            binding.contactPrefix.setText(prefix)
+            binding.contactFirstName.setText(firstName)
+            binding.contactMiddleName.setText(middleName)
+            binding.contactSurname.setText(surname)
+            binding.contactSuffix.setText(suffix)
+            binding.contactNickname.setText(nickname)
         }
 
-        divider_contact_prefix.setBackgroundColor(getProperTextColor())
-        divider_contact_first_name.setBackgroundColor(getProperTextColor())
-        divider_contact_middle_name.setBackgroundColor(getProperTextColor())
-        divider_contact_surname.setBackgroundColor(getProperTextColor())
-        divider_contact_suffix.setBackgroundColor(getProperTextColor())
-        divider_contact_nickname.setBackgroundColor(getProperTextColor())
-
-        if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_prefix.setBackgroundColor(white)
-            contact_first_name.setBackgroundColor(white)
-            contact_middle_name.setBackgroundColor(white)
-            contact_surname.setBackgroundColor(white)
-            contact_suffix.setBackgroundColor(white)
-            contact_nickname.setBackgroundColor(white)
-        }
+//        val backgroundColor = if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) white else getProperTextColor()
+//        arrayOf(
+//            binding.contactPrefix,
+//            binding.contactFirstName,
+//            binding.contactMiddleName,
+//            binding.contactSurname,
+//            binding.contactSuffix,
+//            binding.contactNickname
+//        ).forEach {
+//            it.setBackgroundColor(backgroundColor)
+//        }
     }
 
     private fun setupOrganization() {
-        contact_organization_company.setText(contact!!.organization.company)
-        contact_organization_job_position.setText(contact!!.organization.jobPosition)
+        binding.contactOrganizationCompany.setText(contact!!.organization.company)
+        binding.contactOrganizationJobPosition.setText(contact!!.organization.jobPosition)
 
-        divider_contact_organization_company.setBackgroundColor(getProperTextColor())
+        binding.dividerContactOrganizationCompany.setBackgroundColor(getProperTextColor())
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_organization_company.setBackgroundColor(white)
-            contact_organization_job_position.setBackgroundColor(white)
+            binding.contactOrganizationCompany.setBackgroundColor(white)
+            binding.contactOrganizationJobPosition.setBackgroundColor(white)
         }
     }
 
     private fun setupPhoneNumbers() {
         val phoneNumbers = contact!!.phoneNumbers
-        contact_numbers_holder.removeAllViews()
+        //binding.contactNumbersHolder.removeAllViews()
         phoneNumbers.forEachIndexed { index, number ->
-            var numberHolder = contact_numbers_holder.getChildAt(index)
-            if (numberHolder == null) {
-                numberHolder = layoutInflater.inflate(R.layout.item_edit_phone_number, contact_numbers_holder, false)
-                contact_numbers_holder.addView(numberHolder)
+            val numberHolderView = binding.contactNumbersHolder.getChildAt(index)
+            val numberHolder = if (numberHolderView == null) {
+                ItemEditPhoneNumberBinding.inflate(layoutInflater, binding.contactNumbersHolder, false).apply {
+                    binding.contactNumbersHolder.addView(root)
+                }
+            } else {
+                ItemEditPhoneNumberBinding.bind(numberHolderView)
             }
 
-            numberHolder!!.apply {
-                contact_number.setText(number.value)
-                contact_number.tag = number.normalizedNumber
-                setupPhoneNumberTypePicker(contact_number_type, number.type, number.label)
+            numberHolder.apply {
+                contactNumber.setText(number.value)
+                contactNumber.tag = number.normalizedNumber
+                setupPhoneNumberTypePicker(contactNumberType, number.type, number.label)
                 if (highlightLastPhoneNumber && index == phoneNumbers.size - 1) {
-                    numberViewToColor = contact_number
+                    numberViewToColor = contactNumber
                 }
 
-                default_toggle_icon.tag = if (number.isPrimary) 1 else 0
+                defaultToggleIcon.tag = if (number.isPrimary) 1 else 0
 
-                divider_contact_number.setBackgroundColor(getProperTextColor())
-                contact_number_type.setTextColor(getProperPrimaryColor())
-                contact_number_remove.apply {
+                val getProperTextColor = getProperTextColor()
+                dividerVerticalContactNumber.setBackgroundColor(getProperTextColor)
+                dividerContactNumber.setBackgroundColor(getProperTextColor)
+                contactNumberType.setTextColor(getProperPrimaryColor())
+                contactNumberRemove.apply {
                     beVisible()
                     setOnClickListener {
-                        contact_numbers_holder.removeView(numberHolder)
+                        binding.contactNumbersHolder.removeView(numberHolder.root)
                     }
                 }
             }
@@ -611,15 +625,15 @@ class EditContactActivity : ContactActivity() {
         initNumberHolders()
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_numbers_holder.setBackgroundColor(white)
-            contact_numbers_add_new_holder.setBackgroundColor(white)
+            binding.contactNumbersHolder.setBackgroundColor(white)
+            binding.contactNumbersAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setDefaultNumber(selected: ImageView) {
-        val numbersCount = contact_numbers_holder.childCount
+        val numbersCount = binding.contactNumbersHolder.childCount
         for (i in 0 until numbersCount) {
-            val toggleIcon = contact_numbers_holder.getChildAt(i).default_toggle_icon
+            val toggleIcon = ItemEditPhoneNumberBinding.bind(binding.contactNumbersHolder.getChildAt(i)).defaultToggleIcon
             if (toggleIcon != selected) {
                 toggleIcon.tag = 0
             }
@@ -631,21 +645,21 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun initNumberHolders() {
-        val numbersCount = contact_numbers_holder.childCount
+        val numbersCount = binding.contactNumbersHolder.childCount
 
         if (numbersCount == 1) {
-            contact_numbers_holder.getChildAt(0).default_toggle_icon.beGone()
+            ItemEditPhoneNumberBinding.bind(binding.contactNumbersHolder.getChildAt(0)).defaultToggleIcon.beGone()
             return
         }
 
         for (i in 0 until numbersCount) {
-            val toggleIcon = contact_numbers_holder.getChildAt(i).default_toggle_icon
+            val toggleIcon = ItemEditPhoneNumberBinding.bind(binding.contactNumbersHolder.getChildAt(i)).defaultToggleIcon
             val isPrimary = toggleIcon.tag == 1
 
             val drawableId = if (isPrimary) {
-                R.drawable.ic_star_vector
+                com.goodwy.commons.R.drawable.ic_star_vector
             } else {
-                R.drawable.ic_star_outline_vector
+                com.goodwy.commons.R.drawable.ic_star_outline_vector
             }
 
             val drawable = ContextCompat.getDrawable(this@EditContactActivity, drawableId)
@@ -663,107 +677,122 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun setupEmails() {
-        contact_emails_holder.removeAllViews()
+        //binding.contactEmailsHolder.removeAllViews()
         contact!!.emails.forEachIndexed { index, email ->
-            var emailHolder = contact_emails_holder.getChildAt(index)
-            if (emailHolder == null) {
-                emailHolder = layoutInflater.inflate(R.layout.item_edit_email, contact_emails_holder, false)
-                contact_emails_holder.addView(emailHolder)
+            val emailHolderView = binding.contactEmailsHolder.getChildAt(index)
+            val emailHolder = if (emailHolderView == null) {
+                ItemEditEmailBinding.inflate(layoutInflater, binding.contactEmailsHolder, false).apply {
+                    binding.contactEmailsHolder.addView(root)
+                }
+            } else {
+                ItemEditEmailBinding.bind(emailHolderView)
             }
 
-            emailHolder!!.apply {
-                contact_email.setText(email.value)
-                setupEmailTypePicker(contact_email_type, email.type, email.label)
+            emailHolder.apply {
+                contactEmail.setText(email.value)
+                setupEmailTypePicker(contactEmailType, email.type, email.label)
                 if (highlightLastEmail && index == contact!!.emails.size - 1) {
-                    emailViewToColor = contact_email
+                    emailViewToColor = contactEmail
                 }
 
-                divider_contact_email.setBackgroundColor(getProperTextColor())
-                contact_email_type.setTextColor(getProperPrimaryColor())
-                contact_email_remove.apply {
+                val getProperTextColor = getProperTextColor()
+                dividerVerticalContactEmail.setBackgroundColor(getProperTextColor)
+                dividerContactEmail.setBackgroundColor(getProperTextColor)
+                contactEmailType.setTextColor(getProperPrimaryColor())
+                contactEmailRemove.apply {
                     beVisible()
                     setOnClickListener {
-                        contact_emails_holder.removeView(emailHolder)
+                        binding.contactEmailsHolder.removeView(emailHolder.root)
                     }
                 }
             }
         }
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_emails_holder.setBackgroundColor(white)
-            contact_emails_add_new_holder.setBackgroundColor(white)
+            binding.contactEmailsHolder.setBackgroundColor(white)
+            binding.contactEmailsAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setupAddresses() {
-        contact_addresses_holder.removeAllViews()
+        //binding.contactAddressesHolder.removeAllViews()
         contact!!.addresses.forEachIndexed { index, address ->
-            var addressHolder = contact_addresses_holder.getChildAt(index)
-            if (addressHolder == null) {
-                addressHolder = layoutInflater.inflate(R.layout.item_edit_address, contact_addresses_holder, false)
-                contact_addresses_holder.addView(addressHolder)
+            val addressHolderView = binding.contactAddressesHolder.getChildAt(index)
+            val addressHolder = if (addressHolderView == null) {
+                ItemEditAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false).apply {
+                    binding.contactAddressesHolder.addView(root)
+                }
+            } else {
+                ItemEditAddressBinding.bind(addressHolderView)
             }
 
-            addressHolder!!.apply {
-                contact_address.setText(address.value)
-                setupAddressTypePicker(contact_address_type, address.type, address.label)
+            addressHolder.apply {
+                contactAddress.setText(address.value)
+                setupAddressTypePicker(contactAddressType, address.type, address.label)
 
-                divider_contact_address.setBackgroundColor(getProperTextColor())
-                contact_address_type.setTextColor(getProperPrimaryColor())
-                contact_address_remove.apply {
+                val getProperTextColor = getProperTextColor()
+                dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
+                dividerContactAddress.setBackgroundColor(getProperTextColor)
+                contactAddressType.setTextColor(getProperPrimaryColor())
+                contactAddressRemove.apply {
                     beVisible()
                     setOnClickListener {
-                        contact_addresses_holder.removeView(addressHolder)
+                        binding.contactAddressesHolder.removeView(addressHolder.root)
                     }
                 }
             }
         }
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_addresses_holder.setBackgroundColor(white)
-            contact_addresses_add_new_holder.setBackgroundColor(white)
+            binding.contactAddressesHolder.setBackgroundColor(white)
+            binding.contactAddressesAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setupIMs() {
-        contact_ims_holder.removeAllViews()
+        //binding.contactImsHolder.removeAllViews()
         contact!!.IMs.forEachIndexed { index, IM ->
-            var imHolder = contact_ims_holder.getChildAt(index)
-            if (imHolder == null) {
-                imHolder = layoutInflater.inflate(R.layout.item_edit_im, contact_ims_holder, false)
-                contact_ims_holder.addView(imHolder)
+            val imHolderView = binding.contactImsHolder.getChildAt(index)
+            val imHolder = if (imHolderView == null) {
+                ItemEditImBinding.inflate(layoutInflater, binding.contactImsHolder, false).apply {
+                    binding.contactImsHolder.addView(root)
+                }
+            } else {
+                ItemEditImBinding.bind(imHolderView)
             }
 
-            imHolder!!.apply {
-                contact_im.setText(IM.value)
-                setupIMTypePicker(contact_im_type, IM.type, IM.label)
+            imHolder.apply {
+                contactIm.setText(IM.value)
+                setupIMTypePicker(contactImType, IM.type, IM.label)
 
-                divider_contact_im.setBackgroundColor(getProperTextColor())
-                contact_im_type.setTextColor(getProperPrimaryColor())
-                contact_im_remove.apply {
+                val getProperTextColor = getProperTextColor()
+                dividerVerticalContactIm.setBackgroundColor(getProperTextColor)
+                dividerContactIm.setBackgroundColor(getProperTextColor)
+                contactImType.setTextColor(getProperPrimaryColor())
+                contactImRemove.apply {
                     beVisible()
                     setOnClickListener {
-                        contact_ims_holder.removeView(imHolder)
+                        binding.contactImsHolder.removeView(imHolder.root)
                     }
                 }
             }
         }
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_ims_holder.setBackgroundColor(white)
-            contact_ims_add_new_holder.setBackgroundColor(white)
+            binding.contactImsHolder.setBackgroundColor(white)
+            binding.contactImsAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setupNotes() {
-        contact_notes.setText(contact!!.notes)
+        binding.contactNotes.setText(contact!!.notes)
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_notes.setBackgroundColor(white)
+            binding.contactNotes.setBackgroundColor(white)
         }
     }
 
     private fun setupRingtone() {
-        contact_ringtone.setOnClickListener {
+        binding.contactRingtone.setOnClickListener {
             hideKeyboard()
             val ringtonePickerIntent = getRingtonePickerIntent()
             try {
@@ -773,7 +802,7 @@ class EditContactActivity : ContactActivity() {
                 SelectAlarmSoundDialog(this, currentRingtone, AudioManager.STREAM_RING, PICK_RINGTONE_INTENT_ID, RingtoneManager.TYPE_RINGTONE, true,
                     onAlarmPicked = {
                         contact!!.ringtone = it?.uri
-                        contact_ringtone.text = it?.title
+                        binding.contactRingtone.text = it?.title
                     }, onAlarmSoundDeleted = {}
                 )
             }
@@ -781,62 +810,69 @@ class EditContactActivity : ContactActivity() {
 
         val ringtone = contact!!.ringtone
         if (ringtone?.isEmpty() == true) {
-            contact_ringtone.text = getString(R.string.no_sound)
+            binding.contactRingtone.text = getString(com.goodwy.commons.R.string.no_sound)
         } else if (ringtone?.isNotEmpty() == true) {
             if (ringtone == SILENT) {
-                contact_ringtone.text = getString(R.string.no_sound)
+                binding.contactRingtone.text = getString(com.goodwy.commons.R.string.no_sound)
             } else {
                 systemRingtoneSelected(Uri.parse(ringtone))
             }
         } else {
             val default = getDefaultAlarmSound(RingtoneManager.TYPE_RINGTONE)
-            contact_ringtone.text = default.title
+            binding.contactRingtone.text = default.title
         }
 
-        contact_ringtone.setTextColor(getProperPrimaryColor())
+        binding.contactRingtone.setTextColor(getProperPrimaryColor())
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_ringtone_holder.setBackgroundColor(white)
+            binding.contactRingtoneHolder.setBackgroundColor(white)
         }
+        binding.contactRingtoneChevron.setColorFilter(getProperTextColor())
     }
 
     private fun setupWebsites() {
-        contact_websites_holder.removeAllViews()
+        //binding.contactWebsitesHolder.removeAllViews()
         contact!!.websites.forEachIndexed { index, website ->
-            var websitesHolder = contact_websites_holder.getChildAt(index)
-            if (websitesHolder == null) {
-                websitesHolder = layoutInflater.inflate(R.layout.item_edit_website, contact_websites_holder, false)
-                contact_websites_holder.addView(websitesHolder)
+            val websitesHolderView = binding.contactWebsitesHolder.getChildAt(index)
+            val websitesHolder = if (websitesHolderView == null) {
+                ItemEditWebsiteBinding.inflate(layoutInflater, binding.contactWebsitesHolder, false).apply {
+                    binding.contactWebsitesHolder.addView(root)
+                }
+            } else {
+                ItemEditWebsiteBinding.bind(websitesHolderView)
             }
 
-            websitesHolder!!.contact_website.setText(website)
+            websitesHolder.contactWebsite.setText(website)
 
-            (websitesHolder as ViewGroup).apply {
-                divider_contact_website.setBackgroundColor(getProperTextColor())
-                contact_website_remove.apply {
+            websitesHolder.apply {
+                dividerContactWebsite.setBackgroundColor(getProperTextColor())
+                contactWebsiteRemove.apply {
                     beVisible()
                     setOnClickListener {
-                        contact_websites_holder.removeView(websitesHolder)
+                        binding.contactWebsitesHolder.removeView(websitesHolder.root)
                     }
                 }
             }
         }
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_websites_holder.setBackgroundColor(white)
-            contact_websites_add_new_holder.setBackgroundColor(white)
+            binding.contactWebsitesHolder.setBackgroundColor(white)
+            binding.contactWebsitesAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setupEvents() {
         contact!!.events.forEachIndexed { index, event ->
-            var eventHolder = contact_events_holder.getChildAt(index)
-            if (eventHolder == null) {
-                eventHolder = layoutInflater.inflate(R.layout.item_event, contact_events_holder, false)
-                contact_events_holder.addView(eventHolder)
+            val eventHolderView = binding.contactEventsHolder.getChildAt(index)
+            val eventHolder = if (eventHolderView == null) {
+                ItemEventBinding.inflate(layoutInflater, binding.contactEventsHolder, false).apply {
+                    binding.contactEventsHolder.addView(root)
+                }
+            } else {
+                ItemEventBinding.bind(eventHolderView)
             }
 
-            (eventHolder as ViewGroup).apply {
-                val contactEvent = contact_event.apply {
+            eventHolder.apply {
+                val contactEvent = contactEvent.apply {
                     event.value.getDateTimeFromDateString(true, this)
                     tag = event.value
                     alpha = 1f
@@ -844,77 +880,87 @@ class EditContactActivity : ContactActivity() {
 
                 setupEventTypePicker(this, event.type)
 
-                divider_contact_event.setBackgroundColor(getProperTextColor())
-                contact_event_type.setTextColor(getProperPrimaryColor())
-                contact_event_remove.apply {
+                val getProperTextColor = getProperTextColor()
+                dividerVerticalContactEvent.setBackgroundColor(getProperTextColor)
+                dividerContactEvent.setBackgroundColor(getProperTextColor)
+                contactEventType.setTextColor(getProperPrimaryColor())
+                contactEventRemove.apply {
                     beVisible()
                     setOnClickListener {
                         resetContactEvent(contactEvent, this)
-                        contact_events_holder.removeView(eventHolder)
+                        binding.contactEventsHolder.removeView(eventHolder.root)
                     }
                 }
             }
         }
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_events_holder.setBackgroundColor(white)
-            contact_events_add_new_holder.setBackgroundColor(white)
+            binding.contactEventsHolder.setBackgroundColor(white)
+            binding.contactEventsAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setupRelations() {
-        contact_relations_holder.removeAllViews()
+        //binding.contactRelationsHolder.removeAllViews()
         contact!!.relations.forEachIndexed { index, relation ->
-            var relationHolder = contact_relations_holder.getChildAt(index)
-            if (relationHolder == null) {
-                relationHolder = layoutInflater.inflate(R.layout.item_edit_relation, contact_relations_holder, false)
-                contact_relations_holder.addView(relationHolder)
+            val relationHolderView = binding.contactRelationsHolder.getChildAt(index)
+            val relationHolder = if (relationHolderView == null) {
+                ItemEditRelationBinding.inflate(layoutInflater, binding.contactRelationsHolder, false).apply {
+                    binding.contactRelationsHolder.addView(root)
+                }
+            } else {
+                ItemEditRelationBinding.bind(relationHolderView)
             }
 
-            relationHolder!!.apply {
-                contact_relation.setText(relation.name)
-                setupRelationTypePicker(contact_relation_type, relation.type, relation.label)
+            relationHolder.apply {
+                contactRelation.setText(relation.name)
+                setupRelationTypePicker(contactRelationType, relation.type, relation.label)
 
-                divider_contact_relation.setBackgroundColor(getProperTextColor())
-                contact_relation_type.setTextColor(getProperPrimaryColor())
-                contact_relation_remove.apply {
+                val getProperTextColor = getProperTextColor()
+                dividerVerticalContactRelation.setBackgroundColor(getProperTextColor)
+                dividerContactRelation.setBackgroundColor(getProperTextColor)
+                contactRelationType.setTextColor(getProperPrimaryColor())
+                contactRelationRemove.apply {
                     beVisible()
                     setOnClickListener {
-                        contact_relations_holder.removeView(relationHolder)
+                        binding.contactRelationsHolder.removeView(relationHolder.root)
                     }
                 }
             }
         }
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_relations_holder.setBackgroundColor(white)
-            contact_relations_add_new_holder.setBackgroundColor(white)
+            binding.contactRelationsHolder.setBackgroundColor(white)
+            binding.contactRelationsAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setupGroups() {
-        contact_groups_holder.removeAllViews()
+        binding.contactGroupsHolder.removeAllViews()
         val groups = contact!!.groups
         groups.forEachIndexed { index, group ->
-            var groupHolder = contact_groups_holder.getChildAt(index)
-            if (groupHolder == null) {
-                groupHolder = layoutInflater.inflate(R.layout.item_edit_group, contact_groups_holder, false)
-                contact_groups_holder.addView(groupHolder)
+            val groupHolderView = binding.contactGroupsHolder.getChildAt(index)
+            val groupHolder = if (groupHolderView == null) {
+                ItemEditGroupBinding.inflate(layoutInflater, binding.contactGroupsHolder, false).apply {
+                    binding.contactGroupsHolder.addView(root)
+                }
+            } else {
+                ItemEditGroupBinding.bind(groupHolderView)
             }
 
-            (groupHolder as ViewGroup).apply {
-                contact_group.apply {
+            groupHolder.apply {
+                contactGroup.apply {
                     text = group.title
-                    setTextColor(getProperTextColor())
+                    setTextColor(getProperPrimaryColor())
                     tag = group.id
                     alpha = 1f
                 }
 
-                setOnClickListener {
+                root.setOnClickListener {
                     showSelectGroupsDialog()
                 }
 
-                contact_group_remove.apply {
+                contactGroupRemove.apply {
                     beVisible()
                     //applyColorFilter(getProperPrimaryColor())
                     //background.applyColorFilter(getProperTextColor())
@@ -922,53 +968,56 @@ class EditContactActivity : ContactActivity() {
                         removeGroup(group.id!!)
                     }
                 }
-                contact_group_add.beGone()
+                contactGroupAdd.beGone()
                 val showFields = config.showContactFields
-                contact_groups_add_new_holder.beVisibleIf(showFields and SHOW_GROUPS_FIELD != 0)
+                binding.contactGroupsAddNewHolder.beVisibleIf(showFields and SHOW_GROUPS_FIELD != 0)
 
-                divider_contact_group.setBackgroundColor(getProperTextColor())
+                dividerContactGroup.setBackgroundColor(getProperTextColor())
             }
         }
 
         if (groups.isEmpty()) {
-            layoutInflater.inflate(R.layout.item_edit_group, contact_groups_holder, false).apply {
-                contact_group.apply {
+            ItemEditGroupBinding.inflate(layoutInflater, binding.contactGroupsHolder, false).apply {
+                contactGroup.apply {
                     alpha = 0.5f
                     text = getString(R.string.no_groups)
                     setTextColor(getProperTextColor())
                 }
 
-                contact_groups_holder.addView(this)
-                contact_group_remove.beGone()
-                contact_groups_add_new_holder.beGone()
-                contact_group_add.beVisible()
-                setOnClickListener {
+                binding.contactGroupsHolder.addView(root)
+                contactGroupRemove.beGone()
+                binding.contactGroupsAddNewHolder.beGone()
+                contactGroupAdd.beVisible()
+                root.setOnClickListener {
                     showSelectGroupsDialog()
                 }
+                dividerContactGroup.beGone()
             }
-            divider_contact_group.beGone()
         }
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_groups_holder.setBackgroundColor(white)
-            contact_groups_add_new_holder.setBackgroundColor(white)
+            binding.contactGroupsHolder.setBackgroundColor(white)
+            binding.contactGroupsAddNewHolder.setBackgroundColor(white)
         }
     }
 
     private fun setupContactSource() {
         originalContactSource = contact!!.source
         getPublicContactSource(contact!!.source) {
-            contact_source.text = if (it == "") getString(R.string.phone_storage) else it
+            binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
+            setupContactSourceImage(it)
         }
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_source_holder.setBackgroundColor(white)
+            binding.contactSourceHolder.setBackgroundColor(white)
         }
+        binding.contactSource.setTextColor(getProperPrimaryColor())
     }
 
     private fun setupNewContact() {
         originalContactSource = if (hasContactPermissions()) config.lastUsedContactSource else SMT_PRIVATE
         contact = getEmptyContact()
         getPublicContactSource(contact!!.source) {
-            contact_source.text = if (it == "") getString(R.string.phone_storage) else it
+            binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
+            setupContactSourceImage(it)
         }
 
         // if the last used contact source is not available anymore, use the first available one. Could happen at ejecting SIM card
@@ -978,152 +1027,202 @@ class EditContactActivity : ContactActivity() {
                 originalContactSource = sourceNames.first()
                 contact?.source = originalContactSource
                 getPublicContactSource(contact!!.source) {
-                    contact_source.text = if (it == "") getString(R.string.phone_storage) else it
+                    binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
+                    setupContactSourceImage(it)
                 }
             }
+        }
+        binding.contactSource.setTextColor(getProperPrimaryColor())
+    }
+
+    private fun setupContactSourceImage(source: String) {
+        binding.contactSourceImage.beGone()
+
+        if (source.contains("gmail.com", true) || source.contains("googlemail.com", true)) {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable("google"))
+            binding.contactSourceImage.beVisible()
+        }
+
+        if (source == SMT_PRIVATE) {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable(SMT_PRIVATE))
+            binding.contactSourceImage.beVisible()
+        }
+
+        if (source.lowercase(Locale.getDefault()) == WHATSAPP) {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable(WHATSAPP_PACKAGE))
+            binding.contactSourceImage.beVisible()
+        }
+
+        if (source.lowercase(Locale.getDefault()) == SIGNAL) {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable(SIGNAL_PACKAGE))
+            binding.contactSourceImage.beVisible()
+        }
+
+        if (source.lowercase(Locale.getDefault()) == VIBER) {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable(VIBER_PACKAGE))
+            binding.contactSourceImage.beVisible()
+        }
+
+        if (source.lowercase(Locale.getDefault()) == TELEGRAM) {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable(TELEGRAM_PACKAGE))
+            binding.contactSourceImage.beVisible()
+        }
+
+        if (source.lowercase(Locale.getDefault()) == THREEMA) {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable(THREEMA_PACKAGE))
+            binding.contactSourceImage.beVisible()
         }
     }
 
     private fun setupTypePickers() {
+        val getProperTextColor = getProperTextColor()
+        val getProperPrimaryColor = getProperPrimaryColor()
 
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-            contact_prefix.setBackgroundColor(white)
-            divider_contact_prefix.setBackgroundColor(getProperTextColor())
-            contact_first_name.setBackgroundColor(white)
-            divider_contact_first_name.setBackgroundColor(getProperTextColor())
-            contact_middle_name.setBackgroundColor(white)
-            divider_contact_middle_name.setBackgroundColor(getProperTextColor())
-            contact_surname.setBackgroundColor(white)
-            divider_contact_surname.setBackgroundColor(getProperTextColor())
-            contact_suffix.setBackgroundColor(white)
-            divider_contact_suffix.setBackgroundColor(getProperTextColor())
-            contact_nickname.setBackgroundColor(white)
-            divider_contact_nickname.setBackgroundColor(getProperTextColor())
-            contact_organization_company.setBackgroundColor(white)
-            divider_contact_organization_company.setBackgroundColor(getProperTextColor())
-            contact_organization_job_position.setBackgroundColor(white)
-            contact_source_holder.setBackgroundColor(white)
+            binding.contactPrefix.setBackgroundColor(white)
+            binding.dividerContactPrefix.setBackgroundColor(getProperTextColor)
+            binding.contactFirstName.setBackgroundColor(white)
+            binding.dividerContactFirstName.setBackgroundColor(getProperTextColor)
+            binding.contactMiddleName.setBackgroundColor(white)
+            binding.dividerContactMiddleName.setBackgroundColor(getProperTextColor)
+            binding.contactSurname.setBackgroundColor(white)
+            binding.dividerContactSurname.setBackgroundColor(getProperTextColor)
+            binding.contactSuffix.setBackgroundColor(white)
+            binding.dividerContactSuffix.setBackgroundColor(getProperTextColor)
+            binding.contactNickname.setBackgroundColor(white)
+            binding.dividerContactNickname.setBackgroundColor(getProperTextColor)
+            binding.contactOrganizationCompany.setBackgroundColor(white)
+            binding.dividerContactOrganizationCompany.setBackgroundColor(getProperTextColor)
+            binding.contactOrganizationJobPosition.setBackgroundColor(white)
+            binding.contactSourceHolder.setBackgroundColor(white)
         }
 
         if (contact!!.phoneNumbers.isEmpty()) {
-            contact_numbers_holder.removeAllViews()
-            divider_contact_number?.setBackgroundColor(getProperTextColor())
-            val numberHolder = contact_numbers_holder.getChildAt(0)
-            (numberHolder as? ViewGroup)?.contact_number_type?.apply {
-                setTextColor(getProperPrimaryColor())
+            //binding.contactNumbersHolder.removeAllViews()
+            val numberHolder = ItemEditPhoneNumberBinding.bind(binding.contactNumbersHolder.getChildAt(0))
+            numberHolder.contactNumberType.apply {
+                setTextColor(getProperPrimaryColor)
                 setupPhoneNumberTypePicker(this, DEFAULT_PHONE_NUMBER_TYPE, "")
             }
+            numberHolder.dividerVerticalContactNumber.setBackgroundColor(getProperTextColor)
+            numberHolder.dividerContactNumber.setBackgroundColor(getProperTextColor)
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_numbers_holder.setBackgroundColor(white)
-                contact_numbers_add_new_holder.setBackgroundColor(white)
+                binding.contactNumbersHolder.setBackgroundColor(white)
+                binding.contactNumbersAddNewHolder.setBackgroundColor(white)
             }
         }
 
         if (contact!!.emails.isEmpty()) {
-            contact_emails_holder.removeAllViews()
-            divider_contact_email?.setBackgroundColor(getProperTextColor())
-            val emailHolder = contact_emails_holder.getChildAt(0)
-            (emailHolder as? ViewGroup)?.contact_email_type?.apply {
-                setTextColor(getProperPrimaryColor())
+            //binding.contactEmailsHolder.removeAllViews()
+            val emailHolder = ItemEditEmailBinding.bind(binding.contactEmailsHolder.getChildAt(0))
+            emailHolder.contactEmailType.apply {
+                setTextColor(getProperPrimaryColor)
                 setupEmailTypePicker(this, DEFAULT_EMAIL_TYPE, "")
             }
+            emailHolder.dividerVerticalContactEmail.setBackgroundColor(getProperTextColor)
+            emailHolder.dividerContactEmail.setBackgroundColor(getProperTextColor)
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_emails_holder.setBackgroundColor(white)
-                contact_emails_add_new_holder.setBackgroundColor(white)
+                binding.contactEmailsHolder.setBackgroundColor(white)
+                binding.contactEmailsAddNewHolder.setBackgroundColor(white)
             }
         }
 
         if (contact!!.addresses.isEmpty()) {
-            contact_addresses_holder.removeAllViews()
-            divider_contact_address?.setBackgroundColor(getProperTextColor())
-            val addressHolder = contact_addresses_holder.getChildAt(0)
-            (addressHolder as? ViewGroup)?.contact_address_type?.apply {
-                setTextColor(getProperPrimaryColor())
+            //binding.contactAddressesHolder.removeAllViews()
+            val addressHolder = ItemEditAddressBinding.bind(binding.contactAddressesHolder.getChildAt(0))
+            addressHolder.contactAddressType.apply {
+                setTextColor(getProperPrimaryColor)
                 setupAddressTypePicker(this, DEFAULT_ADDRESS_TYPE, "")
             }
+            addressHolder.dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
+            addressHolder.dividerContactAddress.setBackgroundColor(getProperTextColor)
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_addresses_holder.setBackgroundColor(white)
-                contact_addresses_add_new_holder.setBackgroundColor(white)
+                binding.contactAddressesHolder.setBackgroundColor(white)
+                binding.contactAddressesAddNewHolder.setBackgroundColor(white)
             }
         }
 
         if (contact!!.IMs.isEmpty()) {
-            contact_ims_holder.removeAllViews()
-            divider_contact_im?.setBackgroundColor(getProperTextColor())
-            val IMHolder = contact_ims_holder.getChildAt(0)
-            (IMHolder as? ViewGroup)?.contact_im_type?.apply {
-                setTextColor(getProperPrimaryColor())
+            //binding.contactImsHolder.removeAllViews()
+            val IMHolder = ItemEditImBinding.bind(binding.contactImsHolder.getChildAt(0))
+            IMHolder.contactImType.apply {
+                setTextColor(getProperPrimaryColor)
                 setupIMTypePicker(this, DEFAULT_IM_TYPE, "")
             }
+            IMHolder.dividerVerticalContactIm.setBackgroundColor(getProperTextColor)
+            IMHolder.dividerContactIm.setBackgroundColor(getProperTextColor)
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_ims_holder.setBackgroundColor(white)
-                contact_ims_add_new_holder.setBackgroundColor(white)
+                binding.contactImsHolder.setBackgroundColor(white)
+                binding.contactImsAddNewHolder.setBackgroundColor(white)
             }
         }
 
         if (contact!!.events.isEmpty()) {
-            contact_events_holder.removeAllViews()
-            divider_contact_event?.setBackgroundColor(getProperTextColor())
-            val eventHolder = contact_events_holder.getChildAt(0)
-            (eventHolder as? ViewGroup)?.apply {
+            //binding.contactEventsHolder.removeAllViews()
+            val eventHolder = ItemEventBinding.bind(binding.contactEventsHolder.getChildAt(0))
+            eventHolder.apply {
                 setupEventTypePicker(this)
             }
+            eventHolder.contactEventType.setTextColor(getProperPrimaryColor)
+            eventHolder.dividerVerticalContactEvent.setBackgroundColor(getProperTextColor)
+            eventHolder.dividerContactEvent.setBackgroundColor(getProperTextColor)
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_events_holder.setBackgroundColor(white)
-                contact_events_add_new_holder.setBackgroundColor(white)
+                binding.contactEventsHolder.setBackgroundColor(white)
+                binding.contactEventsAddNewHolder.setBackgroundColor(white)
             }
         }
 
         if (contact!!.relations.isEmpty()) {
-            contact_relations_holder.removeAllViews()
-            divider_contact_relation?.setBackgroundColor(getProperTextColor())
-            val relationHolder = contact_relations_holder.getChildAt(0)
-            (relationHolder as? ViewGroup)?.contact_relation_type?.apply {
-                setTextColor(getProperPrimaryColor())
+            //binding.contactRelationsHolder.removeAllViews()
+            val relationHolder = ItemEditRelationBinding.bind(binding.contactRelationsHolder.getChildAt(0))
+            relationHolder.contactRelationType.apply {
+                setTextColor(getProperPrimaryColor)
                 setupRelationTypePicker(this, DEFAULT_RELATION_TYPE, "")
             }
+            relationHolder.dividerVerticalContactRelation.setBackgroundColor(getProperTextColor)
+            relationHolder.dividerContactRelation.setBackgroundColor(getProperTextColor)
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_relations_holder.setBackgroundColor(white)
-                contact_relations_add_new_holder.setBackgroundColor(white)
+                binding.contactRelationsHolder.setBackgroundColor(white)
+                binding.contactRelationsAddNewHolder.setBackgroundColor(white)
             }
         }
 
         if (contact!!.notes.isEmpty()) {
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_notes.setBackgroundColor(white)
+                binding.contactNotes.setBackgroundColor(white)
             }
         }
 
         if (contact!!.websites.isEmpty()) {
-            contact_websites_holder.removeAllViews()
+            binding.contactWebsitesHolder.removeAllViews()
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_websites_holder.setBackgroundColor(white)
-                contact_websites_add_new_holder.setBackgroundColor(white)
+                binding.contactWebsitesHolder.setBackgroundColor(white)
+                binding.contactWebsitesAddNewHolder.setBackgroundColor(white)
             }
         }
 
         if (contact!!.groups.isEmpty()) {
-            divider_contact_group?.setBackgroundColor(getProperTextColor())
-            val groupsHolder = contact_groups_holder.getChildAt(0)
-            (groupsHolder as? ViewGroup)?.apply {
-                contact_group?.setOnClickListener {
-                    setupGroupsPicker(contact_group)
+            val groupsHolder = ItemEditGroupBinding.bind(binding.contactGroupsHolder.getChildAt(0))
+            groupsHolder.apply {
+                contactGroup.setOnClickListener {
+                    setupGroupsPicker(contactGroup)
                 }
-                contact_group_remove?.beGone()
-                divider_contact_group?.beGone()
-                contact_group_add?.beVisible()
+                contactGroupRemove.beGone()
+                dividerContactGroup.beGone()
+                contactGroupAdd.beVisible()
+                //dividerContactGroup.setBackgroundColor(getProperTextColor)
             }
-            contact_groups_add_new_holder?.beGone()
+            binding.contactGroupsAddNewHolder.beGone()
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                contact_groups_holder?.setBackgroundColor(white)
+                binding.contactGroupsHolder.setBackgroundColor(white)
             }
         }
     }
@@ -1164,15 +1263,15 @@ class EditContactActivity : ContactActivity() {
         }
     }
 
-    private fun setupEventTypePicker(eventHolder: ViewGroup, type: Int = DEFAULT_EVENT_TYPE) {
-        eventHolder.contact_event_type.apply {
+    private fun setupEventTypePicker(eventHolder: ItemEventBinding, type: Int = DEFAULT_EVENT_TYPE) {
+        eventHolder.contactEventType.apply {
             setText(getEventTextId(type))
             setOnClickListener {
                 showEventTypePicker(it as TextView)
             }
         }
 
-        val eventField = eventHolder.contact_event
+        val eventField = eventHolder.contactEvent
         eventField.setOnClickListener {
             MyDatePickerDialog(this, eventField.tag?.toString() ?: "") { dateTag ->
                 eventField.apply {
@@ -1183,10 +1282,10 @@ class EditContactActivity : ContactActivity() {
             }
         }
 
-        eventHolder.contact_event_remove.apply {
+        eventHolder.contactEventRemove.apply {
             setOnClickListener {
                 resetContactEvent(eventField, this@apply)
-                contact_events_holder.removeView(eventHolder)
+                binding.contactEventsHolder.removeView(eventHolder.root)
             }
         }
     }
@@ -1202,65 +1301,63 @@ class EditContactActivity : ContactActivity() {
 
     private fun showRelationTypePicker(relationTypeField: TextView) {
         val items = arrayListOf(
-            RadioItem(CommonDataKinds.Relation.TYPE_CUSTOM, getString(R.string.custom)),
+            RadioItem(Relation.TYPE_CUSTOM, getString(com.goodwy.commons.R.string.custom)),
+            RadioItem(Relation.TYPE_FRIEND, getString(com.goodwy.commons.R.string.relation_friend_g)), // 6
+            RadioItem(Relation.TYPE_SPOUSE, getString(com.goodwy.commons.R.string.relation_spouse_g)), // 14
+            RadioItem(ContactRelation.TYPE_HUSBAND, getString(com.goodwy.commons.R.string.relation_husband_g)), // 103
+            RadioItem(ContactRelation.TYPE_WIFE, getString(com.goodwy.commons.R.string.relation_wife_g)), // 104
+            RadioItem(Relation.TYPE_DOMESTIC_PARTNER, getString(com.goodwy.commons.R.string.relation_domestic_partner_g)), // 4
+            RadioItem(Relation.TYPE_PARTNER, getString(com.goodwy.commons.R.string.relation_partner_g)), // 10
+            RadioItem(ContactRelation.TYPE_CO_RESIDENT, getString(com.goodwy.commons.R.string.relation_co_resident_g)), // 56
+            RadioItem(ContactRelation.TYPE_NEIGHBOR, getString(com.goodwy.commons.R.string.relation_neighbor_g)), // 57
+            RadioItem(Relation.TYPE_PARENT, getString(com.goodwy.commons.R.string.relation_parent_g)), // 9
+            RadioItem(Relation.TYPE_FATHER, getString(com.goodwy.commons.R.string.relation_father_g)), // 5
+            RadioItem(Relation.TYPE_MOTHER, getString(com.goodwy.commons.R.string.relation_mother_g)), // 8
+            RadioItem(Relation.TYPE_CHILD, getString(com.goodwy.commons.R.string.relation_child_g)), // 3
+            RadioItem(ContactRelation.TYPE_SON, getString(com.goodwy.commons.R.string.relation_son_g)), // 105
+            RadioItem(ContactRelation.TYPE_DAUGHTER, getString(com.goodwy.commons.R.string.relation_daughter_g)), // 106
+            RadioItem(ContactRelation.TYPE_SIBLING, getString(com.goodwy.commons.R.string.relation_sibling_g)), // 58
+            RadioItem(Relation.TYPE_BROTHER, getString(com.goodwy.commons.R.string.relation_brother_g)), // 2
+            RadioItem(Relation.TYPE_SISTER, getString(com.goodwy.commons.R.string.relation_sister_g)), // 13
+            RadioItem(ContactRelation.TYPE_GRANDPARENT, getString(com.goodwy.commons.R.string.relation_grandparent_g)), // 107
+            RadioItem(ContactRelation.TYPE_GRANDFATHER, getString(com.goodwy.commons.R.string.relation_grandfather_g)), // 108
+            RadioItem(ContactRelation.TYPE_GRANDMOTHER, getString(com.goodwy.commons.R.string.relation_grandmother_g)), // 109
+            RadioItem(ContactRelation.TYPE_GRANDCHILD, getString(com.goodwy.commons.R.string.relation_grandchild_g)), // 110
+            RadioItem(ContactRelation.TYPE_GRANDSON, getString(com.goodwy.commons.R.string.relation_grandson_g)), // 111
+            RadioItem(ContactRelation.TYPE_GRANDDAUGHTER, getString(com.goodwy.commons.R.string.relation_granddaughter_g)), // 112
+            RadioItem(ContactRelation.TYPE_UNCLE, getString(com.goodwy.commons.R.string.relation_uncle_g)), // 113
+            RadioItem(ContactRelation.TYPE_AUNT, getString(com.goodwy.commons.R.string.relation_aunt_g)), // 114
+            RadioItem(ContactRelation.TYPE_NEPHEW, getString(com.goodwy.commons.R.string.relation_nephew_g)), // 115
+            RadioItem(ContactRelation.TYPE_NIECE, getString(com.goodwy.commons.R.string.relation_niece_g)), // 116
+            RadioItem(ContactRelation.TYPE_FATHER_IN_LAW, getString(com.goodwy.commons.R.string.relation_father_in_law_g)), // 117
+            RadioItem(ContactRelation.TYPE_MOTHER_IN_LAW, getString(com.goodwy.commons.R.string.relation_mother_in_law_g)), // 118
+            RadioItem(ContactRelation.TYPE_SON_IN_LAW, getString(com.goodwy.commons.R.string.relation_son_in_law_g)), // 119
+            RadioItem(ContactRelation.TYPE_DAUGHTER_IN_LAW, getString(com.goodwy.commons.R.string.relation_daughter_in_law_g)), // 120
+            RadioItem(ContactRelation.TYPE_BROTHER_IN_LAW, getString(com.goodwy.commons.R.string.relation_brother_in_law_g)), // 121
+            RadioItem(ContactRelation.TYPE_SISTER_IN_LAW, getString(com.goodwy.commons.R.string.relation_sister_in_law_g)), // 122
+            RadioItem(Relation.TYPE_RELATIVE, getString(com.goodwy.commons.R.string.relation_relative_g)), // 12
+            RadioItem(ContactRelation.TYPE_KIN, getString(com.goodwy.commons.R.string.relation_kin_g)), // 59
 
-            RadioItem(Relation.TYPE_FRIEND, getString(R.string.relation_friend_g)), // 6
+            RadioItem(ContactRelation.TYPE_MUSE, getString(com.goodwy.commons.R.string.relation_muse_g)), // 60
+            RadioItem(ContactRelation.TYPE_CRUSH, getString(com.goodwy.commons.R.string.relation_crush_g)), // 61
+            RadioItem(ContactRelation.TYPE_DATE, getString(com.goodwy.commons.R.string.relation_date_g)), // 62
+            RadioItem(ContactRelation.TYPE_SWEETHEART, getString(com.goodwy.commons.R.string.relation_sweetheart_g)), // 63
 
-            RadioItem(Relation.TYPE_SPOUSE, getString(R.string.relation_spouse_g)), // 14
-            RadioItem(ContactRelation.TYPE_HUSBAND, getString(R.string.relation_husband_g)), // 103
-            RadioItem(ContactRelation.TYPE_WIFE, getString(R.string.relation_wife_g)), // 104
-            RadioItem(Relation.TYPE_DOMESTIC_PARTNER, getString(R.string.relation_domestic_partner_g)), // 4
-            RadioItem(Relation.TYPE_PARTNER, getString(R.string.relation_partner_g)), // 10
-            RadioItem(ContactRelation.TYPE_CO_RESIDENT, getString(R.string.relation_co_resident_g)), // 56
-            RadioItem(ContactRelation.TYPE_NEIGHBOR, getString(R.string.relation_neighbor_g)), // 57
-            RadioItem(Relation.TYPE_PARENT, getString(R.string.relation_parent_g)), // 9
-            RadioItem(Relation.TYPE_FATHER, getString(R.string.relation_father_g)), // 5
-            RadioItem(Relation.TYPE_MOTHER, getString(R.string.relation_mother_g)), // 8
-            RadioItem(Relation.TYPE_CHILD, getString(R.string.relation_child_g)), // 3
-            RadioItem(ContactRelation.TYPE_SON, getString(R.string.relation_son_g)), // 105
-            RadioItem(ContactRelation.TYPE_DAUGHTER, getString(R.string.relation_daughter_g)), // 106
-            RadioItem(ContactRelation.TYPE_SIBLING, getString(R.string.relation_sibling_g)), // 58
-            RadioItem(Relation.TYPE_BROTHER, getString(R.string.relation_brother_g)), // 2
-            RadioItem(Relation.TYPE_SISTER, getString(R.string.relation_sister_g)), // 13
-            RadioItem(ContactRelation.TYPE_GRANDPARENT, getString(R.string.relation_grandparent_g)), // 107
-            RadioItem(ContactRelation.TYPE_GRANDFATHER, getString(R.string.relation_grandfather_g)), // 108
-            RadioItem(ContactRelation.TYPE_GRANDMOTHER, getString(R.string.relation_grandmother_g)), // 109
-            RadioItem(ContactRelation.TYPE_GRANDCHILD, getString(R.string.relation_grandchild_g)), // 110
-            RadioItem(ContactRelation.TYPE_GRANDSON, getString(R.string.relation_grandson_g)), // 111
-            RadioItem(ContactRelation.TYPE_GRANDDAUGHTER, getString(R.string.relation_granddaughter_g)), // 112
-            RadioItem(ContactRelation.TYPE_UNCLE, getString(R.string.relation_uncle_g)), // 113
-            RadioItem(ContactRelation.TYPE_AUNT, getString(R.string.relation_aunt_g)), // 114
-            RadioItem(ContactRelation.TYPE_NEPHEW, getString(R.string.relation_nephew_g)), // 115
-            RadioItem(ContactRelation.TYPE_NIECE, getString(R.string.relation_niece_g)), // 116
-            RadioItem(ContactRelation.TYPE_FATHER_IN_LAW, getString(R.string.relation_father_in_law_g)), // 117
-            RadioItem(ContactRelation.TYPE_MOTHER_IN_LAW, getString(R.string.relation_mother_in_law_g)), // 118
-            RadioItem(ContactRelation.TYPE_SON_IN_LAW, getString(R.string.relation_son_in_law_g)), // 119
-            RadioItem(ContactRelation.TYPE_DAUGHTER_IN_LAW, getString(R.string.relation_daughter_in_law_g)), // 120
-            RadioItem(ContactRelation.TYPE_BROTHER_IN_LAW, getString(R.string.relation_brother_in_law_g)), // 121
-            RadioItem(ContactRelation.TYPE_SISTER_IN_LAW, getString(R.string.relation_sister_in_law_g)), // 122
-            RadioItem(Relation.TYPE_RELATIVE, getString(R.string.relation_relative_g)), // 12
-            RadioItem(ContactRelation.TYPE_KIN, getString(R.string.relation_kin_g)), // 59
+            RadioItem(ContactRelation.TYPE_CONTACT, getString(com.goodwy.commons.R.string.relation_contact_g)), // 51
+            RadioItem(ContactRelation.TYPE_ACQUAINTANCE, getString(com.goodwy.commons.R.string.relation_acquaintance_g)), // 52
+            RadioItem(ContactRelation.TYPE_MET, getString(com.goodwy.commons.R.string.relation_met_g)), // 53
+            RadioItem(Relation.TYPE_REFERRED_BY, getString(com.goodwy.commons.R.string.relation_referred_by_g)), // 11
+            RadioItem(ContactRelation.TYPE_AGENT, getString(com.goodwy.commons.R.string.relation_agent_g)), // 64
 
-            RadioItem(ContactRelation.TYPE_MUSE, getString(R.string.relation_muse_g)), // 60
-            RadioItem(ContactRelation.TYPE_CRUSH, getString(R.string.relation_crush_g)), // 61
-            RadioItem(ContactRelation.TYPE_DATE, getString(R.string.relation_date_g)), // 62
-            RadioItem(ContactRelation.TYPE_SWEETHEART, getString(R.string.relation_sweetheart_g)), // 63
+            RadioItem(ContactRelation.TYPE_COLLEAGUE, getString(com.goodwy.commons.R.string.relation_colleague_g)), // 55
+            RadioItem(ContactRelation.TYPE_CO_WORKER, getString(com.goodwy.commons.R.string.relation_co_worker_g)), // 54
+            RadioItem(ContactRelation.TYPE_SUPERIOR, getString(com.goodwy.commons.R.string.relation_superior_g)), // 101
+            RadioItem(ContactRelation.TYPE_SUBORDINATE, getString(com.goodwy.commons.R.string.relation_subordinate_g)), // 102
+            RadioItem(Relation.TYPE_MANAGER, getString(com.goodwy.commons.R.string.relation_manager_g)), // 7
+            RadioItem(Relation.TYPE_ASSISTANT, getString(com.goodwy.commons.R.string.relation_assistant_g)), // 1
 
-            RadioItem(ContactRelation.TYPE_CONTACT, getString(R.string.relation_contact_g)), // 51
-            RadioItem(ContactRelation.TYPE_ACQUAINTANCE, getString(R.string.relation_acquaintance_g)), // 52
-            RadioItem(ContactRelation.TYPE_MET, getString(R.string.relation_met_g)), // 53
-            RadioItem(Relation.TYPE_REFERRED_BY, getString(R.string.relation_referred_by_g)), // 11
-            RadioItem(ContactRelation.TYPE_AGENT, getString(R.string.relation_agent_g)), // 64
-
-            RadioItem(ContactRelation.TYPE_COLLEAGUE, getString(R.string.relation_colleague_g)), // 55
-            RadioItem(ContactRelation.TYPE_CO_WORKER, getString(R.string.relation_co_worker_g)), // 54
-            RadioItem(ContactRelation.TYPE_SUPERIOR, getString(R.string.relation_superior_g)), // 101
-            RadioItem(ContactRelation.TYPE_SUBORDINATE, getString(R.string.relation_subordinate_g)), // 102
-            RadioItem(Relation.TYPE_MANAGER, getString(R.string.relation_manager_g)), // 7
-            RadioItem(Relation.TYPE_ASSISTANT, getString(R.string.relation_assistant_g)), // 1
-
-            RadioItem(ContactRelation.TYPE_ME, getString(R.string.relation_me_g)), // 66
-            RadioItem(ContactRelation.TYPE_EMERGENCY, getString(R.string.relation_emergency_g)) // 65
+            RadioItem(ContactRelation.TYPE_ME, getString(com.goodwy.commons.R.string.relation_me_g)), // 66
+            RadioItem(ContactRelation.TYPE_EMERGENCY, getString(com.goodwy.commons.R.string.relation_emergency_g)) // 65
         )
         val currentRelationTypeId = getRelationTypeId(relationTypeField.value)
         RadioGroupDialog(this, items, currentRelationTypeId) {
@@ -1278,15 +1375,16 @@ class EditContactActivity : ContactActivity() {
         groupTitleField.apply {
             text = group?.title ?: getString(R.string.no_groups)
             alpha = if (group == null) 0.5f else 1f
-            setOnClickListener {
-                showSelectGroupsDialog()
-            }
+//            setOnClickListener {
+//                showSelectGroupsDialog()
+//            }
+            showSelectGroupsDialog()
         }
     }
 
     private fun resetContactEvent(contactEvent: TextView, removeContactEventButton: ImageView) {
         contactEvent.apply {
-            text = getString(R.string.unknown)
+            text = getString(com.goodwy.commons.R.string.unknown)
             tag = ""
             alpha = 0.5f
         }
@@ -1300,15 +1398,15 @@ class EditContactActivity : ContactActivity() {
 
     private fun showNumberTypePicker(numberTypeField: TextView) {
         val items = arrayListOf(
-            RadioItem(Phone.TYPE_CUSTOM, getString(CommonDataKinds.Phone.getTypeLabelResource(Phone.TYPE_CUSTOM))),
-            RadioItem(Phone.TYPE_MOBILE, getString(R.string.mobile)),
-            RadioItem(Phone.TYPE_HOME, getString(R.string.home)),
-            RadioItem(Phone.TYPE_WORK, getString(R.string.work)),
-            RadioItem(Phone.TYPE_MAIN, getString(R.string.main_number)),
-            RadioItem(Phone.TYPE_FAX_WORK, getString(R.string.work_fax)),
-            RadioItem(Phone.TYPE_FAX_HOME, getString(R.string.home_fax)),
-            RadioItem(Phone.TYPE_PAGER, getString(R.string.pager)),
-            RadioItem(Phone.TYPE_OTHER, getString(R.string.other))
+            RadioItem(Phone.TYPE_CUSTOM, getString(Phone.getTypeLabelResource(Phone.TYPE_CUSTOM))),
+            RadioItem(Phone.TYPE_MOBILE, getString(com.goodwy.commons.R.string.mobile)),
+            RadioItem(Phone.TYPE_HOME, getString(com.goodwy.commons.R.string.home)),
+            RadioItem(Phone.TYPE_WORK, getString(com.goodwy.commons.R.string.work)),
+            RadioItem(Phone.TYPE_MAIN, getString(com.goodwy.commons.R.string.main_number)),
+            RadioItem(Phone.TYPE_FAX_WORK, getString(com.goodwy.commons.R.string.work_fax)),
+            RadioItem(Phone.TYPE_FAX_HOME, getString(com.goodwy.commons.R.string.home_fax)),
+            RadioItem(Phone.TYPE_PAGER, getString(com.goodwy.commons.R.string.pager)),
+            RadioItem(Phone.TYPE_OTHER, getString(com.goodwy.commons.R.string.other))
         )
 
         val currentNumberTypeId = getPhoneNumberTypeId(numberTypeField.value)
@@ -1326,10 +1424,10 @@ class EditContactActivity : ContactActivity() {
     private fun showEmailTypePicker(emailTypeField: TextView) {
         val items = arrayListOf(
             RadioItem(CommonDataKinds.Email.TYPE_CUSTOM, getString(CommonDataKinds.Email.getTypeLabelResource(CommonDataKinds.Email.TYPE_CUSTOM))),
-            RadioItem(CommonDataKinds.Email.TYPE_HOME, getString(R.string.home)),
-            RadioItem(CommonDataKinds.Email.TYPE_WORK, getString(R.string.work)),
-            RadioItem(CommonDataKinds.Email.TYPE_MOBILE, getString(R.string.mobile)),
-            RadioItem(CommonDataKinds.Email.TYPE_OTHER, getString(R.string.other))
+            RadioItem(CommonDataKinds.Email.TYPE_HOME, getString(com.goodwy.commons.R.string.home)),
+            RadioItem(CommonDataKinds.Email.TYPE_WORK, getString(com.goodwy.commons.R.string.work)),
+            RadioItem(CommonDataKinds.Email.TYPE_MOBILE, getString(com.goodwy.commons.R.string.mobile)),
+            RadioItem(CommonDataKinds.Email.TYPE_OTHER, getString(com.goodwy.commons.R.string.other))
         )
 
         val currentEmailTypeId = getEmailTypeId(emailTypeField.value)
@@ -1347,9 +1445,9 @@ class EditContactActivity : ContactActivity() {
     private fun showAddressTypePicker(addressTypeField: TextView) {
         val items = arrayListOf(
             RadioItem(StructuredPostal.TYPE_CUSTOM, getString(StructuredPostal.getTypeLabelResource(StructuredPostal.TYPE_CUSTOM))),
-            RadioItem(StructuredPostal.TYPE_HOME, getString(R.string.home)),
-            RadioItem(StructuredPostal.TYPE_WORK, getString(R.string.work)),
-            RadioItem(StructuredPostal.TYPE_OTHER, getString(R.string.other))
+            RadioItem(StructuredPostal.TYPE_HOME, getString(com.goodwy.commons.R.string.home)),
+            RadioItem(StructuredPostal.TYPE_WORK, getString(com.goodwy.commons.R.string.work)),
+            RadioItem(StructuredPostal.TYPE_OTHER, getString(com.goodwy.commons.R.string.other))
         )
 
         val currentAddressTypeId = getAddressTypeId(addressTypeField.value)
@@ -1374,7 +1472,7 @@ class EditContactActivity : ContactActivity() {
             RadioItem(Im.PROTOCOL_GOOGLE_TALK, getString(R.string.hangouts)),
             RadioItem(Im.PROTOCOL_ICQ, getString(R.string.icq)),
             RadioItem(Im.PROTOCOL_JABBER, getString(R.string.jabber)),
-            RadioItem(Im.PROTOCOL_CUSTOM, getString(R.string.custom))
+            RadioItem(Im.PROTOCOL_CUSTOM, getString(com.goodwy.commons.R.string.custom))
         )
 
         val currentIMTypeId = getIMTypeId(imTypeField.value)
@@ -1391,9 +1489,9 @@ class EditContactActivity : ContactActivity() {
 
     private fun showEventTypePicker(eventTypeField: TextView) {
         val items = arrayListOf(
-            RadioItem(CommonDataKinds.Event.TYPE_ANNIVERSARY, getString(R.string.anniversary)),
-            RadioItem(CommonDataKinds.Event.TYPE_BIRTHDAY, getString(R.string.birthday)),
-            RadioItem(CommonDataKinds.Event.TYPE_OTHER, getString(R.string.other))
+            RadioItem(CommonDataKinds.Event.TYPE_ANNIVERSARY, getString(com.goodwy.commons.R.string.anniversary)),
+            RadioItem(CommonDataKinds.Event.TYPE_BIRTHDAY, getString(com.goodwy.commons.R.string.birthday)),
+            RadioItem(CommonDataKinds.Event.TYPE_OTHER, getString(com.goodwy.commons.R.string.other))
         )
 
         val currentEventTypeId = getEventTypeId(eventTypeField.value)
@@ -1410,10 +1508,11 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun showSelectContactSourceDialog() {
-        showContactSourcePicker(contact!!.source) {
+        showContactSourcePicker(contact!!.source) { it ->
             contact!!.source = if (it == getString(R.string.phone_storage_hidden)) SMT_PRIVATE else it
             getPublicContactSource(it) {
-                contact_source.text = if (it == "") getString(R.string.phone_storage) else it
+                binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
+                setupContactSourceImage(it)
             }
         }
     }
@@ -1424,8 +1523,8 @@ class EditContactActivity : ContactActivity() {
         }
 
         val contactFields = arrayListOf(
-            contact_prefix, contact_first_name, contact_middle_name, contact_surname, contact_suffix, contact_nickname,
-            contact_notes, contact_organization_company, contact_organization_job_position
+            binding.contactPrefix, binding.contactFirstName, binding.contactMiddleName, binding.contactSurname, binding.contactSuffix, binding.contactNickname,
+            binding.contactNotes, binding.contactOrganizationCompany, binding.contactOrganizationJobPosition
         )
 
         if (contactFields.all { it.value.isEmpty() }) {
@@ -1475,12 +1574,12 @@ class EditContactActivity : ContactActivity() {
         val filledRelations = getFilledRelations()
 
         val newContact = contact!!.copy(
-            prefix = contact_prefix.value,
-            firstName = contact_first_name.value,
-            middleName = contact_middle_name.value,
-            surname = contact_surname.value,
-            suffix = contact_suffix.value,
-            nickname = contact_nickname.value,
+            prefix = binding.contactPrefix.value,
+            firstName = binding.contactFirstName.value,
+            middleName = binding.contactMiddleName.value,
+            surname = binding.contactSurname.value,
+            suffix = binding.contactSuffix.value,
+            nickname = binding.contactNickname.value,
             photoUri = currentContactPhotoPath,
             phoneNumbers = filledPhoneNumbers,
             emails = filledEmails,
@@ -1488,37 +1587,37 @@ class EditContactActivity : ContactActivity() {
             IMs = filledIMs,
             events = filledEvents,
             starred = if (isContactStarred()) 1 else 0,
-            notes = contact_notes.value,
+            notes = binding.contactNotes.value,
             websites = filledWebsites,
             relations = filledRelations,
         )
 
-        val company = contact_organization_company.value
-        val jobPosition = contact_organization_job_position.value
+        val company = binding.contactOrganizationCompany.value
+        val jobPosition = binding.contactOrganizationJobPosition.value
         newContact.organization = Organization(company, jobPosition)
         return newContact
     }
 
     private fun getFilledPhoneNumbers(): ArrayList<PhoneNumber> {
         val phoneNumbers = ArrayList<PhoneNumber>()
-        val numbersCount = contact_numbers_holder.childCount
+        val numbersCount = binding.contactNumbersHolder.childCount
         for (i in 0 until numbersCount) {
-            val numberHolder = contact_numbers_holder.getChildAt(i)
-            val number = numberHolder.contact_number.value
-            val numberType = getPhoneNumberTypeId(numberHolder.contact_number_type.value)
-            val numberLabel = if (numberType == Phone.TYPE_CUSTOM) numberHolder.contact_number_type.value else ""
+            val numberHolder = ItemEditPhoneNumberBinding.bind(binding.contactNumbersHolder.getChildAt(i))
+            val number = numberHolder.contactNumber.value
+            val numberType = getPhoneNumberTypeId(numberHolder.contactNumberType.value)
+            val numberLabel = if (numberType == Phone.TYPE_CUSTOM) numberHolder.contactNumberType.value else ""
 
             if (number.isNotEmpty()) {
                 var normalizedNumber = number.normalizePhoneNumber()
 
                 // fix a glitch when onBackPressed the app thinks that a number changed because we fetched
                 // normalized number +421903123456, then at getting it from the input field we get 0903123456, can happen at WhatsApp contacts
-                val fetchedNormalizedNumber = numberHolder.contact_number.tag?.toString() ?: ""
+                val fetchedNormalizedNumber = numberHolder.contactNumber.tag?.toString() ?: ""
                 if (PhoneNumberUtils.compare(number.normalizePhoneNumber(), fetchedNormalizedNumber)) {
                     normalizedNumber = fetchedNormalizedNumber
                 }
 
-                val isPrimary = numberHolder.default_toggle_icon.tag == 1
+                val isPrimary = numberHolder.defaultToggleIcon.tag == 1
                 phoneNumbers.add(PhoneNumber(number, numberType, numberLabel, normalizedNumber, isPrimary))
             }
         }
@@ -1527,12 +1626,12 @@ class EditContactActivity : ContactActivity() {
 
     private fun getFilledEmails(): ArrayList<Email> {
         val emails = ArrayList<Email>()
-        val emailsCount = contact_emails_holder.childCount
+        val emailsCount = binding.contactEmailsHolder.childCount
         for (i in 0 until emailsCount) {
-            val emailHolder = contact_emails_holder.getChildAt(i)
-            val email = emailHolder.contact_email.value
-            val emailType = getEmailTypeId(emailHolder.contact_email_type.value)
-            val emailLabel = if (emailType == CommonDataKinds.Email.TYPE_CUSTOM) emailHolder.contact_email_type.value else ""
+            val emailHolder = ItemEditEmailBinding.bind(binding.contactEmailsHolder.getChildAt(i))
+            val email = emailHolder.contactEmail.value
+            val emailType = getEmailTypeId(emailHolder.contactEmailType.value)
+            val emailLabel = if (emailType == CommonDataKinds.Email.TYPE_CUSTOM) emailHolder.contactEmailType.value else ""
 
             if (email.isNotEmpty()) {
                 emails.add(Email(email, emailType, emailLabel))
@@ -1543,12 +1642,12 @@ class EditContactActivity : ContactActivity() {
 
     private fun getFilledAddresses(): ArrayList<Address> {
         val addresses = ArrayList<Address>()
-        val addressesCount = contact_addresses_holder.childCount
+        val addressesCount = binding.contactAddressesHolder.childCount
         for (i in 0 until addressesCount) {
-            val addressHolder = contact_addresses_holder.getChildAt(i)
-            val address = addressHolder.contact_address.value
-            val addressType = getAddressTypeId(addressHolder.contact_address_type.value)
-            val addressLabel = if (addressType == StructuredPostal.TYPE_CUSTOM) addressHolder.contact_address_type.value else ""
+            val addressHolder = ItemEditAddressBinding.bind(binding.contactAddressesHolder.getChildAt(i))
+            val address = addressHolder.contactAddress.value
+            val addressType = getAddressTypeId(addressHolder.contactAddressType.value)
+            val addressLabel = if (addressType == StructuredPostal.TYPE_CUSTOM) addressHolder.contactAddressType.value else ""
 
             if (address.isNotEmpty()) {
                 addresses.add(Address(address, addressType, addressLabel))
@@ -1559,12 +1658,12 @@ class EditContactActivity : ContactActivity() {
 
     private fun getFilledIMs(): ArrayList<IM> {
         val IMs = ArrayList<IM>()
-        val IMsCount = contact_ims_holder.childCount
+        val IMsCount = binding.contactImsHolder.childCount
         for (i in 0 until IMsCount) {
-            val IMsHolder = contact_ims_holder.getChildAt(i)
-            val IM = IMsHolder.contact_im.value
-            val IMType = getIMTypeId(IMsHolder.contact_im_type.value)
-            val IMLabel = if (IMType == Im.PROTOCOL_CUSTOM) IMsHolder.contact_im_type.value else ""
+            val IMsHolder = ItemEditImBinding.bind(binding.contactImsHolder.getChildAt(i))
+            val IM = IMsHolder.contactIm.value
+            val IMType = getIMTypeId(IMsHolder.contactImType.value)
+            val IMLabel = if (IMType == Im.PROTOCOL_CUSTOM) IMsHolder.contactImType.value else ""
 
             if (IM.isNotEmpty()) {
                 IMs.add(IM(IM, IMType, IMLabel))
@@ -1574,16 +1673,16 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun getFilledEvents(): ArrayList<Event> {
-        val unknown = getString(R.string.unknown)
+        val unknown = getString(com.goodwy.commons.R.string.unknown)
         val events = ArrayList<Event>()
-        val eventsCount = contact_events_holder.childCount
+        val eventsCount = binding.contactEventsHolder.childCount
         for (i in 0 until eventsCount) {
-            val eventHolder = contact_events_holder.getChildAt(i)
-            val event = eventHolder.contact_event.value
-            val eventType = getEventTypeId(eventHolder.contact_event_type.value)
+            val eventHolder = ItemEventBinding.bind(binding.contactEventsHolder.getChildAt(i))
+            val event = eventHolder.contactEvent.value
+            val eventType = getEventTypeId(eventHolder.contactEventType.value)
 
             if (event.isNotEmpty() && event != unknown) {
-                events.add(Event(eventHolder.contact_event.tag.toString(), eventType))
+                events.add(Event(eventHolder.contactEvent.tag.toString(), eventType))
             }
         }
         return events
@@ -1591,12 +1690,12 @@ class EditContactActivity : ContactActivity() {
 
     private fun getFilledRelations(): ArrayList<ContactRelation> {
         val relations = ArrayList<ContactRelation>()
-        val relationsCount = contact_relations_holder.childCount
+        val relationsCount = binding.contactRelationsHolder.childCount
         for (i in 0 until relationsCount) {
-            val relationHolder = contact_relations_holder.getChildAt(i)
-            val name: String = relationHolder.contact_relation.value
+            val relationHolder = ItemEditRelationBinding.bind(binding.contactRelationsHolder.getChildAt(i))
+            val name: String = relationHolder.contactRelation.value
             if (name.isNotEmpty()) {
-                var label = relationHolder.contact_relation_type.value.trim()
+                var label = relationHolder.contactRelationType.value.trim()
                 val type = getRelationTypeId(label)
                 if (type != ContactRelation.TYPE_CUSTOM) {
                     label = ""
@@ -1609,10 +1708,10 @@ class EditContactActivity : ContactActivity() {
 
     private fun getFilledWebsites(): ArrayList<String> {
         val websites = ArrayList<String>()
-        val websitesCount = contact_websites_holder.childCount
+        val websitesCount = binding.contactWebsitesHolder.childCount
         for (i in 0 until websitesCount) {
-            val websiteHolder = contact_websites_holder.getChildAt(i)
-            val website = websiteHolder.contact_website.value
+            val websiteHolder = ItemEditWebsiteBinding.bind(binding.contactWebsitesHolder.getChildAt(i))
+            val website = websiteHolder.contactWebsite.value
             if (website.isNotEmpty()) {
                 websites.add(website)
             }
@@ -1640,7 +1739,7 @@ class EditContactActivity : ContactActivity() {
                 finish()
             }
         } else {
-            toast(R.string.unknown_error_occurred)
+            toast(com.goodwy.commons.R.string.unknown_error_occurred)
         }
     }
 
@@ -1660,7 +1759,7 @@ class EditContactActivity : ContactActivity() {
                 finish()
             }
         } else {
-            toast(R.string.unknown_error_occurred)
+            toast(com.goodwy.commons.R.string.unknown_error_occurred)
         }
     }
 
@@ -1726,47 +1825,51 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun addNewPhoneNumberField() {
-        val numberHolder = layoutInflater.inflate(R.layout.item_edit_phone_number, contact_numbers_holder, false) as ViewGroup
-        updateTextColors(numberHolder)
-        setupPhoneNumberTypePicker(numberHolder.contact_number_type, DEFAULT_PHONE_NUMBER_TYPE, "")
-        contact_numbers_holder.addView(numberHolder)
-        contact_numbers_holder.onGlobalLayout {
-            numberHolder.contact_number.requestFocus()
-            showKeyboard(numberHolder.contact_number)
+        val numberHolder = ItemEditPhoneNumberBinding.inflate(layoutInflater, binding.contactNumbersHolder, false)
+        updateTextColors(numberHolder.root)
+        setupPhoneNumberTypePicker(numberHolder.contactNumberType, DEFAULT_PHONE_NUMBER_TYPE, "")
+        binding.contactNumbersHolder.addView(numberHolder.root)
+        binding.contactNumbersHolder.onGlobalLayout {
+            numberHolder.contactNumber.requestFocus()
+            showKeyboard(numberHolder.contactNumber)
         }
 
         numberHolder.apply {
-            divider_contact_number.setBackgroundColor(getProperTextColor())
-            contact_number_type.setTextColor(getProperPrimaryColor())
-            contact_number_remove.apply {
+            val getProperTextColor = getProperTextColor()
+            dividerVerticalContactNumber.setBackgroundColor(getProperTextColor)
+            dividerContactNumber.setBackgroundColor(getProperTextColor)
+            contactNumberType.setTextColor(getProperPrimaryColor())
+            contactNumberRemove.apply {
                 beVisible()
                 setOnClickListener {
-                    contact_numbers_holder.removeView(numberHolder)
+                    binding.contactNumbersHolder.removeView(numberHolder.root)
                     hideKeyboard()
                 }
             }
         }
-        numberHolder.default_toggle_icon.tag = 0
+        numberHolder.defaultToggleIcon.tag = 0
         initNumberHolders()
     }
 
     private fun addNewEmailField() {
-        val emailHolder = layoutInflater.inflate(R.layout.item_edit_email, contact_emails_holder, false) as ViewGroup
-        updateTextColors(emailHolder)
-        setupEmailTypePicker(emailHolder.contact_email_type, DEFAULT_EMAIL_TYPE, "")
-        contact_emails_holder.addView(emailHolder)
-        contact_emails_holder.onGlobalLayout {
-            emailHolder.contact_email.requestFocus()
-            showKeyboard(emailHolder.contact_email)
+        val emailHolder = ItemEditEmailBinding.inflate(layoutInflater, binding.contactEmailsHolder, false)
+        updateTextColors(emailHolder.root)
+        setupEmailTypePicker(emailHolder.contactEmailType, DEFAULT_EMAIL_TYPE, "")
+        binding.contactEmailsHolder.addView(emailHolder.root)
+        binding.contactEmailsHolder.onGlobalLayout {
+            emailHolder.contactEmail.requestFocus()
+            showKeyboard(emailHolder.contactEmail)
         }
 
         emailHolder.apply {
-            divider_contact_email.setBackgroundColor(getProperTextColor())
-            contact_email_type.setTextColor(getProperPrimaryColor())
-            contact_email_remove.apply {
+            val getProperTextColor = getProperTextColor()
+            dividerVerticalContactEmail.setBackgroundColor(getProperTextColor)
+            dividerContactEmail.setBackgroundColor(getProperTextColor)
+            contactEmailType.setTextColor(getProperPrimaryColor())
+            contactEmailRemove.apply {
                 beVisible()
                 setOnClickListener {
-                    contact_emails_holder.removeView(emailHolder)
+                    binding.contactEmailsHolder.removeView(emailHolder.root)
                     hideKeyboard()
                 }
             }
@@ -1774,22 +1877,24 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun addNewAddressField() {
-        val addressHolder = layoutInflater.inflate(R.layout.item_edit_address, contact_addresses_holder, false) as ViewGroup
-        updateTextColors(addressHolder)
-        setupAddressTypePicker(addressHolder.contact_address_type, DEFAULT_ADDRESS_TYPE, "")
-        contact_addresses_holder.addView(addressHolder)
-        contact_addresses_holder.onGlobalLayout {
-            addressHolder.contact_address.requestFocus()
-            showKeyboard(addressHolder.contact_address)
+        val addressHolder = ItemEditAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false)
+        updateTextColors(addressHolder.root)
+        setupAddressTypePicker(addressHolder.contactAddressType, DEFAULT_ADDRESS_TYPE, "")
+        binding.contactAddressesHolder.addView(addressHolder.root)
+        binding.contactAddressesHolder.onGlobalLayout {
+            addressHolder.contactAddress.requestFocus()
+            showKeyboard(addressHolder.contactAddress)
         }
 
         addressHolder.apply {
-            divider_contact_address.setBackgroundColor(getProperTextColor())
-            contact_address_type.setTextColor(getProperPrimaryColor())
-            contact_address_remove.apply {
+            val getProperTextColor = getProperTextColor()
+            dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
+            dividerContactAddress.setBackgroundColor(getProperTextColor)
+            contactAddressType.setTextColor(getProperPrimaryColor())
+            contactAddressRemove.apply {
                 beVisible()
                 setOnClickListener {
-                    contact_addresses_holder.removeView(addressHolder)
+                    binding.contactAddressesHolder.removeView(addressHolder.root)
                     hideKeyboard()
                 }
             }
@@ -1797,22 +1902,24 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun addNewIMField() {
-        val IMHolder = layoutInflater.inflate(R.layout.item_edit_im, contact_ims_holder, false) as ViewGroup
-        updateTextColors(IMHolder)
-        setupIMTypePicker(IMHolder.contact_im_type, DEFAULT_IM_TYPE, "")
-        contact_ims_holder.addView(IMHolder)
-        contact_ims_holder.onGlobalLayout {
-            IMHolder.contact_im.requestFocus()
-            showKeyboard(IMHolder.contact_im)
+        val IMHolder = ItemEditImBinding.inflate(layoutInflater, binding.contactImsHolder, false)
+        updateTextColors(IMHolder.root)
+        setupIMTypePicker(IMHolder.contactImType, DEFAULT_IM_TYPE, "")
+        binding.contactImsHolder.addView(IMHolder.root)
+        binding.contactImsHolder.onGlobalLayout {
+            IMHolder.contactIm.requestFocus()
+            showKeyboard(IMHolder.contactIm)
         }
 
         IMHolder.apply {
-            divider_contact_im.setBackgroundColor(getProperTextColor())
-            contact_im_type.setTextColor(getProperPrimaryColor())
-            contact_im_remove.apply {
+            val getProperTextColor = getProperTextColor()
+            dividerVerticalContactIm.setBackgroundColor(getProperTextColor)
+            dividerContactIm.setBackgroundColor(getProperTextColor)
+            contactImType.setTextColor(getProperPrimaryColor())
+            contactImRemove.apply {
                 beVisible()
                 setOnClickListener {
-                    contact_ims_holder.removeView(IMHolder)
+                    binding.contactImsHolder.removeView(IMHolder.root)
                     hideKeyboard()
                 }
             }
@@ -1820,40 +1927,44 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun addNewEventField() {
-        val eventHolder = layoutInflater.inflate(R.layout.item_event, contact_events_holder, false) as ViewGroup
-        updateTextColors(eventHolder)
+        val eventHolder = ItemEventBinding.inflate(layoutInflater, binding.contactEventsHolder, false)
+        updateTextColors(eventHolder.root)
         setupEventTypePicker(eventHolder)
-        contact_events_holder.addView(eventHolder)
+        binding.contactEventsHolder.addView(eventHolder.root)
 
         eventHolder.apply {
-            divider_contact_event.setBackgroundColor(getProperTextColor())
-            contact_event_type.setTextColor(getProperPrimaryColor())
-            contact_event_remove.apply {
+            val getProperTextColor = getProperTextColor()
+            dividerVerticalContactEvent.setBackgroundColor(getProperTextColor)
+            dividerContactEvent.setBackgroundColor(getProperTextColor)
+            contactEventType.setTextColor(getProperPrimaryColor())
+            contactEventRemove.apply {
                 beVisible()
                 setOnClickListener {
-                    contact_events_holder.removeView(eventHolder)
+                    binding.contactEventsHolder.removeView(eventHolder.root)
                 }
             }
         }
     }
 
     private fun addNewRelationField() {
-        val relationHolder = layoutInflater.inflate(R.layout.item_edit_relation, contact_relations_holder, false) as ViewGroup
-        updateTextColors(relationHolder)
-        setupRelationTypePicker(relationHolder.contact_relation_type, DEFAULT_RELATION_TYPE, "")
-        contact_relations_holder.addView(relationHolder)
-        contact_relations_holder.onGlobalLayout {
-            relationHolder.contact_relation.requestFocus()
-            showKeyboard(relationHolder.contact_relation)
+        val relationHolder = ItemEditRelationBinding.inflate(layoutInflater, binding.contactRelationsHolder, false)
+        updateTextColors(relationHolder.root)
+        setupRelationTypePicker(relationHolder.contactRelationType, DEFAULT_RELATION_TYPE, "")
+        binding.contactRelationsHolder.addView(relationHolder.root)
+        binding.contactRelationsHolder.onGlobalLayout {
+            relationHolder.contactRelation.requestFocus()
+            showKeyboard(relationHolder.contactRelation)
         }
 
         relationHolder.apply {
-            divider_contact_relation.setBackgroundColor(getProperTextColor())
-            contact_relation_type.setTextColor(getProperPrimaryColor())
-            contact_relation_remove.apply {
+            val getProperTextColor = getProperTextColor()
+            dividerVerticalContactRelation.setBackgroundColor(getProperTextColor)
+            dividerContactRelation.setBackgroundColor(getProperTextColor)
+            contactRelationType.setTextColor(getProperPrimaryColor())
+            contactRelationRemove.apply {
                 beVisible()
                 setOnClickListener {
-                    contact_relations_holder.removeView(relationHolder)
+                    binding.contactRelationsHolder.removeView(relationHolder.root)
                     hideKeyboard()
                 }
             }
@@ -1862,7 +1973,7 @@ class EditContactActivity : ContactActivity() {
 
     private fun toggleFavorite() {
         val isStarred = isContactStarred()
-        contact_toggle_favorite.apply {
+        binding.contactToggleFavorite.apply {
             setImageDrawable(getStarDrawable(!isStarred))
             tag = if (isStarred) 0 else 1
 
@@ -1871,35 +1982,36 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun addNewWebsiteField() {
-        val websitesHolder = layoutInflater.inflate(R.layout.item_edit_website, contact_websites_holder, false) as ViewGroup
-        updateTextColors(websitesHolder)
-        contact_websites_holder.addView(websitesHolder)
+        val websitesHolder = ItemEditWebsiteBinding.inflate(layoutInflater, binding.contactWebsitesHolder, false)
+        updateTextColors(websitesHolder.root)
+        binding.contactWebsitesHolder.addView(websitesHolder.root)
+        binding.contactWebsitesHolder.onGlobalLayout {
+            websitesHolder.contactWebsite.requestFocus()
+            showKeyboard(websitesHolder.contactWebsite)
+        }
         websitesHolder.apply {
-            divider_contact_website.setBackgroundColor(getProperTextColor())
-            contact_website_remove.apply {
+            dividerContactWebsite.setBackgroundColor(getProperTextColor())
+            contactWebsiteRemove.apply {
                 beVisible()
                 setOnClickListener {
-                    contact_websites_holder.removeView(websitesHolder)
+                    binding.contactWebsitesHolder.removeView(websitesHolder.root)
                     hideKeyboard()
                 }
             }
         }
-        contact_websites_holder.onGlobalLayout {
-            websitesHolder.contact_website.requestFocus()
-            showKeyboard(websitesHolder.contact_website)
-        }
     }
 
-    private fun isContactStarred() = contact_toggle_favorite.tag == 1
+    private fun isContactStarred() = binding.contactToggleFavorite.tag == 1
 
-    private fun getStarDrawable(on: Boolean) = resources.getDrawable(if (on) R.drawable.ic_star_vector else R.drawable.ic_star_outline_vector)
+    private fun getStarDrawable(on: Boolean) =
+        resources.getDrawable(if (on) com.goodwy.commons.R.drawable.ic_star_vector else com.goodwy.commons.R.drawable.ic_star_outline_vector)
 
     private fun trySetPhotoRecommendation() {
         val simpleGallery = "com.goodwy.gallery"
         val simpleGalleryDebug = "com.goodwy.gallery.debug"
         if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleGallery) && !isPackageInstalled(simpleGalleryDebug))) {
-            NewAppDialog(this, simpleGallery, getString(R.string.recommendation_dialog_gallery_g), getString(R.string.right_gallery),
-                AppCompatResources.getDrawable(this, R.mipmap.ic_gallery)) {
+            NewAppDialog(this, simpleGallery, getString(com.goodwy.commons.R.string.recommendation_dialog_gallery_g), getString(com.goodwy.commons.R.string.right_gallery),
+                AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_gallery)) {
                 trySetPhoto()
             }
         } else {
@@ -1909,8 +2021,8 @@ class EditContactActivity : ContactActivity() {
 
     private fun trySetPhoto() {
         val items = arrayListOf(
-            RadioItem(TAKE_PHOTO, getString(R.string.take_photo)),
-            RadioItem(CHOOSE_PHOTO, getString(R.string.choose_photo))
+            RadioItem(TAKE_PHOTO, getString(com.goodwy.commons.R.string.take_photo)),
+            RadioItem(CHOOSE_PHOTO, getString(com.goodwy.commons.R.string.choose_photo))
         )
 
         if (currentContactPhotoPath.isNotEmpty() || contact!!.photo != null) {
@@ -1922,8 +2034,8 @@ class EditContactActivity : ContactActivity() {
                 TAKE_PHOTO -> startTakePhotoIntent()
                 CHOOSE_PHOTO -> startChoosePhotoIntent()
                 else -> {
-                    showPhotoPlaceholder(contact_photo)
-                    contact_photo_bottom_shadow.beGone()
+                    showPhotoPlaceholder(binding.topDetails.contactPhoto)
+                    binding.contactPhotoBottomShadow.beGone()
                 }
             }
         }
@@ -1936,7 +2048,7 @@ class EditContactActivity : ContactActivity() {
                 StructuredPostal.CONTENT_ITEM_TYPE -> parseAddress(it)
                 CommonDataKinds.Organization.CONTENT_ITEM_TYPE -> parseOrganization(it)
                 CommonDataKinds.Event.CONTENT_ITEM_TYPE -> parseEvent(it)
-                CommonDataKinds.Relation.CONTENT_ITEM_TYPE -> parseRelation(it)
+                Relation.CONTENT_ITEM_TYPE -> parseRelation(it)
                 Website.CONTENT_ITEM_TYPE -> parseWebsite(it)
                 Note.CONTENT_ITEM_TYPE -> parseNote(it)
             }
@@ -1972,8 +2084,8 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun parseRelation(contentValues: ContentValues) {
-        val type = contentValues.getAsInteger(CommonDataKinds.Relation.DATA2) ?: DEFAULT_RELATION_TYPE
-        val relationValue = contentValues.getAsString(CommonDataKinds.Relation.DATA1) ?: return
+        val type = contentValues.getAsInteger(Relation.DATA2) ?: DEFAULT_RELATION_TYPE
+        val relationValue = contentValues.getAsString(Relation.DATA1) ?: return
         val relation = ContactRelation(relationValue, type, "")
         contact!!.relations.add(relation)
     }
@@ -1998,7 +2110,7 @@ class EditContactActivity : ContactActivity() {
             try {
                 startActivityForResult(this, INTENT_TAKE_PHOTO)
             } catch (e: ActivityNotFoundException) {
-                toast(R.string.no_app_found)
+                toast(com.goodwy.commons.R.string.no_app_found)
             } catch (e: Exception) {
                 showErrorToast(e)
             }
@@ -2018,7 +2130,7 @@ class EditContactActivity : ContactActivity() {
             try {
                 startActivityForResult(this, INTENT_CHOOSE_PHOTO)
             } catch (e: ActivityNotFoundException) {
-                toast(R.string.no_app_found)
+                toast(com.goodwy.commons.R.string.no_app_found)
             } catch (e: Exception) {
                 showErrorToast(e)
             }
@@ -2027,109 +2139,109 @@ class EditContactActivity : ContactActivity() {
 
     override fun customRingtoneSelected(ringtonePath: String) {
         contact!!.ringtone = ringtonePath
-        contact_ringtone.text = ringtonePath.getFilenameFromPath()
+        binding.contactRingtone.text = ringtonePath.getFilenameFromPath()
     }
 
     override fun systemRingtoneSelected(uri: Uri?) {
         contact!!.ringtone = uri?.toString() ?: ""
         val contactRingtone = RingtoneManager.getRingtone(this, uri)
-        contact_ringtone.text = contactRingtone.getTitle(this)
+        binding.contactRingtone.text = contactRingtone.getTitle(this)
     }
 
     private fun getPhoneNumberTypeId(value: String) = when (value) {
-        getString(R.string.mobile) -> Phone.TYPE_MOBILE
-        getString(R.string.home) -> Phone.TYPE_HOME
-        getString(R.string.work) -> Phone.TYPE_WORK
-        getString(R.string.main_number) -> Phone.TYPE_MAIN
-        getString(R.string.work_fax) -> Phone.TYPE_FAX_WORK
-        getString(R.string.home_fax) -> Phone.TYPE_FAX_HOME
-        getString(R.string.pager) -> Phone.TYPE_PAGER
-        getString(R.string.other) -> Phone.TYPE_OTHER
+        getString(com.goodwy.commons.R.string.mobile) -> Phone.TYPE_MOBILE
+        getString(com.goodwy.commons.R.string.home) -> Phone.TYPE_HOME
+        getString(com.goodwy.commons.R.string.work) -> Phone.TYPE_WORK
+        getString(com.goodwy.commons.R.string.main_number) -> Phone.TYPE_MAIN
+        getString(com.goodwy.commons.R.string.work_fax) -> Phone.TYPE_FAX_WORK
+        getString(com.goodwy.commons.R.string.home_fax) -> Phone.TYPE_FAX_HOME
+        getString(com.goodwy.commons.R.string.pager) -> Phone.TYPE_PAGER
+        getString(com.goodwy.commons.R.string.other) -> Phone.TYPE_OTHER
         else -> Phone.TYPE_CUSTOM
     }
 
     private fun getEmailTypeId(value: String) = when (value) {
-        getString(R.string.home) -> CommonDataKinds.Email.TYPE_HOME
-        getString(R.string.work) -> CommonDataKinds.Email.TYPE_WORK
-        getString(R.string.mobile) -> CommonDataKinds.Email.TYPE_MOBILE
-        getString(R.string.other) -> CommonDataKinds.Email.TYPE_OTHER
+        getString(com.goodwy.commons.R.string.home) -> CommonDataKinds.Email.TYPE_HOME
+        getString(com.goodwy.commons.R.string.work) -> CommonDataKinds.Email.TYPE_WORK
+        getString(com.goodwy.commons.R.string.mobile) -> CommonDataKinds.Email.TYPE_MOBILE
+        getString(com.goodwy.commons.R.string.other) -> CommonDataKinds.Email.TYPE_OTHER
         else -> CommonDataKinds.Email.TYPE_CUSTOM
     }
 
     private fun getEventTypeId(value: String) = when (value) {
-        getString(R.string.anniversary) -> CommonDataKinds.Event.TYPE_ANNIVERSARY
-        getString(R.string.birthday) -> CommonDataKinds.Event.TYPE_BIRTHDAY
+        getString(com.goodwy.commons.R.string.anniversary) -> CommonDataKinds.Event.TYPE_ANNIVERSARY
+        getString(com.goodwy.commons.R.string.birthday) -> CommonDataKinds.Event.TYPE_BIRTHDAY
         else -> CommonDataKinds.Event.TYPE_OTHER
     }
 
     private fun getRelationTypeId(value: String) = when (value) {
-        getString(R.string.relation_assistant_g) -> Relation.TYPE_ASSISTANT
-        getString(R.string.relation_brother_g) -> Relation.TYPE_BROTHER
-        getString(R.string.relation_child_g) -> Relation.TYPE_CHILD
-        getString(R.string.relation_domestic_partner_g) -> Relation.TYPE_DOMESTIC_PARTNER
-        getString(R.string.relation_father_g) -> Relation.TYPE_FATHER
-        getString(R.string.relation_friend_g) -> Relation.TYPE_FRIEND
-        getString(R.string.relation_manager_g) -> Relation.TYPE_MANAGER
-        getString(R.string.relation_mother_g) -> Relation.TYPE_MOTHER
-        getString(R.string.relation_parent_g) -> Relation.TYPE_PARENT
-        getString(R.string.relation_partner_g) -> Relation.TYPE_PARTNER
-        getString(R.string.relation_referred_by_g) -> Relation.TYPE_REFERRED_BY
-        getString(R.string.relation_relative_g) -> Relation.TYPE_RELATIVE
-        getString(R.string.relation_sister_g) -> Relation.TYPE_SISTER
-        getString(R.string.relation_spouse_g) -> Relation.TYPE_SPOUSE
+        getString(com.goodwy.commons.R.string.relation_assistant_g) -> Relation.TYPE_ASSISTANT
+        getString(com.goodwy.commons.R.string.relation_brother_g) -> Relation.TYPE_BROTHER
+        getString(com.goodwy.commons.R.string.relation_child_g) -> Relation.TYPE_CHILD
+        getString(com.goodwy.commons.R.string.relation_domestic_partner_g) -> Relation.TYPE_DOMESTIC_PARTNER
+        getString(com.goodwy.commons.R.string.relation_father_g) -> Relation.TYPE_FATHER
+        getString(com.goodwy.commons.R.string.relation_friend_g) -> Relation.TYPE_FRIEND
+        getString(com.goodwy.commons.R.string.relation_manager_g) -> Relation.TYPE_MANAGER
+        getString(com.goodwy.commons.R.string.relation_mother_g) -> Relation.TYPE_MOTHER
+        getString(com.goodwy.commons.R.string.relation_parent_g) -> Relation.TYPE_PARENT
+        getString(com.goodwy.commons.R.string.relation_partner_g) -> Relation.TYPE_PARTNER
+        getString(com.goodwy.commons.R.string.relation_referred_by_g) -> Relation.TYPE_REFERRED_BY
+        getString(com.goodwy.commons.R.string.relation_relative_g) -> Relation.TYPE_RELATIVE
+        getString(com.goodwy.commons.R.string.relation_sister_g) -> Relation.TYPE_SISTER
+        getString(com.goodwy.commons.R.string.relation_spouse_g) -> Relation.TYPE_SPOUSE
 
         // Relation types defined in vCard 4.0
-        getString(R.string.relation_contact_g) -> ContactRelation.TYPE_CONTACT
-        getString(R.string.relation_acquaintance_g) -> ContactRelation.TYPE_ACQUAINTANCE
-        // getString(R.string.relation_friend) -> ContactRelation.TYPE_FRIEND
-        getString(R.string.relation_met_g) -> ContactRelation.TYPE_MET
-        getString(R.string.relation_co_worker_g) -> ContactRelation.TYPE_CO_WORKER
-        getString(R.string.relation_colleague_g) -> ContactRelation.TYPE_COLLEAGUE
-        getString(R.string.relation_co_resident_g) -> ContactRelation.TYPE_CO_RESIDENT
-        getString(R.string.relation_neighbor_g) -> ContactRelation.TYPE_NEIGHBOR
-        // getString(R.string.relation_child) -> ContactRelation.TYPE_CHILD
-        // getString(R.string.relation_parent) -> ContactRelation.TYPE_PARENT
-        getString(R.string.relation_sibling_g) -> ContactRelation.TYPE_SIBLING
-        // getString(R.string.relation_spouse) -> ContactRelation.TYPE_SPOUSE
-        getString(R.string.relation_kin_g) -> ContactRelation.TYPE_KIN
-        getString(R.string.relation_muse_g) -> ContactRelation.TYPE_MUSE
-        getString(R.string.relation_crush_g) -> ContactRelation.TYPE_CRUSH
-        getString(R.string.relation_date_g) -> ContactRelation.TYPE_DATE
-        getString(R.string.relation_sweetheart_g) -> ContactRelation.TYPE_SWEETHEART
-        getString(R.string.relation_me_g) -> ContactRelation.TYPE_ME
-        getString(R.string.relation_agent_g) -> ContactRelation.TYPE_AGENT
-        getString(R.string.relation_emergency_g) -> ContactRelation.TYPE_EMERGENCY
+        getString(com.goodwy.commons.R.string.relation_contact_g) -> ContactRelation.TYPE_CONTACT
+        getString(com.goodwy.commons.R.string.relation_acquaintance_g) -> ContactRelation.TYPE_ACQUAINTANCE
+        // getString(com.goodwy.commons.R.string.relation_friend) -> ContactRelation.TYPE_FRIEND
+        getString(com.goodwy.commons.R.string.relation_met_g) -> ContactRelation.TYPE_MET
+        getString(com.goodwy.commons.R.string.relation_co_worker_g) -> ContactRelation.TYPE_CO_WORKER
+        getString(com.goodwy.commons.R.string.relation_colleague_g) -> ContactRelation.TYPE_COLLEAGUE
+        getString(com.goodwy.commons.R.string.relation_co_resident_g) -> ContactRelation.TYPE_CO_RESIDENT
+        getString(com.goodwy.commons.R.string.relation_neighbor_g) -> ContactRelation.TYPE_NEIGHBOR
+        // getString(com.goodwy.commons.R.string.relation_child) -> ContactRelation.TYPE_CHILD
+        // getString(com.goodwy.commons.R.string.relation_parent) -> ContactRelation.TYPE_PARENT
+        getString(com.goodwy.commons.R.string.relation_sibling_g) -> ContactRelation.TYPE_SIBLING
+        // getString(com.goodwy.commons.R.string.relation_spouse) -> ContactRelation.TYPE_SPOUSE
+        getString(com.goodwy.commons.R.string.relation_kin_g) -> ContactRelation.TYPE_KIN
+        getString(com.goodwy.commons.R.string.relation_muse_g) -> ContactRelation.TYPE_MUSE
+        getString(com.goodwy.commons.R.string.relation_crush_g) -> ContactRelation.TYPE_CRUSH
+        getString(com.goodwy.commons.R.string.relation_date_g) -> ContactRelation.TYPE_DATE
+        getString(com.goodwy.commons.R.string.relation_sweetheart_g) -> ContactRelation.TYPE_SWEETHEART
+        getString(com.goodwy.commons.R.string.relation_me_g) -> ContactRelation.TYPE_ME
+        getString(com.goodwy.commons.R.string.relation_agent_g) -> ContactRelation.TYPE_AGENT
+        getString(com.goodwy.commons.R.string.relation_emergency_g) -> ContactRelation.TYPE_EMERGENCY
 
-        getString(R.string.relation_superior_g) -> ContactRelation.TYPE_SUPERIOR
-        getString(R.string.relation_subordinate_g) -> ContactRelation.TYPE_SUBORDINATE
-        getString(R.string.relation_husband_g) -> ContactRelation.TYPE_HUSBAND
-        getString(R.string.relation_wife_g) -> ContactRelation.TYPE_WIFE
-        getString(R.string.relation_son_g) -> ContactRelation.TYPE_SON
-        getString(R.string.relation_daughter_g) -> ContactRelation.TYPE_DAUGHTER
-        getString(R.string.relation_grandparent_g) -> ContactRelation.TYPE_GRANDPARENT
-        getString(R.string.relation_grandfather_g) -> ContactRelation.TYPE_GRANDFATHER
-        getString(R.string.relation_grandmother_g) -> ContactRelation.TYPE_GRANDMOTHER
-        getString(R.string.relation_grandchild_g) -> ContactRelation.TYPE_GRANDCHILD
-        getString(R.string.relation_grandson_g) -> ContactRelation.TYPE_GRANDSON
-        getString(R.string.relation_granddaughter_g) -> ContactRelation.TYPE_GRANDDAUGHTER
-        getString(R.string.relation_uncle_g) -> ContactRelation.TYPE_UNCLE
-        getString(R.string.relation_aunt_g) -> ContactRelation.TYPE_AUNT
-        getString(R.string.relation_nephew_g) -> ContactRelation.TYPE_NEPHEW
-        getString(R.string.relation_niece_g) -> ContactRelation.TYPE_NIECE
-        getString(R.string.relation_father_in_law_g) -> ContactRelation.TYPE_FATHER_IN_LAW
-        getString(R.string.relation_mother_in_law_g) -> ContactRelation.TYPE_MOTHER_IN_LAW
-        getString(R.string.relation_son_in_law_g) -> ContactRelation.TYPE_SON_IN_LAW
-        getString(R.string.relation_daughter_in_law_g) -> ContactRelation.TYPE_DAUGHTER_IN_LAW
-        getString(R.string.relation_brother_in_law_g) -> ContactRelation.TYPE_BROTHER_IN_LAW
-        getString(R.string.relation_sister_in_law_g) -> ContactRelation.TYPE_SISTER_IN_LAW
+        getString(com.goodwy.commons.R.string.relation_superior_g) -> ContactRelation.TYPE_SUPERIOR
+        getString(com.goodwy.commons.R.string.relation_subordinate_g) -> ContactRelation.TYPE_SUBORDINATE
+        getString(com.goodwy.commons.R.string.relation_husband_g) -> ContactRelation.TYPE_HUSBAND
+        getString(com.goodwy.commons.R.string.relation_wife_g) -> ContactRelation.TYPE_WIFE
+        getString(com.goodwy.commons.R.string.relation_son_g) -> ContactRelation.TYPE_SON
+        getString(com.goodwy.commons.R.string.relation_daughter_g) -> ContactRelation.TYPE_DAUGHTER
+        getString(com.goodwy.commons.R.string.relation_grandparent_g) -> ContactRelation.TYPE_GRANDPARENT
+        getString(com.goodwy.commons.R.string.relation_grandfather_g) -> ContactRelation.TYPE_GRANDFATHER
+        getString(com.goodwy.commons.R.string.relation_grandmother_g) -> ContactRelation.TYPE_GRANDMOTHER
+        getString(com.goodwy.commons.R.string.relation_grandchild_g) -> ContactRelation.TYPE_GRANDCHILD
+        getString(com.goodwy.commons.R.string.relation_grandson_g) -> ContactRelation.TYPE_GRANDSON
+        getString(com.goodwy.commons.R.string.relation_granddaughter_g) -> ContactRelation.TYPE_GRANDDAUGHTER
+        getString(com.goodwy.commons.R.string.relation_uncle_g) -> ContactRelation.TYPE_UNCLE
+        getString(com.goodwy.commons.R.string.relation_aunt_g) -> ContactRelation.TYPE_AUNT
+        getString(com.goodwy.commons.R.string.relation_nephew_g) -> ContactRelation.TYPE_NEPHEW
+        getString(com.goodwy.commons.R.string.relation_niece_g) -> ContactRelation.TYPE_NIECE
+        getString(com.goodwy.commons.R.string.relation_father_in_law_g) -> ContactRelation.TYPE_FATHER_IN_LAW
+        getString(com.goodwy.commons.R.string.relation_mother_in_law_g) -> ContactRelation.TYPE_MOTHER_IN_LAW
+        getString(com.goodwy.commons.R.string.relation_son_in_law_g) -> ContactRelation.TYPE_SON_IN_LAW
+        getString(com.goodwy.commons.R.string.relation_daughter_in_law_g) -> ContactRelation.TYPE_DAUGHTER_IN_LAW
+        getString(com.goodwy.commons.R.string.relation_brother_in_law_g) -> ContactRelation.TYPE_BROTHER_IN_LAW
+        getString(com.goodwy.commons.R.string.relation_sister_in_law_g) -> ContactRelation.TYPE_SISTER_IN_LAW
 
         else -> Relation.TYPE_CUSTOM
     }
 
     private fun getAddressTypeId(value: String) = when (value) {
-        getString(R.string.home) -> StructuredPostal.TYPE_HOME
-        getString(R.string.work) -> StructuredPostal.TYPE_WORK
-        getString(R.string.other) -> StructuredPostal.TYPE_OTHER
+        getString(com.goodwy.commons.R.string.home) -> StructuredPostal.TYPE_HOME
+        getString(com.goodwy.commons.R.string.work) -> StructuredPostal.TYPE_WORK
+        getString(com.goodwy.commons.R.string.other) -> StructuredPostal.TYPE_OTHER
         else -> StructuredPostal.TYPE_CUSTOM
     }
 
@@ -2143,5 +2255,34 @@ class EditContactActivity : ContactActivity() {
         getString(R.string.icq) -> Im.PROTOCOL_ICQ
         getString(R.string.jabber) -> Im.PROTOCOL_JABBER
         else -> Im.PROTOCOL_CUSTOM
+    }
+
+    private fun setupAutoComplete(nameTextViews: List<MyAutoCompleteTextView>) {
+        ContactsHelper(this).getContacts { contacts ->
+            val adapter = AutoCompleteTextViewAdapter(this, contacts)
+            val handler = Handler(mainLooper)
+            nameTextViews.forEach { view ->
+                view.setAdapter(adapter)
+                view.setOnItemClickListener { _, _, position, _ ->
+                    val selectedContact = adapter.resultList[position]
+
+                    if (binding.contactFirstName.isVisible()) {
+                        binding.contactFirstName.setText(selectedContact.firstName)
+                    }
+                    if (binding.contactMiddleName.isVisible()) {
+                        binding.contactMiddleName.setText(selectedContact.middleName)
+                    }
+                    if (binding.contactSurname.isVisible()) {
+                        binding.contactSurname.setText(selectedContact.surname)
+                    }
+                }
+                view.doAfterTextChanged {
+                    handler.postDelayed({
+                        adapter.autoComplete = true
+                        adapter.filter.filter(it)
+                    }, AUTO_COMPLETE_DELAY)
+                }
+            }
+        }
     }
 }

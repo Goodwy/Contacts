@@ -1,18 +1,17 @@
 package com.goodwy.contacts.dialogs
 
-import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import com.goodwy.commons.dialogs.FilePickerDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.ensureBackgroundThread
-import com.goodwy.commons.models.contacts.*
+import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.models.contacts.ContactSource
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.adapters.FilterContactSourcesAdapter
+import com.goodwy.contacts.databinding.DialogExportContactsBinding
 import com.goodwy.contacts.extensions.config
-import kotlinx.android.synthetic.main.dialog_export_contacts.view.*
 import java.io.File
 
 class ExportContactsDialog(
@@ -27,18 +26,17 @@ class ExportContactsDialog(
     private var isContactsReady = false
 
     init {
-        val view = (activity.layoutInflater.inflate(R.layout.dialog_export_contacts, null) as ViewGroup).apply {
-            export_contacts_folder.setText(activity.humanizePath(realPath))
-            export_contacts_filename.setText("contacts_${activity.getCurrentFormattedDateTime()}")
+        val binding = DialogExportContactsBinding.inflate(activity.layoutInflater).apply {
+            exportContactsFolder.setText(activity.humanizePath(realPath))
+            exportContactsFilename.setText("contacts_${activity.getCurrentFormattedDateTime()}")
 
             if (hidePath) {
-                export_contacts_folder_hint.beGone()
-                //export_contacts_folder.beGone()
+                exportContactsFolderHint.beGone()
             } else {
-                export_contacts_folder.setOnClickListener {
-                    activity.hideKeyboard(export_contacts_filename)
+                exportContactsFolder.setOnClickListener {
+                    activity.hideKeyboard(exportContactsFilename)
                     FilePickerDialog(activity, realPath, false, showFAB = true) {
-                        export_contacts_folder.setText(activity.humanizePath(it))
+                        exportContactsFolder.setText(activity.humanizePath(it))
                         realPath = it
                     }
                 }
@@ -58,29 +56,29 @@ class ExportContactsDialog(
         }
 
         activity.getAlertDialogBuilder()
-            .setPositiveButton(R.string.ok, null)
-            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(com.goodwy.commons.R.string.ok, null)
+            .setNegativeButton(com.goodwy.commons.R.string.cancel, null)
             .apply {
-                activity.setupDialogStuff(view, this, R.string.export_contacts) { alertDialog ->
+                activity.setupDialogStuff(binding.root, this, R.string.export_contacts) { alertDialog ->
                     alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                        if (view.export_contacts_list.adapter == null || ignoreClicks) {
+                        if (binding.exportContactsList.adapter == null || ignoreClicks) {
                             return@setOnClickListener
                         }
 
-                        val filename = view.export_contacts_filename.value
+                        val filename = binding.exportContactsFilename.value
                         when {
-                            filename.isEmpty() -> activity.toast(R.string.empty_name)
+                            filename.isEmpty() -> activity.toast(com.goodwy.commons.R.string.empty_name)
                             filename.isAValidFilename() -> {
                                 val file = File(realPath, "$filename.vcf")
                                 if (!hidePath && file.exists()) {
-                                    activity.toast(R.string.name_taken)
+                                    activity.toast(com.goodwy.commons.R.string.name_taken)
                                     return@setOnClickListener
                                 }
 
                                 ignoreClicks = true
                                 ensureBackgroundThread {
                                     activity.config.lastExportPath = file.absolutePath.getParentPath()
-                                    val selectedSources = (view.export_contacts_list.adapter as FilterContactSourcesAdapter).getSelectedContactSources()
+                                    val selectedSources = (binding.exportContactsList.adapter as FilterContactSourcesAdapter).getSelectedContactSources()
                                     val ignoredSources = contactSources
                                         .filter { !selectedSources.contains(it) }
                                         .map { it.getFullIdentifier() }
@@ -89,14 +87,15 @@ class ExportContactsDialog(
                                     alertDialog.dismiss()
                                 }
                             }
-                            else -> activity.toast(R.string.invalid_name)
+
+                            else -> activity.toast(com.goodwy.commons.R.string.invalid_name)
                         }
                     }
                 }
             }
     }
 
-    private fun processDataIfReady(view: View) {
+    private fun processDataIfReady(binding: DialogExportContactsBinding) {
         if (!isContactSourcesReady || !isContactsReady) {
             return
         }
@@ -111,7 +110,7 @@ class ExportContactsDialog(
         contactSources.addAll(contactSourcesWithCount)
 
         activity.runOnUiThread {
-            view.export_contacts_list.adapter = FilterContactSourcesAdapter(activity, contactSourcesWithCount, activity.getVisibleContactSources())
+            binding.exportContactsList.adapter = FilterContactSourcesAdapter(activity, contactSourcesWithCount, activity.getVisibleContactSources())
         }
     }
 }

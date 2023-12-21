@@ -3,21 +3,26 @@ package com.goodwy.contacts.adapters
 import android.graphics.drawable.BitmapDrawable
 import android.util.SparseArray
 import android.util.TypedValue
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.SimpleContactsHelper
-import com.goodwy.commons.models.contacts.*
+import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.views.MyAppCompatCheckbox
 import com.goodwy.commons.views.MyRecyclerView
-import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
+import com.goodwy.contacts.databinding.ItemAddFavoriteWithNumberBinding
+import com.goodwy.contacts.databinding.ItemAddFavoriteWithoutNumberBinding
 import com.goodwy.contacts.extensions.config
-import kotlinx.android.synthetic.main.item_add_favorite_with_number.view.*
 
 class SelectContactsAdapter(
     val activity: SimpleActivity, var contacts: ArrayList<Contact>, private val selectedContacts: ArrayList<Contact>, private val allowPickMultiple: Boolean,
@@ -33,7 +38,7 @@ class SelectContactsAdapter(
 
     private val showContactThumbnails = config.showContactThumbnails
     private val showPhoneNumbers = config.showPhoneNumbers
-    private val itemLayout = if (showPhoneNumbers) R.layout.item_add_favorite_with_number else R.layout.item_add_favorite_without_number
+    private val itemBindingClass = if (showPhoneNumbers) Binding.WithNumber else Binding.WithoutNumber
     private var textToHighlight = ""
 
     init {
@@ -57,7 +62,7 @@ class SelectContactsAdapter(
             selectedPositions.remove(pos)
         }
 
-        itemViews[pos]?.contact_checkbox?.isChecked = select
+        itemBindingClass.bind(itemViews[pos]).contactCheckbox.isChecked = select
     }
 
     fun getSelectedItemsSet(): HashSet<Contact> {
@@ -67,8 +72,8 @@ class SelectContactsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = activity.layoutInflater.inflate(itemLayout, parent, false)
-        return ViewHolder(view)
+        val binding = itemBindingClass.inflate(activity.layoutInflater, parent, false)
+        return ViewHolder(binding.root)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -82,19 +87,19 @@ class SelectContactsAdapter(
     override fun onViewRecycled(holder: ViewHolder) {
         super.onViewRecycled(holder)
         if (!activity.isDestroyed && !activity.isFinishing) {
-            Glide.with(activity).clear(holder.itemView.contact_tmb)
+            Glide.with(activity).clear(itemBindingClass.bind(holder.itemView).contactTmb)
         }
     }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         fun bindView(contact: Contact): View {
-            itemView.apply {
-                contact_checkbox.beVisibleIf(allowPickMultiple)
-                contact_checkbox.setColors(context.getProperTextColor(), context.getProperPrimaryColor(), context.getProperBackgroundColor())
-                val textColor = context.getProperTextColor()
+            itemBindingClass.bind(itemView).apply {
+                contactCheckbox.beVisibleIf(allowPickMultiple)
+                contactCheckbox.setColors(root.context.getProperTextColor(), root.context.getProperPrimaryColor(), root.context.getProperBackgroundColor())
+                val textColor = root.context.getProperTextColor()
 
                 val fullName = contact.getNameToDisplay()
-                contact_name.text = if (textToHighlight.isEmpty()) fullName else {
+                contactName.text = if (textToHighlight.isEmpty()) fullName else {
                     if (fullName.contains(textToHighlight, true)) {
                         fullName.highlightTextPart(textToHighlight, adjustedPrimaryColor)
                     } else {
@@ -102,10 +107,10 @@ class SelectContactsAdapter(
                     }
                 }
 
-                contact_name.setTextColor(textColor)
-                contact_name.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize)
+                contactName.setTextColor(textColor)
+                contactName.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize)
 
-                if (contact_number != null) {
+                contactNumber?.apply {
                     val phoneNumberToUse = if (textToHighlight.isEmpty()) {
                         contact.phoneNumbers.firstOrNull()
                     } else {
@@ -113,21 +118,20 @@ class SelectContactsAdapter(
                     }
 
                     val numberText = phoneNumberToUse?.value ?: ""
-                    contact_number.text =
-                        if (textToHighlight.isEmpty()) numberText else numberText.highlightTextPart(textToHighlight, adjustedPrimaryColor, false, true)
-                    contact_number.setTextColor(textColor)
-                    contact_number.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSizeSmall)
+                    text = if (textToHighlight.isEmpty()) numberText else numberText.highlightTextPart(textToHighlight, adjustedPrimaryColor, false, true)
+                    setTextColor(textColor)
+                    setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSizeSmall)
                 }
 
-                contact_frame.setOnClickListener {
+                root.setOnClickListener {
                     if (itemClick != null) {
                         itemClick.invoke(contact)
                     } else {
-                        viewClicked(!contact_checkbox.isChecked)
+                        viewClicked(!contactCheckbox.isChecked)
                     }
                 }
 
-                contact_tmb.beVisibleIf(showContactThumbnails)
+                contactTmb.beVisibleIf(showContactThumbnails)
 
                 if (showContactThumbnails) {
                     val avatarName = when {
@@ -136,10 +140,10 @@ class SelectContactsAdapter(
                         else -> contact.firstName
                     }
 
-                    val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(context).getContactLetterIcon(avatarName))
+                    val placeholderImage = BitmapDrawable(root.resources, SimpleContactsHelper(root.context).getContactLetterIcon(avatarName))
 
                     if (contact.photoUri.isEmpty() && contact.photo == null) {
-                        contact_tmb.setImageDrawable(placeholderImage)
+                        contactTmb.setImageDrawable(placeholderImage)
                     } else {
                         val options = RequestOptions()
                             .signature(ObjectKey(contact.getSignatureKey()))
@@ -157,7 +161,7 @@ class SelectContactsAdapter(
                             .load(itemToLoad)
                             .apply(options)
                             .apply(RequestOptions.circleCropTransform())
-                            .into(contact_tmb)
+                            .into(contactTmb)
                     }
                 }
             }
@@ -168,5 +172,55 @@ class SelectContactsAdapter(
         private fun viewClicked(select: Boolean) {
             toggleItemSelection(select, adapterPosition)
         }
+    }
+
+    private sealed interface Binding {
+
+        fun inflate(layoutInflater: LayoutInflater, viewGroup: ViewGroup, attachToRoot: Boolean): ItemAddFavoriteBinding
+        fun bind(view: View): ItemAddFavoriteBinding
+
+
+        data object WithNumber : Binding {
+            override fun inflate(layoutInflater: LayoutInflater, viewGroup: ViewGroup, attachToRoot: Boolean): ItemAddFavoriteBinding {
+                return ItemAddFavoriteWithNumberBindingAdapter(ItemAddFavoriteWithNumberBinding.inflate(layoutInflater, viewGroup, attachToRoot))
+            }
+
+            override fun bind(view: View): ItemAddFavoriteBinding {
+                return ItemAddFavoriteWithNumberBindingAdapter(ItemAddFavoriteWithNumberBinding.bind(view))
+            }
+        }
+
+        data object WithoutNumber : Binding {
+            override fun inflate(layoutInflater: LayoutInflater, viewGroup: ViewGroup, attachToRoot: Boolean): ItemAddFavoriteBinding {
+                return ItemAddFavoriteWithoutNumberBindingAdapter(ItemAddFavoriteWithoutNumberBinding.inflate(layoutInflater, viewGroup, attachToRoot))
+            }
+
+            override fun bind(view: View): ItemAddFavoriteBinding {
+                return ItemAddFavoriteWithoutNumberBindingAdapter(ItemAddFavoriteWithoutNumberBinding.bind(view))
+            }
+        }
+    }
+
+    private interface ItemAddFavoriteBinding : ViewBinding {
+        val contactName: TextView
+        val contactNumber: TextView?
+        val contactTmb: ImageView
+        val contactCheckbox: MyAppCompatCheckbox
+    }
+
+    private class ItemAddFavoriteWithoutNumberBindingAdapter(val binding: ItemAddFavoriteWithoutNumberBinding) : ItemAddFavoriteBinding {
+        override val contactName: TextView = binding.contactName
+        override val contactNumber: TextView? = null
+        override val contactTmb: ImageView = binding.contactTmb
+        override val contactCheckbox: MyAppCompatCheckbox = binding.contactCheckbox
+        override fun getRoot(): View = binding.root
+    }
+
+    private class ItemAddFavoriteWithNumberBindingAdapter(val binding: ItemAddFavoriteWithNumberBinding) : ItemAddFavoriteBinding {
+        override val contactName: TextView = binding.contactName
+        override val contactNumber: TextView = binding.contactNumber
+        override val contactTmb: ImageView = binding.contactTmb
+        override val contactCheckbox: MyAppCompatCheckbox = binding.contactCheckbox
+        override fun getRoot(): View = binding.root
     }
 }

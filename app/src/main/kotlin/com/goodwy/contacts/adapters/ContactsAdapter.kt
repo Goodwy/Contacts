@@ -15,7 +15,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -29,12 +28,11 @@ import com.goodwy.commons.dialogs.ConfirmationDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
-import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.interfaces.ItemMoveCallback
 import com.goodwy.commons.interfaces.ItemTouchHelperContract
 import com.goodwy.commons.interfaces.StartReorderDragListener
 import com.goodwy.commons.models.RadioItem
-import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.models.contacts.*
 import com.goodwy.commons.views.MyRecyclerView
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
@@ -48,12 +46,13 @@ import java.util.*
 
 class ContactsAdapter(
     activity: SimpleActivity,
-    var contactItems: ArrayList<Contact>,
+    var contactItems: MutableList<Contact>,
+    recyclerView: MyRecyclerView,
+    highlightText: String = "",
+    var viewType: Int = VIEW_TYPE_LIST,
     private val refreshListener: RefreshContactsListener?,
     private val location: Int,
     private val removeListener: RemoveFromGroupListener?,
-    recyclerView: MyRecyclerView,
-    highlightText: String = "",
     private val enableDrag: Boolean = false,
     itemClick: (Any) -> Unit
 ) : MyRecyclerViewAdapter(activity, recyclerView, itemClick), RecyclerViewFastScroller.OnPopupTextUpdate, ItemTouchHelperContract {
@@ -70,8 +69,6 @@ class ContactsAdapter(
     var fontSizeSmall = activity.getTextSizeSmall()
     var onDragEndListener: (() -> Unit)? = null
 
-    private val itemLayout = if (showPhoneNumbers) R.layout.item_contact_with_number else R.layout.item_contact_without_number
-
     private var touchHelper: ItemTouchHelper? = null
     private var startReorderDragListener: StartReorderDragListener? = null
 
@@ -79,7 +76,7 @@ class ContactsAdapter(
         setupDragListener(true)
 
         if (enableDrag) {
-            touchHelper = ItemTouchHelper(ItemMoveCallback(this))
+            touchHelper = ItemTouchHelper(ItemMoveCallback(this, true/*viewType == VIEW_TYPE_GRID*/))
             touchHelper!!.attachToRecyclerView(recyclerView)
 
             startReorderDragListener = object : StartReorderDragListener {
@@ -147,7 +144,22 @@ class ContactsAdapter(
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = createViewHolder(itemLayout, parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val layout = when (viewType) {
+            VIEW_TYPE_GRID -> {
+                if (showPhoneNumbers) com.goodwy.commons.R.layout.item_contact_with_number_grid else com.goodwy.commons.R.layout.item_contact_without_number_grid
+            }
+
+            else -> {
+                if (showPhoneNumbers) com.goodwy.commons.R.layout.item_contact_with_number else com.goodwy.commons.R.layout.item_contact_without_number
+            }
+        }
+        return createViewHolder(layout, parent)
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return viewType
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val contact = contactItems[position]
@@ -162,9 +174,9 @@ class ContactsAdapter(
 
     private fun getItemWithKey(key: Int): Contact? = contactItems.firstOrNull { it.id == key }
 
-    fun updateItems(newItems: ArrayList<Contact>, highlightText: String = "") {
+    fun updateItems(newItems: List<Contact>, highlightText: String = "") {
         if (newItems.hashCode() != contactItems.hashCode()) {
-            contactItems = newItems.clone() as ArrayList<Contact>
+            contactItems = newItems.toMutableList()
             textToHighlight = highlightText
             notifyDataSetChanged()
             finishActMode()
@@ -184,10 +196,10 @@ class ContactsAdapter(
         val items = if (itemsCnt == 1) {
             "\"${getSelectedItems().first().getNameToDisplay()}\""
         } else {
-            resources.getQuantityString(R.plurals.delete_contacts, itemsCnt, itemsCnt)
+            resources.getQuantityString(com.goodwy.commons.R.plurals.delete_contacts, itemsCnt, itemsCnt)
         }
 
-        val baseString = R.string.deletion_confirmation
+        val baseString = com.goodwy.commons.R.string.deletion_confirmation
         val question = String.format(resources.getString(baseString), items)
 
         ConfirmationDialog(activity, question) {
@@ -335,7 +347,7 @@ class ContactsAdapter(
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .error(placeholderImage)
 
-                val size = activity.resources.getDimension(R.dimen.shortcut_size).toInt()
+                val size = activity.resources.getDimension(com.goodwy.commons.R.dimen.shortcut_size).toInt()
                 val itemToLoad: Any? = if (contact.photoUri.isNotEmpty()) {
                     contact.photoUri
                 } else {
@@ -369,7 +381,7 @@ class ContactsAdapter(
     override fun onViewRecycled(holder: ViewHolder) {
         super.onViewRecycled(holder)
         if (!activity.isDestroyed && !activity.isFinishing) {
-            Glide.with(activity).clear(holder.itemView.findViewById<ImageView>(R.id.item_contact_image))
+            Glide.with(activity).clear(holder.itemView.findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image))
         }
     }
 
@@ -378,9 +390,10 @@ class ContactsAdapter(
             findViewById<ImageView>(R.id.divider)?.setBackgroundColor(textColor)
             if (getLastItem() == contact || !context.config.useDividers) findViewById<ImageView>(R.id.divider)?.visibility = View.INVISIBLE else findViewById<ImageView>(R.id.divider)?.visibility = View.VISIBLE
 
-            findViewById<RelativeLayout>(R.id.item_contact_frame)?.isSelected = selectedKeys.contains(contact.id)
+            setupViewBackground(activity)
+            findViewById<FrameLayout>(com.goodwy.commons.R.id.item_contact_frame)?.isSelected = selectedKeys.contains(contact.id)
             val fullName = contact.getNameToDisplay()
-            findViewById<TextView>(R.id.item_contact_name).text = if (textToHighlight.isEmpty()) fullName else {
+            findViewById<TextView>(com.goodwy.commons.R.id.item_contact_name).text = if (textToHighlight.isEmpty()) fullName else {
                 if (fullName.contains(textToHighlight, true)) {
                     fullName.highlightTextPart(textToHighlight, properPrimaryColor)
                 } else {
@@ -388,12 +401,12 @@ class ContactsAdapter(
                 }
             }
 
-            findViewById<TextView>(R.id.item_contact_name).apply {
+            findViewById<TextView>(com.goodwy.commons.R.id.item_contact_name).apply {
                 setTextColor(textColor)
                 setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize)
             }
 
-            if (findViewById<TextView>(R.id.item_contact_number) != null) {
+            if (findViewById<TextView>(com.goodwy.commons.R.id.item_contact_number) != null) {
                 val phoneNumberToUse = if (textToHighlight.isEmpty()) {
                     contact.phoneNumbers.firstOrNull { it.isPrimary } ?: contact.phoneNumbers.firstOrNull()
                 } else {
@@ -401,19 +414,19 @@ class ContactsAdapter(
                 }
 
                 val numberText = phoneNumberToUse?.value ?: ""
-                findViewById<TextView>(R.id.item_contact_number).apply {
+                findViewById<TextView>(com.goodwy.commons.R.id.item_contact_number).apply {
                     text = if (textToHighlight.isEmpty()) numberText else numberText.highlightTextPart(textToHighlight, properPrimaryColor, false, true)
                     setTextColor(textColor)
                     setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSizeSmall)
                 }
             }
 
-            findViewById<ImageView>(R.id.item_contact_image).beVisibleIf(showContactThumbnails)
+            findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).beVisibleIf(showContactThumbnails)
 
             if (showContactThumbnails) {
                 val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(context).getContactLetterIcon(fullName))
                 if (contact.photoUri.isEmpty() && contact.photo == null) {
-                    findViewById<ImageView>(R.id.item_contact_image).setImageDrawable(placeholderImage)
+                    findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).setImageDrawable(placeholderImage)
                 } else {
                     val options = RequestOptions()
                         .signature(ObjectKey(contact.getSignatureKey()))
@@ -431,11 +444,11 @@ class ContactsAdapter(
                         .load(itemToLoad)
                         .apply(options)
                         .apply(RequestOptions.circleCropTransform())
-                        .into(findViewById(R.id.item_contact_image))
+                        .into(findViewById(com.goodwy.commons.R.id.item_contact_image))
                 }
             }
 
-            val dragIcon = findViewById<ImageView>(R.id.drag_handle_icon)
+            val dragIcon = findViewById<ImageView>(com.goodwy.commons.R.id.drag_handle_icon)
             if (enableDrag && textToHighlight.isEmpty()) {
                 dragIcon.apply {
                     beVisibleIf(selectedKeys.isNotEmpty())

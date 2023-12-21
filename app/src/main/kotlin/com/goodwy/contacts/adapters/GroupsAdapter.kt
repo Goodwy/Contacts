@@ -7,20 +7,22 @@ import android.view.ViewGroup
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.goodwy.commons.adapters.MyRecyclerViewAdapter
 import com.goodwy.commons.dialogs.ConfirmationDialog
-import com.goodwy.commons.extensions.*
+import com.goodwy.commons.extensions.beVisibleIf
+import com.goodwy.commons.extensions.getTextSize
+import com.goodwy.commons.extensions.groupsDB
+import com.goodwy.commons.extensions.highlightTextPart
+import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.SimpleContactsHelper
 import com.goodwy.commons.helpers.TAB_GROUPS
 import com.goodwy.commons.helpers.ensureBackgroundThread
+import com.goodwy.commons.models.contacts.Group
 import com.goodwy.commons.views.MyRecyclerView
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
+import com.goodwy.contacts.databinding.ItemGroupBinding
 import com.goodwy.contacts.dialogs.RenameGroupDialog
-import com.goodwy.commons.helpers.ContactsHelper
-import com.goodwy.commons.models.contacts.Group
 import com.goodwy.contacts.extensions.config
 import com.goodwy.contacts.interfaces.RefreshContactsListener
-import kotlinx.android.synthetic.main.item_group.view.*
-import java.util.*
 
 class GroupsAdapter(
     activity: SimpleActivity, var groups: ArrayList<Group>, val refreshListener: RefreshContactsListener?, recyclerView: MyRecyclerView,
@@ -67,7 +69,9 @@ class GroupsAdapter(
 
     override fun onActionModeDestroyed() {}
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = createViewHolder(R.layout.item_group, parent)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return createViewHolder(ItemGroupBinding.inflate(layoutInflater, parent, false).root)
+    }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val group = groups[position]
@@ -110,7 +114,7 @@ class GroupsAdapter(
             resources.getQuantityString(R.plurals.delete_groups, itemsCnt, itemsCnt)
         }
 
-        val baseString = R.string.deletion_confirmation
+        val baseString = com.goodwy.commons.R.string.deletion_confirmation
         val question = String.format(resources.getString(baseString), items)
 
         ConfirmationDialog(activity, question) {
@@ -151,8 +155,8 @@ class GroupsAdapter(
     private fun getLastItem() = groups.last()
 
     private fun setupView(view: View, group: Group) {
-        view.apply {
-            group_frame?.isSelected = selectedKeys.contains(group.id!!.toInt())
+        ItemGroupBinding.bind(view).apply {
+            groupFrame.isSelected = selectedKeys.contains(group.id!!.toInt())
             val titleWithCnt = "${group.title} (${group.contactsCount})"
             val groupTitle = if (textToHighlight.isEmpty()) {
                 titleWithCnt
@@ -160,19 +164,19 @@ class GroupsAdapter(
                 titleWithCnt.highlightTextPart(textToHighlight, properPrimaryColor)
             }
 
-            group_name.apply {
+            groupName.apply {
                 setTextColor(textColor)
                 setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize)
                 text = groupTitle
             }
 
-            group_tmb.beVisibleIf(showContactThumbnails)
+            groupTmb.beVisibleIf(showContactThumbnails)
             if (showContactThumbnails) {
-                group_tmb.setImageDrawable(SimpleContactsHelper(activity).getColoredGroupIcon(group.title))
+                groupTmb.setImageDrawable(SimpleContactsHelper(activity).getColoredGroupIcon(group.title))
             }
 
             divider.setBackgroundColor(textColor)
-            if (getLastItem() == group || !context.config.useDividers) divider.visibility = View.INVISIBLE else divider.visibility = View.VISIBLE
+            if (getLastItem() == group || !root.context.config.useDividers) divider.visibility = View.INVISIBLE else divider.visibility = View.VISIBLE
         }
     }
 

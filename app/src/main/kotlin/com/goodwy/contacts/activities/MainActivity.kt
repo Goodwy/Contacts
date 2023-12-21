@@ -1,25 +1,18 @@
 package com.goodwy.contacts.activities
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
-import android.content.res.ColorStateList
 import android.graphics.drawable.Icon
 import android.graphics.drawable.LayerDrawable
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuItemCompat
@@ -27,86 +20,78 @@ import androidx.core.view.updateLayoutParams
 import androidx.viewpager.widget.ViewPager
 import com.behaviorule.arturdumchev.library.pixels
 import com.goodwy.commons.databases.ContactsDatabase
-import com.goodwy.commons.dialogs.ConfirmationDialog
-import com.goodwy.commons.dialogs.FilePickerDialog
+import com.goodwy.commons.databinding.BottomTablayoutItemBinding
+import com.goodwy.commons.dialogs.ChangeViewTypeDialog
+import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.FAQItem
-import com.goodwy.commons.models.Release
+import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
 import com.goodwy.contacts.adapters.ViewPagerAdapter
+import com.goodwy.contacts.databinding.ActivityMainBinding
 import com.goodwy.contacts.dialogs.ChangeSortingDialog
-import com.goodwy.contacts.dialogs.ExportContactsDialog
 import com.goodwy.contacts.dialogs.FilterContactSourcesDialog
-import com.goodwy.contacts.dialogs.ImportContactsDialog
 import com.goodwy.contacts.extensions.config
 import com.goodwy.contacts.extensions.handleGenericContactClick
+import com.goodwy.contacts.extensions.tryImportContactsFromFile
 import com.goodwy.contacts.fragments.ContactsFragment
 import com.goodwy.contacts.fragments.FavoritesFragment
+import com.goodwy.contacts.fragments.GroupsFragment
 import com.goodwy.contacts.fragments.MyViewPagerFragment
 import com.goodwy.contacts.helpers.ALL_TABS_MASK
-import com.goodwy.contacts.helpers.VcfExporter
 import com.goodwy.contacts.helpers.tabsList
 import com.goodwy.contacts.interfaces.RefreshContactsListener
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_contacts.*
-import kotlinx.android.synthetic.main.fragment_favorites.*
-import kotlinx.android.synthetic.main.fragment_groups.*
 import me.grantland.widget.AutofitHelper
-import java.io.FileOutputStream
-import java.io.OutputStream
 import java.util.*
 
 class MainActivity : SimpleActivity(), RefreshContactsListener {
-    private val PICK_IMPORT_SOURCE_INTENT = 1
-    private val PICK_EXPORT_FILE_INTENT = 2
-
     private var isSearchOpen = false
     private var mSearchMenuItem: MenuItem? = null
     private var searchQuery = ""
     private var werePermissionsHandled = false
     private var isFirstResume = true
     private var isGettingContacts = false
-    private var ignoredExportContactSources = HashSet<String>()
 
     private var storedShowContactThumbnails = false
     private var storedShowPhoneNumbers = false
     private var storedStartNameWithSurname = false
     private var storedFontSize = 0
     private var storedShowTabs = 0
+    private val binding by viewBinding(ActivityMainBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(binding.root)
         appLaunched(BuildConfig.APPLICATION_ID)
         setupOptionsMenu()
-
-        updateMaterialActivityViews(main_coordinator, main_holder, useTransparentNavigation = false, useTopSearchMenu = config.bottomNavigationBar)
+        refreshMenuItems()
+        val useBottomNavigationBar = config.bottomNavigationBar
+        updateMaterialActivityViews(binding.mainCoordinator, binding.mainHolder, useTransparentNavigation = false, useTopSearchMenu = useBottomNavigationBar)
         storeStateVariables()
         setupTabs()
         checkContactPermissions()
         //checkWhatsNewDialog()
 
         // TODO TRANSPARENT Navigation Bar
-        if (!config.bottomNavigationBar) {
+        if (!useBottomNavigationBar) {
             setWindowTransparency(true) { _, bottomNavigationBarSize, leftNavigationBarSize, rightNavigationBarSize ->
-                main_coordinator.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
-                updateNavigationBarColor(getProperBackgroundColor())
-                main_add_button.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    setMargins(0, 0, 0, bottomNavigationBarSize + pixels(R.dimen.activity_margin).toInt())
+                binding.mainCoordinator.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
+                binding.mainAddButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    setMargins(0, 0, 0, bottomNavigationBarSize + pixels(com.goodwy.commons.R.dimen.activity_margin).toInt())
                 }
             }
         }
 
-        val marginTop = if (config.bottomNavigationBar) actionBarSize + pixels(R.dimen.top_toolbar_search_height).toInt() else actionBarSize
-        main_holder.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        val marginTop = if (useBottomNavigationBar) actionBarSize + pixels(R.dimen.top_toolbar_search_height).toInt() else actionBarSize
+        binding.mainHolder.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             setMargins(0, marginTop, 0, 0)
         }
-        main_menu.updateTitle(getString(R.string.app_launcher_name))
-        main_menu.searchBeVisibleIf(config.bottomNavigationBar)
+        binding.mainMenu.updateTitle(getString(R.string.app_launcher_name))
+        binding.mainMenu.searchBeVisibleIf(useBottomNavigationBar)
     }
 
     private fun checkContactPermissions() {
@@ -149,19 +134,21 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
 
         val properPrimaryColor = getProperPrimaryColor()
+        val properBackgroundColor = getProperBackgroundColor()
         getAllFragments().forEach {
             it?.setupColors(getProperTextColor(), properPrimaryColor)
+            it?.setBackgroundColor(properBackgroundColor)
         }
 
         updateMenuColors()
         setupTabColors()
-        setupToolbar(main_toolbar, searchMenuItem = mSearchMenuItem)
-        updateTextColors(main_coordinator)
+        setupToolbar(binding.mainToolbar, searchMenuItem = mSearchMenuItem)
+        updateTextColors(binding.mainCoordinator)
 
         val configStartNameWithSurname = config.startNameWithSurname
         if (storedStartNameWithSurname != configStartNameWithSurname) {
-            contacts_fragment?.startNameWithSurnameChanged(configStartNameWithSurname)
-            favorites_fragment?.startNameWithSurnameChanged(configStartNameWithSurname)
+            findViewById<MyViewPagerFragment<*>>(R.id.contacts_fragment)?.startNameWithSurnameChanged(configStartNameWithSurname)
+            findViewById<MyViewPagerFragment<*>>(R.id.favorites_fragment)?.startNameWithSurnameChanged(configStartNameWithSurname)
         }
 
         val configFontSize = config.fontSize
@@ -172,20 +159,20 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
 
         if (werePermissionsHandled && !isFirstResume) {
-            if (view_pager.adapter == null) {
+            if (binding.viewPager.adapter == null) {
                 initFragments()
             } else {
                 refreshContacts(ALL_TABS_MASK)
             }
         }
 
-        val dialpadIcon = resources.getColoredDrawableWithColor(R.drawable.ic_dialpad_vector, properPrimaryColor.getContrastColor())
-        main_dialpad_button.apply {
+        val dialpadIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_dialpad_vector, properPrimaryColor.getContrastColor())
+        binding.mainDialpadButton.apply {
             setImageDrawable(dialpadIcon)
             beVisibleIf(config.showDialpadButton)
         }
-        val addIcon = resources.getColoredDrawableWithColor(R.drawable.ic_plus_vector, properPrimaryColor.getContrastColor())
-        main_add_button.setImageDrawable(addIcon)
+        val addIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_plus_vector, properPrimaryColor.getContrastColor())
+        binding.mainAddButton.setImageDrawable(addIcon)
 
         isFirstResume = false
         checkShortcuts()
@@ -197,17 +184,13 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             2 -> DepthPageTransformer()
             else -> null
         }
-        view_pager.setPageTransformer(true, animation)
-
-        favorites_fragment?.setBackgroundColor(getProperBackgroundColor())
-        contacts_fragment?.setBackgroundColor(getProperBackgroundColor())
-        groups_fragment?.setBackgroundColor(getProperBackgroundColor())
+        binding.viewPager.setPageTransformer(true, animation)
     }
 
     override fun onPause() {
         super.onPause()
         storeStateVariables()
-        config.lastUsedViewPagerPage = view_pager.currentItem
+        config.lastUsedViewPagerPage = binding.viewPager.currentItem
     }
 
     override fun onDestroy() {
@@ -218,23 +201,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         config.tabsChanged = false
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, resultData)
-        if (requestCode == PICK_IMPORT_SOURCE_INTENT && resultCode == Activity.RESULT_OK && resultData != null && resultData.data != null) {
-            tryImportContactsFromFile(resultData.data!!)
-        } else if (requestCode == PICK_EXPORT_FILE_INTENT && resultCode == Activity.RESULT_OK && resultData != null && resultData.data != null) {
-            try {
-                val outputStream = contentResolver.openOutputStream(resultData.data!!)
-                exportContactsTo(ignoredExportContactSources, outputStream)
-            } catch (e: Exception) {
-                showErrorToast(e)
-            }
-        }
-    }
-
     override fun onBackPressed() {
-        if (main_menu.isSearchOpen) {
-            main_menu.closeSearch()
+        if (binding.mainMenu.isSearchOpen) {
+            binding.mainMenu.closeSearch()
         } else if (isSearchOpen && mSearchMenuItem != null) {
             mSearchMenuItem!!.collapseActionView()
         } else {
@@ -244,54 +213,74 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
 
     private fun refreshMenuItems() {
         val currentFragment = getCurrentFragment()
-        //main_toolbar.menu.apply {
-        main_menu.getToolbar().menu.apply {
-            findItem(R.id.sort).isVisible = currentFragment != groups_fragment
-            findItem(R.id.filter).isVisible = currentFragment != groups_fragment
+        binding.mainMenu.getToolbar().menu.apply {
+            findItem(R.id.search).isVisible = !config.bottomNavigationBar
+            findItem(R.id.sort).isVisible = currentFragment != findViewById(R.id.groups_fragment)
+            findItem(R.id.filter).isVisible = currentFragment != findViewById(R.id.groups_fragment)
             //findItem(R.id.dialpad).isVisible = !config.showDialpadButton
-            findItem(R.id.settings).setIcon(getSettingsIcon(config.settingsIcon))
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                findItem(R.id.settings).iconTintList = ColorStateList.valueOf(getProperTextColor())
-            }
+            findItem(R.id.change_view_type).isVisible = currentFragment == findViewById(R.id.favorites_fragment)
+            findItem(R.id.column_count).isVisible = currentFragment == findViewById(R.id.favorites_fragment) && config.viewType == VIEW_TYPE_GRID
         }
     }
 
     private fun setupOptionsMenu() {
-        main_menu.getToolbar().inflateMenu(R.menu.menu)
-        main_menu.toggleHideOnScroll(false)
-        main_menu.setupMenu()
+        binding.mainMenu.getToolbar().inflateMenu(R.menu.menu)
+        binding.mainMenu.toggleHideOnScroll(false)
+        binding.mainMenu.setupMenu()
 
-        main_menu.onSearchClosedListener = {
+        binding.mainMenu.onSearchClosedListener = {
             getAllFragments().forEach {
                 it?.onSearchClosed()
             }
         }
 
-        main_menu.onSearchTextChangedListener = { text ->
+        binding.mainMenu.onSearchTextChangedListener = { text ->
             getCurrentFragment()?.onSearchQueryChanged(text)
+            binding.mainMenu.clearSearch()
         }
 
-//        setupSearch(main_toolbar.menu)
-//        main_toolbar.setOnMenuItemClickListener { menuItem ->
-        main_menu.getToolbar().setOnMenuItemClickListener { menuItem ->
+        binding.mainMenu.getToolbar().setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.sort -> showSortingDialog(showCustomSorting = getCurrentFragment() is FavoritesFragment)
                 R.id.filter -> showFilterDialog()
                 R.id.dialpad -> launchDialpad()
-                R.id.import_contacts -> tryImportContacts()
-                R.id.export_contacts -> tryExportContacts()
+                R.id.change_view_type -> changeViewType()
+                R.id.column_count -> changeColumnCount()
                 R.id.settings -> launchSettings()
                 R.id.about -> launchAbout()
                 else -> return@setOnMenuItemClickListener false
             }
             return@setOnMenuItemClickListener true
         }
-        setupSearch(main_menu.getToolbar().menu)
+        setupSearch(binding.mainMenu.getToolbar().menu)
+    }
+
+    private fun changeViewType() {
+        ChangeViewTypeDialog(this) {
+            refreshMenuItems()
+            findViewById<FavoritesFragment>(R.id.favorites_fragment)?.updateFavouritesAdapter()
+        }
+    }
+
+    private fun changeColumnCount() {
+        val items = ArrayList<RadioItem>()
+        for (i in 1..CONTACTS_GRID_MAX_COLUMNS_COUNT) {
+            items.add(RadioItem(i, resources.getQuantityString(com.goodwy.commons.R.plurals.column_counts, i, i)))
+        }
+
+        val currentColumnCount = config.contactsGridColumnCount
+        RadioGroupDialog(this, items, currentColumnCount) {
+            val newColumnCount = it as Int
+            if (currentColumnCount != newColumnCount) {
+                config.contactsGridColumnCount = newColumnCount
+                findViewById<FavoritesFragment>(R.id.favorites_fragment)?.columnCountChanged()
+            }
+        }
     }
 
     private fun updateMenuColors() {
         updateStatusbarColor(getProperBackgroundColor())
-        main_menu.updateColors()
+        binding.mainMenu.updateColors()
     }
 
     private fun storeStateVariables() {
@@ -329,16 +318,16 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
                 getCurrentFragment()?.onSearchOpened()
                 isSearchOpen = true
-                main_dialpad_button.beGone()
-                main_add_button.beGone()
+                binding.mainDialpadButton.beGone()
+                binding.mainAddButton.beGone()
                 return true
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
                 getCurrentFragment()?.onSearchClosed()
                 isSearchOpen = false
-                main_dialpad_button.beVisibleIf(config.showDialpadButton)
-                main_add_button.beVisible()
+                binding.mainDialpadButton.beVisibleIf(config.showDialpadButton)
+                binding.mainAddButton.beVisible()
                 return true
             }
         })
@@ -346,8 +335,8 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
 
     private fun getSearchString(): Int {
         return when (getCurrentFragment()) {
-            favorites_fragment -> R.string.search_favorites
-            contacts_fragment -> R.string.search_contacts
+            findViewById<FavoritesFragment>(R.id.favorites_fragment) -> R.string.search_favorites
+            findViewById<ContactsFragment>(R.id.contacts_fragment) -> R.string.search_contacts
             else -> R.string.search_groups
         }
     }
@@ -368,9 +357,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
 
     @SuppressLint("NewApi")
     private fun getCreateNewContactShortcut(appIconColor: Int): ShortcutInfo {
-        val newEvent = getString(R.string.create_new_contact)
-        val drawable = resources.getDrawable(R.drawable.shortcut_plus)
-        (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_plus_background).applyColorFilter(appIconColor)
+        val newEvent = getString(com.goodwy.commons.R.string.create_new_contact)
+        val drawable = resources.getDrawable(com.goodwy.commons.R.drawable.shortcut_plus)
+        (drawable as LayerDrawable).findDrawableByLayerId(com.goodwy.commons.R.id.shortcut_plus_background).applyColorFilter(appIconColor)
         val bmp = drawable.convertToBitmap()
 
         val intent = Intent(this, EditContactActivity::class.java)
@@ -383,111 +372,128 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             .build()
     }
 
-    private fun getCurrentFragment(): MyViewPagerFragment? {
+    private fun getCurrentFragment(): MyViewPagerFragment<*>? {
         val showTabs = config.showTabs
-        val fragments = arrayListOf<MyViewPagerFragment>()
+        val fragments = arrayListOf<MyViewPagerFragment<*>>()
 
         if (showTabs and TAB_FAVORITES != 0) {
-            fragments.add(favorites_fragment)
+            fragments.add(findViewById(R.id.favorites_fragment))
         }
 
         if (showTabs and TAB_CONTACTS != 0) {
-            fragments.add(contacts_fragment)
+            fragments.add(findViewById(R.id.contacts_fragment))
         }
 
         if (showTabs and TAB_GROUPS != 0) {
-            fragments.add(groups_fragment)
+            fragments.add(findViewById(R.id.groups_fragment))
         }
 
-        return fragments.getOrNull(view_pager.currentItem)
+        return fragments.getOrNull(binding.viewPager.currentItem)
     }
 
     private fun setupTabColors() {
         // bottom tab bar
-        val activeView = main_tabs_holder.getTabAt(view_pager.currentItem)?.customView
-        updateBottomTabItemColors(activeView, true, getSelectedTabDrawableIds()[view_pager.currentItem])
+        if (config.bottomNavigationBar) {
+            val activeView = binding.mainTabsHolder.getTabAt(binding.viewPager.currentItem)?.customView
+            updateBottomTabItemColors(activeView, true, getSelectedTabDrawableIds()[binding.viewPager.currentItem])
 
-        getInactiveTabIndexes(view_pager.currentItem).forEach { index ->
-            val inactiveView = main_tabs_holder.getTabAt(index)?.customView
-            updateBottomTabItemColors(activeView, true, getSelectedTabDrawableIds()[view_pager.currentItem])
-        }
+            getInactiveTabIndexes(binding.viewPager.currentItem).forEach { index ->
+                val inactiveView = binding.mainTabsHolder.getTabAt(index)?.customView
+                updateBottomTabItemColors(inactiveView, false, getDeselectedTabDrawableIds()[index])
+            }
 
-        val bottomBarColor = getBottomNavigationBackgroundColor()
-        main_tabs_holder.setBackgroundColor(bottomBarColor)
-        if (config.bottomNavigationBar) updateNavigationBarColor(bottomBarColor)
+            val bottomBarColor = getBottomNavigationBackgroundColor()
+            binding.mainTabsHolder.setBackgroundColor(bottomBarColor)
+            if (binding.mainTabsHolder.tabCount != 1) updateNavigationBarColor(bottomBarColor)
+            else {
+                // TODO TRANSPARENT Navigation Bar
+                setWindowTransparency(true) { _, bottomNavigationBarSize, leftNavigationBarSize, rightNavigationBarSize ->
+                    binding.mainCoordinator.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
+                    binding.mainAddButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                        setMargins(0, 0, 0, bottomNavigationBarSize + pixels(com.goodwy.commons.R.dimen.activity_margin).toInt())
+                    }
+                }
+            }
+        } else {
+            // top tab bar
+            if (binding.viewPager.adapter != null) {
 
-        // top tab bar
-        if (view_pager.adapter != null) {
+                if (config.tabsChanged) {
+                    if (config.useIconTabs) {
+                        binding.mainTopTabsHolder.getTabAt(0)?.text = null
+                        binding.mainTopTabsHolder.getTabAt(1)?.text = null
+                        binding.mainTopTabsHolder.getTabAt(2)?.text = null
+                    } else {
+                        binding.mainTopTabsHolder.getTabAt(0)?.icon = null
+                        binding.mainTopTabsHolder.getTabAt(1)?.icon = null
+                        binding.mainTopTabsHolder.getTabAt(2)?.icon = null
+                    }
+                }
 
-            if (config.tabsChanged) {
-                if (config.useIconTabs) {
-                    main_top_tabs_holder.getTabAt(0)?.text = null
-                    main_top_tabs_holder.getTabAt(1)?.text = null
-                    main_top_tabs_holder.getTabAt(2)?.text = null
-                } else {
-                    main_top_tabs_holder.getTabAt(0)?.icon = null
-                    main_top_tabs_holder.getTabAt(1)?.icon = null
-                    main_top_tabs_holder.getTabAt(2)?.icon = null
+                getInactiveTabIndexes(binding.viewPager.currentItem).forEach {
+                    binding.mainTopTabsHolder.getTabAt(it)?.icon?.applyColorFilter(getProperTextColor())
+                    binding.mainTopTabsHolder.getTabAt(it)?.icon?.alpha = 220 // max 255
+                    binding.mainTopTabsHolder.setTabTextColors(getProperTextColor(), getProperPrimaryColor())
+                }
+
+                binding.mainTopTabsHolder.getTabAt(binding.viewPager.currentItem)?.icon?.applyColorFilter(getProperPrimaryColor())
+                binding.mainTopTabsHolder.getTabAt(binding.viewPager.currentItem)?.icon?.alpha = 220 // max 255
+                getAllFragments().forEach {
+                    it?.setupColors(getProperTextColor(), getProperPrimaryColor())
+                    binding.mainTopTabsHolder.setTabTextColors(getProperTextColor(), getProperPrimaryColor())
                 }
             }
 
-            getInactiveTabIndexes(view_pager.currentItem).forEach {
-                main_top_tabs_holder.getTabAt(it)?.icon?.applyColorFilter(getProperTextColor())
-                main_top_tabs_holder.getTabAt(it)?.icon?.alpha = 220 // max 255
-                main_top_tabs_holder.setTabTextColors(getProperTextColor(), getProperPrimaryColor())
+            val lastUsedPage = getDefaultTab()
+            binding.mainTopTabsHolder.apply {
+                //background = ColorDrawable(getProperBackgroundColor())
+                setSelectedTabIndicatorColor(getProperBackgroundColor())
+                getTabAt(lastUsedPage)?.select()
+                getTabAt(lastUsedPage)?.icon?.applyColorFilter(getProperPrimaryColor())
+                getTabAt(lastUsedPage)?.icon?.alpha = 220 // max 255
+
+                getInactiveTabIndexes(lastUsedPage).forEach {
+                    getTabAt(it)?.icon?.applyColorFilter(getProperTextColor())
+                    getTabAt(it)?.icon?.alpha = 220 // max 255
+                }
             }
 
-            main_top_tabs_holder.getTabAt(view_pager.currentItem)?.icon?.applyColorFilter(getProperPrimaryColor())
-            main_top_tabs_holder.getTabAt(view_pager.currentItem)?.icon?.alpha = 220 // max 255
-            getAllFragments().forEach {
-                it?.setupColors(getProperTextColor(), getProperPrimaryColor())
-                main_top_tabs_holder.setTabTextColors(getProperTextColor(), getProperPrimaryColor())
-            }
+            binding.mainTopTabsHolder.onTabSelectionChanged(
+                tabUnselectedAction = {
+                    it.icon?.applyColorFilter(getProperTextColor())
+                    it.icon?.alpha = 220 // max 255
+                },
+                tabSelectedAction = {
+                    closeSearch()
+                    binding.viewPager.currentItem = it.position
+                    it.icon?.applyColorFilter(getProperPrimaryColor())
+                    it.icon?.alpha = 220 // max 255
+                    if (config.openSearch) {
+                        if (getCurrentFragment() is ContactsFragment) {
+                            mSearchMenuItem!!.expandActionView()
+                        }
+                    }
+                }
+            )
         }
-
-        val lastUsedPage = getDefaultTab()
-        main_top_tabs_holder.apply {
-            //background = ColorDrawable(getProperBackgroundColor())
-            setSelectedTabIndicatorColor(getProperBackgroundColor())
-            getTabAt(lastUsedPage)?.select()
-            getTabAt(lastUsedPage)?.icon?.applyColorFilter(getProperPrimaryColor())
-            getTabAt(lastUsedPage)?.icon?.alpha = 220 // max 255
-
-            getInactiveTabIndexes(lastUsedPage).forEach {
-                getTabAt(it)?.icon?.applyColorFilter(getProperTextColor())
-                getTabAt(it)?.icon?.alpha = 220 // max 255
-            }
-        }
-
-        main_top_tabs_holder.onTabSelectionChanged(
-            tabUnselectedAction = {
-                it.icon?.applyColorFilter(getProperTextColor())
-                it.icon?.alpha = 220 // max 255
-            },
-            tabSelectedAction = {
-                view_pager.currentItem = it.position
-                it.icon?.applyColorFilter(getProperPrimaryColor())
-                it.icon?.alpha = 220 // max 255
-            }
-        )
     }
 
-    private fun getInactiveTabIndexes(activeIndex: Int) = (0 until main_tabs_holder.tabCount).filter { it != activeIndex }
+    private fun getInactiveTabIndexes(activeIndex: Int) = (0 until binding.mainTabsHolder.tabCount).filter { it != activeIndex }
 
     private fun getSelectedTabDrawableIds(): ArrayList<Int> {
         val showTabs = config.showTabs
         val icons = ArrayList<Int>()
 
         if (showTabs and TAB_FAVORITES != 0) {
-            icons.add(R.drawable.ic_star_vector)
+            icons.add(R.drawable.ic_star_vector_scaled)
         }
 
         if (showTabs and TAB_CONTACTS != 0) {
-            icons.add(R.drawable.ic_person_rounded)
+            icons.add(R.drawable.ic_person_rounded_scaled)
         }
 
         if (showTabs and TAB_GROUPS != 0) {
-            icons.add(R.drawable.ic_people_rounded)
+            icons.add(com.goodwy.commons.R.drawable.ic_people_rounded)
         }
 
         return icons
@@ -498,30 +504,30 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         val icons = ArrayList<Int>()
 
         if (showTabs and TAB_FAVORITES != 0) {
-            icons.add(R.drawable.ic_star_vector)
+            icons.add(com.goodwy.commons.R.drawable.ic_star_vector)
         }
 
         if (showTabs and TAB_CONTACTS != 0) {
-            icons.add(R.drawable.ic_person_rounded)
+            icons.add(com.goodwy.commons.R.drawable.ic_person_rounded)
         }
 
         if (showTabs and TAB_GROUPS != 0) {
-            icons.add(R.drawable.ic_people_rounded)
+            icons.add(R.drawable.ic_people_rounded_scaled)
         }
 
         return icons
     }
 
     private fun initFragments() {
-        view_pager.offscreenPageLimit = 2 //tabsList.size - 1
-        view_pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+        binding.viewPager.offscreenPageLimit = 2 //tabsList.size - 1
+        binding.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {}
 
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
 
             override fun onPageSelected(position: Int) {
-                main_top_tabs_holder.getTabAt(position)?.select()
-                main_tabs_holder.getTabAt(position)?.select()
+                binding.mainTopTabsHolder.getTabAt(position)?.select()
+                binding.mainTabsHolder.getTabAt(position)?.select()
                 getAllFragments().forEach {
                     it?.finishActMode()
                 }
@@ -529,108 +535,99 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             }
         })
 
-        view_pager.onGlobalLayout {
+        binding.viewPager.onGlobalLayout {
             refreshContacts(ALL_TABS_MASK)
             refreshMenuItems()
         }
 
-        /*main_top_tabs_holder.onTabSelectionChanged(
-            tabUnselectedAction = {
-                it.icon?.applyColorFilter(getProperTextColor())
-            },
-            tabSelectedAction = {
-                if (isSearchOpen) {
-                    getCurrentFragment()?.onSearchQueryChanged("")
-                    mSearchMenuItem?.collapseActionView()
-                }
-                view_pager.currentItem = it.position
-                it.icon?.applyColorFilter(getProperPrimaryColor())
-            }
-        )*/
-
         if (intent?.action == Intent.ACTION_VIEW && intent.data != null) {
-            tryImportContactsFromFile(intent.data!!)
+            tryImportContactsFromFile(intent.data!!) {
+                if (it) {
+                    runOnUiThread {
+                        refreshContacts(ALL_TABS_MASK)
+                    }
+                }
+            }
             intent.data = null
         }
 
-        main_dialpad_button.setOnClickListener {
+        binding.mainDialpadButton.setOnClickListener {
             launchDialpad()
         }
 
-        main_add_button.setOnClickListener {
+        binding.mainAddButton.setOnClickListener {
             when (getCurrentFragment()) {
-                favorites_fragment -> favorites_fragment.fabClicked()
-                contacts_fragment -> contacts_fragment.fabClicked()
-                groups_fragment -> groups_fragment.fabClicked()
+                findViewById<FavoritesFragment>(R.id.favorites_fragment) -> findViewById<FavoritesFragment>(R.id.favorites_fragment).fabClicked()
+                findViewById<ContactsFragment>(R.id.contacts_fragment) -> findViewById<ContactsFragment>(R.id.contacts_fragment).fabClicked()
+                findViewById<GroupsFragment>(R.id.groups_fragment) -> findViewById<GroupsFragment>(R.id.groups_fragment).fabClicked()
             }
         }
 
-        main_top_tabs_holder.removeAllTabs()
+        binding.mainTopTabsHolder.removeAllTabs()
         var skippedTabs = 0
         tabsList.forEachIndexed { index, value ->
             if (config.showTabs and value == 0) {
                 skippedTabs++
             } else {
-                val tab = if (config.useIconTabs) main_top_tabs_holder.newTab().setIcon(getTabIcon(index)) else main_top_tabs_holder.newTab().setText(getTabLabel(index))
+                val tab = if (config.useIconTabs) binding.mainTopTabsHolder.newTab().setIcon(getTabIcon(index)) else binding.mainTopTabsHolder.newTab().setText(getTabLabel(index))
                 tab.contentDescription = getTabLabel(index)
-                main_top_tabs_holder.addTab(tab, index - skippedTabs, getDefaultTab() == index - skippedTabs)
-                main_top_tabs_holder.setTabTextColors(getProperTextColor(),
+                binding.mainTopTabsHolder.addTab(tab, index - skippedTabs, getDefaultTab() == index - skippedTabs)
+                binding.mainTopTabsHolder.setTabTextColors(getProperTextColor(),
                     getProperPrimaryColor())
             }
         }
 
         // selecting the proper tab sometimes glitches, add an extra selector to make sure we have it right
-        main_top_tabs_holder.onGlobalLayout {
+        binding.mainTopTabsHolder.onGlobalLayout {
             Handler().postDelayed({
-                main_top_tabs_holder.getTabAt(getDefaultTab())?.select()
+                binding.mainTopTabsHolder.getTabAt(getDefaultTab())?.select()
                 invalidateOptionsMenu()
                 refreshMenuItems()
             }, 100L)
         }
 
-        //main_top_tabs_holder.beVisibleIf(skippedTabs < tabsList.size - 1)
-        main_top_tabs_container.beGoneIf(main_top_tabs_holder.tabCount == 1 || config.bottomNavigationBar)
+        binding.mainTopTabsContainer.beGoneIf(binding.mainTopTabsHolder.tabCount == 1 || config.bottomNavigationBar)
     }
 
     private fun setupTabs() {
         // bottom tab bar
-        main_tabs_holder.removeAllTabs()
+        binding.mainTabsHolder.removeAllTabs()
         tabsList.forEachIndexed { index, value ->
             if (config.showTabs and value != 0) {
-                main_tabs_holder.newTab().setCustomView(R.layout.bottom_tablayout_item).apply {
-                    customView?.findViewById<ImageView>(R.id.tab_item_icon)?.apply {
-                        setImageDrawable(getTabIcon(index))
-                        alpha = 0.86f
+                binding.mainTabsHolder.newTab().setCustomView(com.goodwy.commons.R.layout.bottom_tablayout_item).apply tab@{
+                    customView?.let {
+                        BottomTablayoutItemBinding.bind(it)
+                    }?.apply {
+                        tabItemIcon.setImageDrawable(getTabIcon(index))
+                        tabItemIcon.alpha = 0.86f
+                        tabItemLabel.text = getTabLabel(index)
+                        tabItemLabel.alpha = 0.86f
+                        tabItemLabel.beGoneIf(config.useIconTabs)
+                        AutofitHelper.create(tabItemLabel)
+                        binding.mainTabsHolder.addTab(this@tab)
                     }
-                    customView?.findViewById<TextView>(R.id.tab_item_label)?.apply {
-                        text = getTabLabel(index)
-                        alpha = 0.86f
-                        beGoneIf(config.useIconTabs)
-                    }
-                    AutofitHelper.create(customView?.findViewById(R.id.tab_item_label))
-                    main_tabs_holder.addTab(this)
                 }
             }
         }
 
-        main_tabs_holder.onTabSelectionChanged(
+        binding.mainTabsHolder.onTabSelectionChanged(
             tabUnselectedAction = {
                 updateBottomTabItemColors(it.customView, false, getDeselectedTabDrawableIds()[it.position])
             },
             tabSelectedAction = {
-                closeSearch()
-                main_menu.closeSearch()
-                view_pager.currentItem = it.position
+                binding.mainMenu.closeSearch()
+                binding.viewPager.currentItem = it.position
                 updateBottomTabItemColors(it.customView, true, getSelectedTabDrawableIds()[it.position])
 
-                if (getCurrentFragment() is ContactsFragment && config.openSearch) {
-                    if (config.bottomNavigationBar) main_menu.requestFocusAndShowKeyboard()
-                    else mSearchMenuItem!!.expandActionView()
+                if (config.openSearch) {
+                    if (getCurrentFragment() is ContactsFragment) {
+                        binding.mainMenu.requestFocusAndShowKeyboard()
+                    }
                 }
             }
         )
 
-        main_tabs_holder.beGoneIf(main_tabs_holder.tabCount == 1 || !config.bottomNavigationBar)
+        binding.mainTabsHolder.beGoneIf(binding.mainTabsHolder.tabCount == 1 || !config.bottomNavigationBar)
     }
 
     private fun showSortingDialog(showCustomSorting: Boolean) {
@@ -641,7 +638,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
 
     fun showFilterDialog() {
         FilterContactSourcesDialog(this) {
-            contacts_fragment?.forceListRedraw = true
+            findViewById<MyViewPagerFragment<*>>(R.id.contacts_fragment)?.forceListRedraw = true
             refreshContacts(TAB_CONTACTS or TAB_FAVORITES)
         }
     }
@@ -652,7 +649,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         val simpleDialerDebug = "com.goodwy.dialer.debug"
         if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleDialer) && !isPackageInstalled(simpleDialerDebug))) {
             runOnUiThread {
-                NewAppDialog(this, simpleDialer, getString(R.string.recommendation_dialog_dialer_g), getString(R.string.right_dialer),
+                NewAppDialog(this, simpleDialer, getString(com.goodwy.commons.R.string.recommendation_dialog_dialer_g), getString(com.goodwy.commons.R.string.right_dialer),
                     AppCompatResources.getDrawable(this, R.drawable.ic_launcher_dialer)) {}
             }
         } else {
@@ -660,121 +657,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 try {
                     startActivity(this)
                 } catch (e: ActivityNotFoundException) {
-                    toast(R.string.no_app_found)
+                    toast(com.goodwy.commons.R.string.no_app_found)
                 } catch (e: Exception) {
                     showErrorToast(e)
-                }
-            }
-        }
-    }
-
-    private fun tryImportContacts() {
-        if (isQPlus()) {
-            Intent(Intent.ACTION_GET_CONTENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "text/x-vcard"
-
-                try {
-                    startActivityForResult(this, PICK_IMPORT_SOURCE_INTENT)
-                } catch (e: ActivityNotFoundException) {
-                    toast(R.string.system_service_disabled, Toast.LENGTH_LONG)
-                } catch (e: Exception) {
-                    showErrorToast(e)
-                }
-            }
-        } else {
-            handlePermission(PERMISSION_READ_STORAGE) {
-                if (it) {
-                    importContacts()
-                }
-            }
-        }
-    }
-
-    private fun importContacts() {
-        FilePickerDialog(this) {
-            showImportContactsDialog(it)
-        }
-    }
-
-    private fun showImportContactsDialog(path: String) {
-        ImportContactsDialog(this, path) {
-            if (it) {
-                runOnUiThread {
-                    refreshContacts(ALL_TABS_MASK)
-                }
-            }
-        }
-    }
-
-    private fun tryImportContactsFromFile(uri: Uri) {
-        when {
-            uri.scheme == "file" -> showImportContactsDialog(uri.path!!)
-            uri.scheme == "content" -> {
-                val tempFile = getTempFile()
-                if (tempFile == null) {
-                    toast(R.string.unknown_error_occurred)
-                    return
-                }
-
-                try {
-                    val inputStream = contentResolver.openInputStream(uri)
-                    val out = FileOutputStream(tempFile)
-                    inputStream!!.copyTo(out)
-                    showImportContactsDialog(tempFile.absolutePath)
-                } catch (e: Exception) {
-                    showErrorToast(e)
-                }
-            }
-            else -> toast(R.string.invalid_file_format)
-        }
-    }
-
-    private fun tryExportContacts() {
-        if (isQPlus()) {
-            ExportContactsDialog(this, config.lastExportPath, true) { file, ignoredContactSources ->
-                ignoredExportContactSources = ignoredContactSources
-
-                Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                    type = "text/x-vcard"
-                    putExtra(Intent.EXTRA_TITLE, file.name)
-                    addCategory(Intent.CATEGORY_OPENABLE)
-
-                    try {
-                        startActivityForResult(this, PICK_EXPORT_FILE_INTENT)
-                    } catch (e: ActivityNotFoundException) {
-                        toast(R.string.no_app_found, Toast.LENGTH_LONG)
-                    } catch (e: Exception) {
-                        showErrorToast(e)
-                    }
-                }
-            }
-        } else {
-            handlePermission(PERMISSION_WRITE_STORAGE) {
-                if (it) {
-                    ExportContactsDialog(this, config.lastExportPath, false) { file, ignoredContactSources ->
-                        getFileOutputStream(file.toFileDirItem(this), true) {
-                            exportContactsTo(ignoredContactSources, it)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun exportContactsTo(ignoredContactSources: HashSet<String>, outputStream: OutputStream?) {
-        ContactsHelper(this).getContacts(true, false, ignoredContactSources) { contacts ->
-            if (contacts.isEmpty()) {
-                toast(R.string.no_entries_for_exporting)
-            } else {
-                VcfExporter().exportContacts(this, outputStream, contacts, true) { result ->
-                    toast(
-                        when (result) {
-                            VcfExporter.ExportResult.EXPORT_OK -> R.string.exporting_successful
-                            VcfExporter.ExportResult.EXPORT_PARTIAL -> R.string.exporting_some_entries_failed
-                            else -> R.string.exporting_failed
-                        }
-                    )
                 }
             }
         }
@@ -792,17 +677,31 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
 
         val faqItems = arrayListOf(
             FAQItem(R.string.faq_1_title, R.string.faq_1_text),
-            FAQItem(R.string.faq_9_title_commons, R.string.faq_9_text_commons)
+            FAQItem(com.goodwy.commons.R.string.faq_9_title_commons, com.goodwy.commons.R.string.faq_9_text_commons),
+            FAQItem(com.goodwy.commons.R.string.faq_100_title_commons_g, com.goodwy.commons.R.string.faq_100_text_commons_g),
+            FAQItem(com.goodwy.commons.R.string.faq_101_title_commons_g, com.goodwy.commons.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
+            FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.commons.R.string.faq_2_text_commons_g),
         )
 
-        if (!resources.getBoolean(R.bool.hide_google_relations)) {
-            faqItems.add(FAQItem(R.string.faq_2_title_commons, R.string.faq_2_text_commons))
-            faqItems.add(FAQItem(R.string.faq_6_title_commons, R.string.faq_6_text_commons))
-            faqItems.add(FAQItem(R.string.faq_7_title_commons, R.string.faq_7_text_commons))
-        }
+        val productIdX1 = BuildConfig.PRODUCT_ID_X1
+        val productIdX2 = BuildConfig.PRODUCT_ID_X2
+        val productIdX3 = BuildConfig.PRODUCT_ID_X3
+        val subscriptionIdX1 = BuildConfig.SUBSCRIPTION_ID_X1
+        val subscriptionIdX2 = BuildConfig.SUBSCRIPTION_ID_X2
+        val subscriptionIdX3 = BuildConfig.SUBSCRIPTION_ID_X3
 
-        startAboutActivity(R.string.app_name, licenses, BuildConfig.VERSION_NAME, faqItems, true,
-            BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3)
+        startAboutActivity(
+            appNameId = R.string.app_name_g,
+            licenseMask = licenses,
+            versionName = BuildConfig.VERSION_NAME,
+            faqItems = faqItems,
+            showFAQBeforeMail = true,
+            licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
+            productIdX1 = productIdX1, productIdX2 = productIdX2, productIdX3 = productIdX3,
+            subscriptionIdX1 = subscriptionIdX1, subscriptionIdX2 = subscriptionIdX2, subscriptionIdX3 = subscriptionIdX3,
+            playStoreInstalled = isPlayStoreInstalled(),
+            ruStoreInstalled = isRuStoreInstalled()
+        )
     }
 
     override fun refreshContacts(refreshTabsMask: Int) {
@@ -812,9 +711,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
 
         isGettingContacts = true
 
-        if (view_pager.adapter == null) {
-            view_pager.adapter = ViewPagerAdapter(this, tabsList, config.showTabs)
-            view_pager.currentItem = getDefaultTab()
+        if (binding.viewPager.adapter == null) {
+            binding.viewPager.adapter = ViewPagerAdapter(this, tabsList, config.showTabs)
+            binding.viewPager.currentItem = getDefaultTab()
         }
 
         ContactsHelper(this).getContacts { contacts ->
@@ -824,20 +723,26 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             }
 
             if (refreshTabsMask and TAB_FAVORITES != 0) {
-                favorites_fragment?.skipHashComparing = true
-                favorites_fragment?.refreshContacts(contacts)
+                findViewById<MyViewPagerFragment<*>>(R.id.favorites_fragment)?.apply {
+                    skipHashComparing = true
+                    refreshContacts(contacts)
+                }
             }
 
             if (refreshTabsMask and TAB_CONTACTS != 0) {
-                contacts_fragment?.skipHashComparing = true
-                contacts_fragment?.refreshContacts(contacts)
+                findViewById<MyViewPagerFragment<*>>(R.id.contacts_fragment)?.apply {
+                    skipHashComparing = true
+                    refreshContacts(contacts)
+                }
             }
 
             if (refreshTabsMask and TAB_GROUPS != 0) {
-                if (refreshTabsMask == TAB_GROUPS) {
-                    groups_fragment.skipHashComparing = true
+                findViewById<MyViewPagerFragment<*>>(R.id.groups_fragment)?.apply {
+                    if (refreshTabsMask == TAB_GROUPS) {
+                        skipHashComparing = true
+                    }
+                    refreshContacts(contacts)
                 }
-                groups_fragment?.refreshContacts(contacts)
             }
 
             if (isSearchOpen) {
@@ -850,7 +755,11 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         handleGenericContactClick(contact)
     }
 
-    private fun getAllFragments() = arrayListOf(favorites_fragment, contacts_fragment, groups_fragment)
+    private fun getAllFragments() = arrayListOf<MyViewPagerFragment<*>?>(
+        findViewById(R.id.favorites_fragment),
+        findViewById(R.id.contacts_fragment),
+        findViewById(R.id.groups_fragment)
+    )
 
     private fun getDefaultTab(): Int {
         val showTabsMask = config.showTabs
@@ -889,23 +798,23 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
     }
 
-    private fun checkWhatsNewDialog() {
-        arrayListOf<Release>().apply {
-            add(Release(10, R.string.release_10))
-            add(Release(11, R.string.release_11))
-            add(Release(16, R.string.release_16))
-            add(Release(27, R.string.release_27))
-            add(Release(29, R.string.release_29))
-            add(Release(31, R.string.release_31))
-            add(Release(32, R.string.release_32))
-            add(Release(34, R.string.release_34))
-            add(Release(39, R.string.release_39))
-            add(Release(40, R.string.release_40))
-            add(Release(47, R.string.release_47))
-            add(Release(56, R.string.release_56))
-            checkWhatsNew(this, BuildConfig.VERSION_CODE)
-        }
-    }
+//    private fun checkWhatsNewDialog() {
+//        arrayListOf<Release>().apply {
+//            add(Release(10, R.string.release_10))
+//            add(Release(11, R.string.release_11))
+//            add(Release(16, R.string.release_16))
+//            add(Release(27, R.string.release_27))
+//            add(Release(29, R.string.release_29))
+//            add(Release(31, R.string.release_31))
+//            add(Release(32, R.string.release_32))
+//            add(Release(34, R.string.release_34))
+//            add(Release(39, R.string.release_39))
+//            add(Release(40, R.string.release_40))
+//            add(Release(47, R.string.release_47))
+//            add(Release(56, R.string.release_56))
+//            checkWhatsNew(this, BuildConfig.VERSION_CODE)
+//        }
+//    }
 
     private val actionBarSize
         get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))

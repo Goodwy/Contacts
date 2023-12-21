@@ -10,7 +10,7 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/send_sms_to_group"
-        android:icon="@drawable/ic_sms_vector"
+        android:icon="@drawable/ic_messages"
         android:title="@string/send_sms_to_group"
         app:showAsAction="always"/>
     <item

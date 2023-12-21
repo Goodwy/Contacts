@@ -6,14 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/top_shadow_height"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/gradient_background_flipped"
-        android:contentDescription="@null"
-        android:visibility="gone" />
-
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/contact_appbar"
         android:layout_width="match_parent"
@@ -21,7 +13,8 @@
         android:layout_alignParentTop="true"
         android:background="@android:color/transparent"
         android:elevation="0dp"
-        app:elevation="0dp">
+        app:elevation="0dp"
+        tools:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsing_toolbar"
@@ -52,6 +45,7 @@
         android:id="@+id/contact_scrollview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:clipToPadding="false"
         android:scrollbars="none"
         android:visibility="gone"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -122,13 +116,14 @@
                 android:alpha="0.2"
                 android:background="@drawable/divider_settings" />
 
-            <com.goodwy.commons.views.MyEditText
-                android:id="@+id/contact_first_name"
+            <com.goodwy.commons.views.MyAutoCompleteTextView
+                android:id="@+id/contactFirstName"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_edit_height"
                 android:layout_below="@+id/contact_prefix"
                 android:layout_alignWithParentIfMissing="true"
                 android:background="@color/activated_item_foreground"
+                android:completionThreshold="2"
                 android:hint="@string/first_name"
                 android:inputType="textCapWords"
                 android:lines="1"
@@ -143,21 +138,22 @@
                 android:id="@+id/divider_contact_first_name"
                 android:layout_width="match_parent"
                 android:layout_height="1px"
-                android:layout_alignBottom="@+id/contact_first_name"
+                android:layout_alignBottom="@+id/contactFirstName"
                 android:layout_marginStart="@dimen/contact_padding_left"
                 android:layout_marginEnd="@dimen/contact_padding_left"
                 android:alpha="0.2"
                 android:background="@drawable/divider_settings" />
 
-            <com.goodwy.commons.views.MyEditText
+            <com.goodwy.commons.views.MyAutoCompleteTextView
                 android:id="@+id/contact_middle_name"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_edit_height"
-                android:layout_below="@+id/contact_first_name"
+                android:layout_below="@+id/contactFirstName"
                 android:layout_alignWithParentIfMissing="true"
                 android:paddingStart="@dimen/contact_padding_left"
                 android:paddingEnd="@dimen/contact_padding_left"
                 android:background="@color/activated_item_foreground"
+                android:completionThreshold="2"
                 android:hint="@string/middle_name"
                 android:inputType="textCapWords"
                 android:lines="1"
@@ -176,7 +172,7 @@
                 android:alpha="0.2"
                 android:background="@drawable/divider_settings" />
 
-            <com.goodwy.commons.views.MyEditText
+            <com.goodwy.commons.views.MyAutoCompleteTextView
                 android:id="@+id/contact_surname"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_edit_height"
@@ -185,6 +181,7 @@
                 android:paddingStart="@dimen/contact_padding_left"
                 android:paddingEnd="@dimen/contact_padding_left"
                 android:background="@color/activated_item_foreground"
+                android:completionThreshold="2"
                 android:hint="@string/surname"
                 android:inputType="textCapWords"
                 android:lines="1"
@@ -258,7 +255,7 @@
                 android:background="@drawable/divider_settings" />
 
             <com.goodwy.commons.views.MyEditText
-                android:id="@+id/contact_organization_company"
+                android:id="@+id/contactOrganizationCompany"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_edit_height"
                 android:layout_below="@+id/contact_nickname"
@@ -277,7 +274,7 @@
                 android:id="@+id/divider_contact_organization_company"
                 android:layout_width="match_parent"
                 android:layout_height="1px"
-                android:layout_alignBottom="@+id/contact_organization_company"
+                android:layout_alignBottom="@+id/contactOrganizationCompany"
                 android:layout_marginStart="@dimen/contact_padding_left"
                 android:layout_marginEnd="@dimen/contact_padding_left"
                 android:alpha="0.2"
@@ -287,7 +284,7 @@
                 android:id="@+id/contact_organization_job_position"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/contact_edit_height"
-                android:layout_below="@+id/contact_organization_company"
+                android:layout_below="@+id/contactOrganizationCompany"
                 android:layout_alignWithParentIfMissing="true"
                 android:paddingStart="@dimen/contact_padding_left"
                 android:paddingEnd="@dimen/contact_padding_left"
@@ -328,7 +325,7 @@
             </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/contact_numbers_holder"
+                android:id="@+id/contactNumbersHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_numbers_title_holder"
@@ -343,7 +340,7 @@
                 android:id="@+id/contact_numbers_add_new_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_numbers_holder"
+                android:layout_below="@+id/contactNumbersHolder"
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
@@ -353,6 +350,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_number"
                     android:textStyle="italic"
                     android:textSize="@dimen/normal_text_size" />
@@ -368,7 +369,7 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
 
             </RelativeLayout>
@@ -402,7 +403,7 @@
             </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/contact_emails_holder"
+                android:id="@+id/contactEmailsHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_emails_title_holder"
@@ -417,7 +418,7 @@
                 android:id="@+id/contact_emails_add_new_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_emails_holder"
+                android:layout_below="@+id/contactEmailsHolder"
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
@@ -427,6 +428,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_email"
                     android:textStyle="italic"
                     android:textSize="@dimen/normal_text_size" />
@@ -442,7 +447,7 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
 
             </RelativeLayout>
@@ -476,7 +481,7 @@
             </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/contact_addresses_holder"
+                android:id="@+id/contactAddressesHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_addresses_title_holder"
@@ -491,7 +496,7 @@
                 android:id="@+id/contact_addresses_add_new_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_addresses_holder"
+                android:layout_below="@+id/contactAddressesHolder"
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
@@ -501,6 +506,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_address"
                     android:textSize="@dimen/normal_text_size"
                     android:textStyle="italic" />
@@ -516,7 +525,7 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
 
             </RelativeLayout>
@@ -550,7 +559,7 @@
             </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/contact_ims_holder"
+                android:id="@+id/contactImsHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_ims_title_holder"
@@ -565,7 +574,7 @@
                 android:id="@+id/contact_ims_add_new_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_ims_holder"
+                android:layout_below="@+id/contactImsHolder"
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
@@ -575,6 +584,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_im"
                     android:textSize="@dimen/normal_text_size"
                     android:textStyle="italic" />
@@ -590,9 +603,8 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
@@ -620,11 +632,10 @@
                     android:layout_alignParentEnd="true"
                     android:alpha="0.8"
                     app:srcCompat="@drawable/ic_event_vector" />
-
             </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/contact_events_holder"
+                android:id="@+id/contactEventsHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_events_title_holder"
@@ -639,7 +650,7 @@
                 android:id="@+id/contact_events_add_new_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_events_holder"
+                android:layout_below="@+id/contactEventsHolder"
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
@@ -649,6 +660,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_event"
                     android:textSize="@dimen/normal_text_size"
                     android:textStyle="italic" />
@@ -664,7 +679,7 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
 
             </RelativeLayout>
@@ -694,11 +709,10 @@
                     android:layout_alignParentEnd="true"
                     android:alpha="0.8"
                     app:srcCompat="@drawable/ic_group_work_vector" />
-
             </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/contact_relations_holder"
+                android:id="@+id/contactRelationsHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_relations_title_holder"
@@ -713,7 +727,7 @@
                 android:id="@+id/contact_relations_add_new_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_relations_holder"
+                android:layout_below="@+id/contactRelationsHolder"
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
@@ -723,6 +737,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_related_person"
                     android:textStyle="italic"
                     android:textSize="@dimen/normal_text_size" />
@@ -738,9 +756,8 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
@@ -768,7 +785,6 @@
                     android:alpha="0.8"
                     android:layout_alignParentEnd="true"
                     app:srcCompat="@drawable/ic_article_vector" />
-
             </RelativeLayout>
 
             <com.goodwy.commons.views.MyEditText
@@ -838,7 +854,7 @@
                     tools:text="Disco" />
 
                 <ImageView
-                    android:id="@+id/contact_ringtone_chevron"
+                    android:id="@+id/contactRingtoneChevron"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_alignParentEnd="true"
@@ -874,11 +890,10 @@
                     android:alpha="0.8"
                     android:layout_alignParentEnd="true"
                     app:srcCompat="@drawable/ic_link_vector" />
-
             </RelativeLayout>
 
             <LinearLayout
-                android:id="@+id/contact_websites_holder"
+                android:id="@+id/contactWebsitesHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_websites_title_holder"
@@ -893,7 +908,7 @@
                 android:id="@+id/contact_websites_add_new_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_websites_holder"
+                android:layout_below="@+id/contactWebsitesHolder"
                 android:background="@color/activated_item_foreground">
 
                 <com.goodwy.commons.views.MyTextView
@@ -903,6 +918,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_website"
                     android:textSize="@dimen/normal_text_size"
                     android:textStyle="italic" />
@@ -918,9 +937,8 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
@@ -977,6 +995,10 @@
                     android:alpha="0.5"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
                     android:text="@string/add_group"
                     android:textSize="@dimen/normal_text_size"
                     android:textStyle="italic" />
@@ -992,7 +1014,7 @@
                     android:background="@drawable/circle_background"
                     android:backgroundTint="@color/green"
                     android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/medium_margin"
+                    android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
 
             </RelativeLayout>
@@ -1025,15 +1047,15 @@
 
             </RelativeLayout>
 
-            <LinearLayout
+            <RelativeLayout
                 android:id="@+id/contact_source_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_source_title_holder"
                 android:background="@color/activated_item_foreground">
 
-                <com.goodwy.commons.views.MyTextView
-                    android:id="@+id/contact_source"
+                <TextView
+                    android:id="@+id/contactSource"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/contact_edit_height"
                     android:background="?attr/selectableItemBackground"
@@ -1046,7 +1068,20 @@
                     android:textSize="@dimen/bigger_text_size"
                     tools:text="hello@goodwy.com" />
 
-            </LinearLayout>
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/contactSourceImage"
+                    android:layout_width="@dimen/edit_contact_add_icon"
+                    android:layout_height="@dimen/edit_contact_add_icon"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="@dimen/contact_padding_left"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    app:shapeAppearanceOverlay="@style/roundedImageView"
+                    tools:src="@drawable/ic_whatsapp_vector"
+                    tools:visibility="visible" />
+
+            </RelativeLayout>
 
         </RelativeLayout>
     </androidx.core.widget.NestedScrollView>

@@ -3,9 +3,9 @@ package com.goodwy.contacts.dialogs
 import com.goodwy.commons.activities.BaseSimpleActivity
 import com.goodwy.commons.extensions.getAlertDialogBuilder
 import com.goodwy.commons.extensions.setupDialogStuff
+import com.goodwy.commons.helpers.*
 import com.goodwy.commons.views.MyAppCompatCheckbox
 import com.goodwy.contacts.R
-import com.goodwy.commons.helpers.*
 import com.goodwy.contacts.extensions.config
 
 class ManageVisibleFieldsDialog(val activity: BaseSimpleActivity, val callback: (hasSomethingChanged: Boolean) -> Unit) {
@@ -41,8 +41,8 @@ class ManageVisibleFieldsDialog(val activity: BaseSimpleActivity, val callback: 
         }
 
         activity.getAlertDialogBuilder()
-            .setPositiveButton(R.string.ok) { dialog, which -> dialogConfirmed() }
-            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(com.goodwy.commons.R.string.ok) { dialog, which -> dialogConfirmed() }
+            .setNegativeButton(com.goodwy.commons.R.string.cancel, null)
             .apply {
                 activity.setupDialogStuff(view, this)
             }

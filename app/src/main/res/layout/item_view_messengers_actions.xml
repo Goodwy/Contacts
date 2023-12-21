@@ -15,8 +15,8 @@
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/contact_padding_top"
         android:paddingBottom="@dimen/contact_padding_top"
-        android:paddingStart="@dimen/contact_padding_left"
-        android:paddingEnd="4dp">
+        android:paddingStart="@dimen/activity_margin"
+        android:paddingEnd="14dp">
 
         <com.goodwy.commons.views.MyTextView
             android:id="@+id/contact_messenger_action_name"
@@ -40,7 +40,7 @@
             tools:visibility="visible" />
 
         <TextView
-            android:id="@+id/contact_messenger_action_number"
+            android:id="@+id/contactMessengerActionNumber"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/contact_messenger_action_name"
@@ -57,7 +57,6 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:visibility="gone"
             tools:visibility="visible">
@@ -68,11 +67,11 @@
                 android:layout_height="36dp"
                 android:alpha="0.8"
                 android:background="@drawable/circle_background"
-                android:paddingStart="8dp"
-                android:paddingTop="9dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="7dp"
-                app:srcCompat="@drawable/ic_sms_vector" />
+                android:paddingStart="6dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="6dp"
+                app:srcCompat="@drawable/ic_messages" />
 
         </RelativeLayout>
 
@@ -131,8 +130,8 @@
         android:id="@+id/divider_contact_messenger_action"
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:layout_marginStart="@dimen/contact_padding_left"
-        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:layout_marginStart="@dimen/activity_margin"
+        android:layout_marginEnd="@dimen/activity_margin"
         android:background="@drawable/divider_settings"
         android:alpha="0.2"
         android:layout_below="@+id/contact_holder"/>

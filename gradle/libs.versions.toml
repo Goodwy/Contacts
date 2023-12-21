@@ -1,0 +1,72 @@
+[versions]
+#jetbrains
+kotlin = "1.9.0"
+#KSP
+ksp = "1.9.0-1.0.12"
+#AndroidX
+androidx-swiperefreshlayout = "1.1.0"
+#AutoFitTextView
+autofittextview = "0.2.1"
+#EzVCard
+ezvcard = "0.11.3"
+#IndicatorFastScroll
+indicatorfastscroll = "4524cd0b61"
+#Room
+room = "2.6.0-alpha02"
+#Simple tools
+#simple-commons = "4ee907fc5e"
+#Gradle
+gradlePlugins-agp = "8.1.1"
+#Goodwy
+right-commons = "80b5a784ee"
+rustore = "2.2.0"
+behavioRule = "1.0.1"
+rxAnimation = "2.1.1"
+androidx-lifecycle = "2.6.1"
+#build
+app-build-compileSDKVersion = "34"
+app-build-targetSDK = "34"
+app-build-minimumSDK = "23"
+app-build-javaVersion = "VERSION_17"
+app-build-kotlinJVMTarget = "17"
+#versioning
+app-version-appId = "com.goodwy.contacts"
+app-version-versionCode = "413"
+app-version-versionName = "4.1.3"
+[libraries]
+#AndroidX
+androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "androidx-swiperefreshlayout" }
+#AutoFitTextView
+autofittextview = { module = "me.grantland:autofittextview", version.ref = "autofittextview" }
+#EzVcard
+ezvcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "ezvcard" }
+#IndicatorFastScroll
+indicatorfastscroll = { module = "com.github.tibbi:IndicatorFastScroll", version.ref = "indicatorfastscroll" }
+#Room
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+#Simple Mobile Tools
+#simple-tools-commons = { module = "com.github.SimpleMobileTools:Simple-Commons", version.ref = "simple-commons" }
+#Goodwy
+goodwy-commons = { module = "com.github.Goodwy:Goodwy-Commons", version.ref = "right-commons" }
+rustore-client = { module = "ru.rustore.sdk:billingclient", version.ref = "rustore" }
+behavio-rule = { module = "com.github.Liverm0r:BehavioRule", version.ref = "behavioRule" }
+rx-animation = { module = "com.mikhaellopez:rxanimation", version.ref = "rxAnimation" }
+androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewModel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
+[bundles]
+room = [
+    "androidx-room-ktx",
+    "androidx-room-runtime",
+]
+lifecycle = [
+    "androidx-lifecycle-runtime",
+    "androidx-lifecycle-viewModel",
+    "androidx-lifecycle-process",
+]
+[plugins]
+android = { id = "com.android.application", version.ref = "gradlePlugins-agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

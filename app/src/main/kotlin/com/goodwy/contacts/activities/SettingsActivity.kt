@@ -4,81 +4,144 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.goodwy.commons.activities.FAQActivity
-import com.goodwy.commons.dialogs.BottomSheetChooserDialog
-import com.goodwy.commons.dialogs.FilePickerDialog
-import com.goodwy.commons.dialogs.RadioGroupDialog
-import com.goodwy.commons.dialogs.SettingsIconDialog
+import com.goodwy.commons.dialogs.*
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
+import com.goodwy.commons.helpers.rustore.RuStoreHelper
+import com.goodwy.commons.helpers.rustore.model.StartPurchasesEvent
 import com.goodwy.commons.models.FAQItem
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.SimpleListItem
-import com.goodwy.contacts.App.Companion.isPlayStoreInstalled
-import com.goodwy.contacts.App.Companion.isProVersion
 import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
+import com.goodwy.contacts.databinding.ActivitySettingsBinding
 import com.goodwy.contacts.dialogs.ExportContactsDialog
-import com.goodwy.contacts.dialogs.ImportContactsDialog
+import com.goodwy.contacts.dialogs.ManageAutoBackupsDialog
 import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.dialogs.ManageVisibleTabsDialog
-import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.helpers.*
+import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.VcfExporter
-import kotlinx.android.synthetic.main.activity_settings.*
-import java.io.FileOutputStream
+import kotlinx.coroutines.launch
+import ru.rustore.sdk.core.feature.model.FeatureAvailabilityResult
 import java.io.OutputStream
 import java.util.*
 import kotlin.system.exitProcess
 
 class SettingsActivity : SimpleActivity() {
+    companion object {
+        private const val PICK_IMPORT_SOURCE_INTENT = 1
+        private const val PICK_EXPORT_FILE_INTENT = 2
+    }
 
-    private val PICK_IMPORT_SOURCE_INTENT = 1
-    private val PICK_EXPORT_FILE_INTENT = 2
+    private val binding by viewBinding(ActivitySettingsBinding::inflate)
+    private val purchaseHelper = PurchaseHelper(this)
+    private val ruStoreHelper = RuStoreHelper(this)
+    private val productIdX1 = BuildConfig.PRODUCT_ID_X1
+    private val productIdX2 = BuildConfig.PRODUCT_ID_X2
+    private val productIdX3 = BuildConfig.PRODUCT_ID_X3
+    private val subscriptionIdX1 = BuildConfig.SUBSCRIPTION_ID_X1
+    private val subscriptionIdX2 = BuildConfig.SUBSCRIPTION_ID_X2
+    private val subscriptionIdX3 = BuildConfig.SUBSCRIPTION_ID_X3
+    private var ruStoreIsConnected = false
 
     private var ignoredExportContactSources = HashSet<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         isMaterialActivity = true
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+        setContentView(binding.root)
 
-        updateMaterialActivityViews(settings_coordinator, settings_holder, useTransparentNavigation = false, useTopSearchMenu = false)
-        setupMaterialScrollListener(settings_nested_scrollview, settings_toolbar)
-        // TODO TRANSPARENT Navigation Bar
-        if (config.transparentNavigationBar) {
-            setWindowTransparency(true) { _, bottomNavigationBarSize, leftNavigationBarSize, rightNavigationBarSize ->
-                settings_coordinator.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
-                updateNavigationBarColor(getProperBackgroundColor())
+        updateMaterialActivityViews(binding.settingsCoordinator, binding.settingsHolder, useTransparentNavigation = true, useTopSearchMenu = false)
+        setupMaterialScrollListener(binding.settingsNestedScrollview, binding.settingsToolbar)
+
+        if (isPlayStoreInstalled()) {
+            //PlayStore
+            purchaseHelper.initBillingClient()
+            val iapList: ArrayList<String> = arrayListOf(productIdX1, productIdX2, productIdX3)
+            val subList: ArrayList<String> = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3)
+            purchaseHelper.retrieveDonation(iapList, subList)
+
+            purchaseHelper.isIapPurchased.observe(this) {
+                when (it) {
+                    is Tipping.Succeeded -> {
+                        config.isPro = true
+                        updatePro()
+                    }
+                    is Tipping.NoTips -> {
+                        config.isPro = false
+                        updatePro()
+                    }
+                    is Tipping.FailedToLoad -> {
+                    }
+                }
+            }
+
+            purchaseHelper.isSupPurchased.observe(this) {
+                when (it) {
+                    is Tipping.Succeeded -> {
+                        config.isProSubs = true
+                        updatePro()
+                    }
+                    is Tipping.NoTips -> {
+                        config.isProSubs = false
+                        updatePro()
+                    }
+                    is Tipping.FailedToLoad -> {
+                    }
+                }
+            }
+        }
+        if (isRuStoreInstalled()) {
+            //RuStore
+            ruStoreHelper.checkPurchasesAvailability()
+
+            lifecycleScope.launch {
+                ruStoreHelper.eventStart
+                    .flowWithLifecycle(lifecycle)
+                    .collect { event ->
+                        handleEventStart(event)
+                    }
+            }
+
+            lifecycleScope.launch {
+                ruStoreHelper.statePurchased
+                    .flowWithLifecycle(lifecycle)
+                    .collect { state ->
+                        //update of purchased
+                        if (!state.isLoading && ruStoreIsConnected) {
+                            baseConfig.isProRuStore = state.purchases.firstOrNull() != null
+                            updatePro()
+                        }
+                    }
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        setupToolbar(settings_toolbar, NavigationIcon.Arrow)
+        setupToolbar(binding.settingsToolbar, NavigationIcon.Arrow)
 
         setupPurchaseThankYou()
 
         setupCustomizeColors()
         setupShowDialpadButton()
         setupMaterialDesign3()
-        setupSettingsIcon()
+        setupOverflowIcon()
         setupUseColoredContacts()
+        setupContactsColorList()
 
         setupDefaultTab()
         setupManageShownTabs()
-        //setupBottomNavigationBar()
         setupNavigationBarStyle()
         setupUseIconTabs()
         setupScreenSlideAnimation()
         setupOpenSearch()
 
-        setupImportContacts()
-        setupExportContacts()
         setupManageShownContactFields()
         setupMergeDuplicateContacts()
         setupShowCallConfirmation()
@@ -94,144 +157,159 @@ class SettingsActivity : SimpleActivity() {
         setupShowPhoneNumbers()
         setupStartNameWithSurname()
 
+        setupExportContacts()
+        setupImportContacts()
+        setupEnableAutomaticBackups()
+        setupInfoAutomaticBackups()
+        setupManageAutomaticBackups()
+
         setupTipJar()
         setupAbout()
-        updateTextColors(settings_holder)
+
+        updateTextColors(binding.settingsHolder)
 
         arrayOf(
-            settings_appearance_label,
-            settings_tabs_label,
-            settings_general_label,
-            settings_list_view_label,
-            settings_other_label).forEach {
+            binding.settingsAppearanceLabel,
+            binding.settingsTabsLabel,
+            binding.settingsGeneralLabel,
+            binding.settingsListViewLabel,
+            binding.settingsBackupsLabel,
+            binding.settingsOtherLabel).forEach {
             it.setTextColor(getProperPrimaryColor())
         }
 
         arrayOf(
-            settings_color_customization_holder,
-            settings_tabs_holder,
-            settings_general_holder,
-            settings_list_view_holder,
-            settings_other_holder
+            binding.settingsColorCustomizationHolder,
+            binding.settingsTabsHolder,
+            binding.settingsGeneralHolder,
+            binding.settingsListViewHolder,
+            binding.settingsBackupsHolder,
+            binding.settingsOtherHolder
         ).forEach {
             it.background.applyColorFilter(getBottomNavigationBackgroundColor())
         }
 
         arrayOf(
-            settings_customize_colors_chevron,
-            settings_manage_shown_tabs_chevron,
-            settings_import_contacts_chevron,
-            settings_export_contacts_chevron,
-            settings_manage_contact_fields_chevron,
-            settings_tip_jar_chevron,
-            settings_about_chevron
+            binding.settingsCustomizeColorsChevron,
+            binding.settingsManageShownTabsChevron,
+            binding.settingsManageContactFieldsChevron,
+            binding.settingsManageContactFieldsChevron,
+            binding.contactsImportChevron,
+            binding.contactsExportChevron,
+            binding.settingsManageAutomaticBackupsChevron,
+            binding.settingsTipJarChevron,
+            binding.settingsAboutChevron
         ).forEach {
             it.applyColorFilter(getProperTextColor())
         }
     }
 
     private fun setupPurchaseThankYou() {
-        settings_purchase_thank_you_holder.beGoneIf(isProVersion() || config.isPro)
-        settings_purchase_thank_you_holder.setOnClickListener {
-            launchPurchase() //launchPurchaseThankYouIntent()
+        binding.apply {
+            settingsPurchaseThankYouHolder.beGoneIf(isPro())
+            settingsPurchaseThankYouHolder.setOnClickListener {
+                launchPurchase()
+            }
+            moreButton.setOnClickListener {
+                launchPurchase()
+            }
+            val appDrawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.ic_plus_support, getProperPrimaryColor())
+            purchaseLogo.setImageDrawable(appDrawable)
+            val drawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.button_gray_bg, getProperPrimaryColor())
+            moreButton.background = drawable
+            moreButton.setTextColor(getProperBackgroundColor())
+            moreButton.setPadding(2, 2, 2, 2)
         }
-        moreButton.setOnClickListener {
-            launchPurchase()
-        }
-        val appDrawable = resources.getColoredDrawableWithColor(R.drawable.ic_plus_support, getProperPrimaryColor())
-        purchase_logo.setImageDrawable(appDrawable)
-        val drawable = resources.getColoredDrawableWithColor(R.drawable.button_gray_bg, getProperPrimaryColor())
-        moreButton.background = drawable
-        moreButton.setTextColor(getProperBackgroundColor())
-        moreButton.setPadding(2,2,2,2)
     }
 
     private fun setupCustomizeColors() {
-        settings_customize_colors_label.text = if (isProVersion() || config.isPro) {
-            getString(R.string.customize_colors)
+        binding.settingsCustomizeColorsLabel.text = if (isPro()) {
+            getString(com.goodwy.commons.R.string.customize_colors)
         } else {
-            getString(R.string.customize_colors_locked)
+            getString(com.goodwy.commons.R.string.customize_colors_locked)
         }
-        settings_customize_colors_holder.setOnClickListener {
-            startCustomizationActivity(false, isProVersion() || config.isPro, BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3, playStoreInstalled = isPlayStoreInstalled())
+        binding.settingsCustomizeColorsHolder.setOnClickListener {
+            startCustomizationActivity(
+                showAccentColor = false,
+                licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
+                productIdX1 = productIdX1,
+                productIdX2 = productIdX2,
+                productIdX3 = productIdX3,
+                subscriptionIdX1 = subscriptionIdX1,
+                subscriptionIdX2 = subscriptionIdX2,
+                subscriptionIdX3 = subscriptionIdX3,
+                playStoreInstalled = isPlayStoreInstalled(),
+                ruStoreInstalled = isRuStoreInstalled()
+            )
         }
     }
 
     private fun setupManageShownContactFields() {
-        settings_manage_contact_fields_chevron.applyColorFilter(getProperTextColor())
-        settings_manage_contact_fields_holder.setOnClickListener {
+        binding.settingsManageContactFieldsHolder.setOnClickListener {
             ManageVisibleFieldsDialog(this) {}
         }
     }
 
     private fun setupManageShownTabs() {
-        settings_manage_shown_tabs_chevron.applyColorFilter(getProperTextColor())
-        settings_manage_shown_tabs_holder.setOnClickListener {
+        binding.settingsManageShownTabsHolder.setOnClickListener {
             ManageVisibleTabsDialog(this)
         }
     }
 
     private fun setupScreenSlideAnimation() {
-        settings_screen_slide_animation.text = getScreenSlideAnimationText()
-        settings_screen_slide_animation_holder.setOnClickListener {
+        binding.settingsScreenSlideAnimation.text = getScreenSlideAnimationText()
+        binding.settingsScreenSlideAnimationHolder.setOnClickListener {
             val items = arrayListOf(
-                RadioItem(0, getString(R.string.no)),
-                RadioItem(1, getString(R.string.screen_slide_animation_zoomout)),
-                RadioItem(2, getString(R.string.screen_slide_animation_depth)))
+                RadioItem(0, getString(com.goodwy.commons.R.string.no)),
+                RadioItem(1, getString(com.goodwy.commons.R.string.screen_slide_animation_zoomout)),
+                RadioItem(2, getString(com.goodwy.commons.R.string.screen_slide_animation_depth)))
 
             RadioGroupDialog(this@SettingsActivity, items, config.screenSlideAnimation) {
                 config.screenSlideAnimation = it as Int
                 config.tabsChanged = true
-                settings_screen_slide_animation.text = getScreenSlideAnimationText()
+                binding.settingsScreenSlideAnimation.text = getScreenSlideAnimationText()
             }
         }
     }
 
     private fun setupOpenSearch() {
-        settings_open_search.isChecked = config.openSearch
-        settings_open_search_holder.setOnClickListener {
-            settings_open_search.toggle()
-            config.openSearch = settings_open_search.isChecked
+        binding.apply {
+            settingsOpenSearch.isChecked = config.openSearch
+            settingsOpenSearchHolder.setOnClickListener {
+                settingsOpenSearch.toggle()
+                config.openSearch = settingsOpenSearch.isChecked
+            }
         }
     }
 
     private fun setupDefaultTab() {
-        settings_default_tab.text = getDefaultTabText()
-        settings_default_tab_holder.setOnClickListener {
+        binding.settingsDefaultTab.text = getDefaultTabText()
+        binding.settingsDefaultTabHolder.setOnClickListener {
             val items = arrayListOf(
-                RadioItem(TAB_LAST_USED, getString(R.string.last_used_tab)),
-                RadioItem(TAB_FAVORITES, getString(R.string.favorites_tab)),
-                RadioItem(TAB_CONTACTS, getString(R.string.contacts_tab)),
-                RadioItem(TAB_GROUPS, getString(R.string.groups_tab)))
+                RadioItem(TAB_LAST_USED, getString(com.goodwy.commons.R.string.last_used_tab)),
+                RadioItem(TAB_FAVORITES, getString(com.goodwy.commons.R.string.favorites_tab)),
+                RadioItem(TAB_CONTACTS, getString(com.goodwy.commons.R.string.contacts_tab)),
+                RadioItem(TAB_GROUPS, getString(com.goodwy.commons.R.string.groups_tab)))
 
             RadioGroupDialog(this@SettingsActivity, items, config.defaultTab) {
                 config.defaultTab = it as Int
-                settings_default_tab.text = getDefaultTabText()
+                binding.settingsDefaultTab.text = getDefaultTabText()
             }
         }
     }
 
     private fun getDefaultTabText() = getString(
         when (baseConfig.defaultTab) {
-            TAB_FAVORITES -> R.string.favorites_tab
-            TAB_CONTACTS -> R.string.contacts_tab
-            TAB_GROUPS -> R.string.groups_tab
-            else -> R.string.last_used_tab
+            TAB_FAVORITES -> com.goodwy.commons.R.string.favorites_tab
+            TAB_CONTACTS -> com.goodwy.commons.R.string.contacts_tab
+            TAB_GROUPS -> com.goodwy.commons.R.string.groups_tab
+            else -> com.goodwy.commons.R.string.last_used_tab
         }
     )
 
-    private fun setupBottomNavigationBar() {
-        settings_bottom_navigation_bar.isChecked = config.bottomNavigationBar
-        settings_bottom_navigation_bar_holder.setOnClickListener {
-            settings_bottom_navigation_bar.toggle()
-            config.bottomNavigationBar = settings_bottom_navigation_bar.isChecked
-            config.tabsChanged = true
-        }
-    }
-
     private fun setupNavigationBarStyle() {
-        settings_navigation_bar_style.text = getNavigationBarStyleText()
-        settings_navigation_bar_style_holder.setOnClickListener {
+        binding.settingsNavigationBarStyle.text = getNavigationBarStyleText()
+        binding.settingsNavigationBarStyleHolder.setOnClickListener {
             launchNavigationBarStyleDialog()
         }
     }
@@ -239,126 +317,142 @@ class SettingsActivity : SimpleActivity() {
     private fun launchNavigationBarStyleDialog() {
         BottomSheetChooserDialog.createChooser(
             fragmentManager = supportFragmentManager,
-            title = R.string.tab_navigation,
+            title = com.goodwy.commons.R.string.tab_navigation,
             items = arrayOf(
-                SimpleListItem(0, R.string.top, R.drawable.ic_tab_top, selected = !config.bottomNavigationBar),
-                SimpleListItem(1, R.string.bottom, R.drawable.ic_tab_bottom, selected = config.bottomNavigationBar)
+                SimpleListItem(0, com.goodwy.commons.R.string.top, imageRes = com.goodwy.commons.R.drawable.ic_tab_top, selected = !config.bottomNavigationBar),
+                SimpleListItem(1, com.goodwy.commons.R.string.bottom, imageRes = com.goodwy.commons.R.drawable.ic_tab_bottom, selected = config.bottomNavigationBar)
             )
         ) {
             config.bottomNavigationBar = it.id == 1
             config.tabsChanged = true
-            settings_navigation_bar_style.text = getNavigationBarStyleText()
+            binding.settingsNavigationBarStyle.text = getNavigationBarStyleText()
         }
     }
 
     private fun setupFontSize() {
-        settings_font_size.text = getFontSizeText()
-        settings_font_size_holder.setOnClickListener {
+        binding.settingsFontSize.text = getFontSizeText()
+        binding.settingsFontSizeHolder.setOnClickListener {
             val items = arrayListOf(
-                RadioItem(FONT_SIZE_SMALL, getString(R.string.small)),
-                RadioItem(FONT_SIZE_MEDIUM, getString(R.string.medium)),
-                RadioItem(FONT_SIZE_LARGE, getString(R.string.large)),
-                RadioItem(FONT_SIZE_EXTRA_LARGE, getString(R.string.extra_large))
-            )
+                RadioItem(FONT_SIZE_SMALL, getString(com.goodwy.commons.R.string.small)),
+                RadioItem(FONT_SIZE_MEDIUM, getString(com.goodwy.commons.R.string.medium)),
+                RadioItem(FONT_SIZE_LARGE, getString(com.goodwy.commons.R.string.large)),
+                RadioItem(FONT_SIZE_EXTRA_LARGE, getString(com.goodwy.commons.R.string.extra_large)))
 
             RadioGroupDialog(this@SettingsActivity, items, config.fontSize) {
                 config.fontSize = it as Int
-                settings_font_size.text = getFontSizeText()
+                binding.settingsFontSize.text = getFontSizeText()
+                config.tabsChanged = true
             }
         }
     }
 
     private fun setupUseEnglish() {
-        settings_use_english_holder.beVisibleIf((config.wasUseEnglishToggled || Locale.getDefault().language != "en") && !isTiramisuPlus())
-        settings_use_english.isChecked = config.useEnglish
-
-        settings_use_english_holder.setOnClickListener {
-            settings_use_english.toggle()
-            config.useEnglish = settings_use_english.isChecked
-            exitProcess(0)
+        binding.apply {
+            settingsUseEnglishHolder.beVisibleIf((config.wasUseEnglishToggled || Locale.getDefault().language != "en") && !isTiramisuPlus())
+            settingsUseEnglish.isChecked = config.useEnglish
+            settingsUseEnglishHolder.setOnClickListener {
+                settingsUseEnglish.toggle()
+                config.useEnglish = settingsUseEnglish.isChecked
+                exitProcess(0)
+            }
         }
     }
 
     private fun setupLanguage() {
-        settings_language.text = Locale.getDefault().displayLanguage
-        settings_language_holder.beVisibleIf(isTiramisuPlus())
-
-        settings_language_holder.setOnClickListener {
-            launchChangeAppLanguageIntent()
+        binding.apply {
+            settingsLanguage.text = Locale.getDefault().displayLanguage
+            settingsLanguageHolder.beVisibleIf(isTiramisuPlus())
+            settingsLanguageHolder.setOnClickListener {
+                launchChangeAppLanguageIntent()
+            }
         }
     }
 
     private fun setupShowContactThumbnails() {
-        settings_show_contact_thumbnails.isChecked = config.showContactThumbnails
-        settings_show_contact_thumbnails_holder.setOnClickListener {
-            settings_show_contact_thumbnails.toggle()
-            config.showContactThumbnails = settings_show_contact_thumbnails.isChecked
+        binding.apply {
+            settingsShowContactThumbnails.isChecked = config.showContactThumbnails
+            settingsShowContactThumbnailsHolder.setOnClickListener {
+                settingsShowContactThumbnails.toggle()
+                config.showContactThumbnails = settingsShowContactThumbnails.isChecked
+            }
         }
     }
 
     private fun setupShowPhoneNumbers() {
-        settings_show_phone_numbers.isChecked = config.showPhoneNumbers
-        settings_show_phone_numbers_holder.setOnClickListener {
-            settings_show_phone_numbers.toggle()
-            config.showPhoneNumbers = settings_show_phone_numbers.isChecked
+        binding.apply {
+            settingsShowPhoneNumbers.isChecked = config.showPhoneNumbers
+            settingsShowPhoneNumbersHolder.setOnClickListener {
+                settingsShowPhoneNumbers.toggle()
+                config.showPhoneNumbers = settingsShowPhoneNumbers.isChecked
+            }
         }
     }
 
     private fun setupShowContactsWithNumbers() {
-        settings_show_only_contacts_with_numbers.isChecked = config.showOnlyContactsWithNumbers
-        settings_show_only_contacts_with_numbers_holder.setOnClickListener {
-            settings_show_only_contacts_with_numbers.toggle()
-            config.showOnlyContactsWithNumbers = settings_show_only_contacts_with_numbers.isChecked
+        binding.apply {
+            settingsShowOnlyContactsWithNumbers.isChecked = config.showOnlyContactsWithNumbers
+            settingsShowOnlyContactsWithNumbersHolder.setOnClickListener {
+                settingsShowOnlyContactsWithNumbers.toggle()
+                config.showOnlyContactsWithNumbers = settingsShowOnlyContactsWithNumbers.isChecked
+            }
         }
     }
 
     private fun setupStartNameWithSurname() {
-        settings_start_name_with_surname.isChecked = config.startNameWithSurname
-        settings_start_name_with_surname_holder.setOnClickListener {
-            settings_start_name_with_surname.toggle()
-            config.startNameWithSurname = settings_start_name_with_surname.isChecked
+        binding.apply {
+            settingsStartNameWithSurname.isChecked = config.startNameWithSurname
+            settingsStartNameWithSurnameHolder.setOnClickListener {
+                settingsStartNameWithSurname.toggle()
+                config.startNameWithSurname = settingsStartNameWithSurname.isChecked
+            }
         }
     }
 
     private fun setupShowDialpadButton() {
-        settings_show_dialpad_button.isChecked = config.showDialpadButton
-        settings_show_dialpad_button_holder.setOnClickListener {
-            settings_show_dialpad_button.toggle()
-            config.showDialpadButton = settings_show_dialpad_button.isChecked
+        binding.apply {
+            settingsShowDialpadButton.isChecked = config.showDialpadButton
+            settingsShowDialpadButtonHolder.setOnClickListener {
+                settingsShowDialpadButton.toggle()
+                config.showDialpadButton = settingsShowDialpadButton.isChecked
+            }
         }
     }
 
     private fun setupShowPrivateContacts() {
-        //val simpleDialer = "com.goodwy.dialer"
-        //val simpleDialerDebug = "com.goodwy.dialer.debug"
-        //settings_show_private_contacts_holder.beVisibleIf(isPackageInstalled(simpleDialer) && isPackageInstalled(simpleDialerDebug))
-        settings_show_private_contacts.isChecked = config.showPrivateContacts
-        settings_show_private_contacts_holder.setOnClickListener {
-            settings_show_private_contacts.toggle()
-            config.showPrivateContacts = settings_show_private_contacts.isChecked
-        }
-        settings_show_private_contacts_faq.imageTintList = ColorStateList.valueOf(getProperTextColor())
-        val faqItems = arrayListOf(
-            FAQItem(R.string.faq_100_title_commons_g, R.string.faq_100_text_commons_g),
-            FAQItem(R.string.faq_101_title_commons_g, R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
-        )
-        settings_show_private_contacts_faq.setOnClickListener {
-            openFAQ(faqItems)
+        binding.apply {
+            //val simpleDialer = "com.goodwy.dialer"
+            //val simpleDialerDebug = "com.goodwy.dialer.debug"
+            //settings_show_private_contacts_holder.beVisibleIf(isPackageInstalled(simpleDialer) && isPackageInstalled(simpleDialerDebug))
+            settingsShowPrivateContacts.isChecked = config.showPrivateContacts
+            settingsShowPrivateContactsHolder.setOnClickListener {
+                settingsShowPrivateContacts.toggle()
+                config.showPrivateContacts = settingsShowPrivateContacts.isChecked
+            }
+            settingsShowPrivateContactsFaq.imageTintList = ColorStateList.valueOf(getProperTextColor())
+            val faqItems = arrayListOf(
+                FAQItem(com.goodwy.commons.R.string.faq_100_title_commons_g, com.goodwy.commons.R.string.faq_100_text_commons_g),
+                FAQItem(com.goodwy.commons.R.string.faq_101_title_commons_g, com.goodwy.commons.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
+            )
+            settingsShowPrivateContactsFaq.setOnClickListener {
+                openFAQ(faqItems)
+            }
         }
     }
 
     private fun setupOnContactClick() {
-        settings_on_contact_click.text = getOnContactClickText()
-        settings_on_contact_click_holder.setOnClickListener {
-            val items = arrayListOf(
-                RadioItem(ON_CLICK_CALL_CONTACT, getString(R.string.call_contact)),
-                RadioItem(ON_CLICK_VIEW_CONTACT, getString(R.string.view_contact)),
-                RadioItem(ON_CLICK_EDIT_CONTACT, getString(R.string.edit_contact))
-            )
+        binding.apply {
+            settingsOnContactClick.text = getOnContactClickText()
+            settingsOnContactClickHolder.setOnClickListener {
+                val items = arrayListOf(
+                    RadioItem(ON_CLICK_CALL_CONTACT, getString(R.string.call_contact)),
+                    RadioItem(ON_CLICK_VIEW_CONTACT, getString(R.string.view_contact)),
+                    RadioItem(ON_CLICK_EDIT_CONTACT, getString(R.string.edit_contact))
+                )
 
-            RadioGroupDialog(this@SettingsActivity, items, config.onContactClick) {
-                config.onContactClick = it as Int
-                settings_on_contact_click.text = getOnContactClickText()
+                RadioGroupDialog(this@SettingsActivity, items, config.onContactClick) {
+                    config.onContactClick = it as Int
+                    settingsOnContactClick.text = getOnContactClickText()
+                }
             }
         }
     }
@@ -372,49 +466,111 @@ class SettingsActivity : SimpleActivity() {
     )
 
     private fun setupShowCallConfirmation() {
-        settings_show_call_confirmation.isChecked = config.showCallConfirmation
-        settings_show_call_confirmation_holder.setOnClickListener {
-            settings_show_call_confirmation.toggle()
-            config.showCallConfirmation = settings_show_call_confirmation.isChecked
-        }
-    }
-
-    private fun setupMergeDuplicateContacts() {
-        settings_merge_duplicate_contacts.isChecked = config.mergeDuplicateContacts
-        settings_merge_duplicate_contacts_holder.setOnClickListener {
-            settings_merge_duplicate_contacts.toggle()
-            config.mergeDuplicateContacts = settings_merge_duplicate_contacts.isChecked
-        }
-    }
-
-    private fun setupMaterialDesign3() {
-        settings_material_design_3.isChecked = config.materialDesign3
-        settings_material_design_3_holder.setOnClickListener {
-            settings_material_design_3.toggle()
-            config.materialDesign3 = settings_material_design_3.isChecked
-            config.tabsChanged = true
-        }
-    }
-
-    private fun setupSettingsIcon() {
-        settings_icon.applyColorFilter(getProperTextColor())
-        settings_icon.setImageResource(getSettingsIcon(config.settingsIcon))
-        settings_icon_holder.setOnClickListener {
-            SettingsIconDialog(this) {
-                config.settingsIcon = it as Int
-                settings_icon.setImageResource(getSettingsIcon(it))
+        binding.apply {
+            settingsShowCallConfirmation.isChecked = config.showCallConfirmation
+            settingsShowCallConfirmationHolder.setOnClickListener {
+                settingsShowCallConfirmation.toggle()
+                config.showCallConfirmation = settingsShowCallConfirmation.isChecked
             }
         }
     }
 
-    private fun setupImportContacts() {
-        settings_import_contacts_chevron.applyColorFilter(getProperTextColor())
-        settings_import_contacts_holder.setOnClickListener { tryImportContacts() }
+    private fun setupMergeDuplicateContacts() {
+        binding.apply {
+            settingsMergeDuplicateContacts.isChecked = config.mergeDuplicateContacts
+            settingsMergeDuplicateContactsHolder.setOnClickListener {
+                settingsMergeDuplicateContacts.toggle()
+                config.mergeDuplicateContacts = settingsMergeDuplicateContacts.isChecked
+            }
+        }
+    }
+
+    private fun setupEnableAutomaticBackups() {
+        val getBottomNavigationBackgroundColor = getBottomNavigationBackgroundColor()
+        val wrapperColor = if (config.autoBackup) getBottomNavigationBackgroundColor.lightenColor(4) else getBottomNavigationBackgroundColor
+        binding.settingsAutomaticBackupsWrapper.background.applyColorFilter(wrapperColor)
+
+        binding.settingsBackupsLabel.beVisibleIf(isRPlus())
+        binding.settingsEnableAutomaticBackupsHolder.beVisibleIf(isRPlus())
+        binding.settingsEnableAutomaticBackups.isChecked = config.autoBackup
+        binding.settingsEnableAutomaticBackupsHolder.setOnClickListener {
+            val wasBackupDisabled = !config.autoBackup
+            if (wasBackupDisabled) {
+                ManageAutoBackupsDialog(
+                    activity = this,
+                    onSuccess = {
+                        enableOrDisableAutomaticBackups(true)
+                        scheduleNextAutomaticBackup()
+                        updateAutomaticBackupsLastAndNext()
+                        binding.settingsAutomaticBackupsWrapper.background.applyColorFilter(getBottomNavigationBackgroundColor.lightenColor(4))
+                    }
+                )
+            } else {
+                cancelScheduledAutomaticBackup()
+                enableOrDisableAutomaticBackups(false)
+                binding.settingsAutomaticBackupsWrapper.background.applyColorFilter(getBottomNavigationBackgroundColor)
+            }
+        }
+    }
+
+    private fun setupInfoAutomaticBackups() {
+        binding.settingsInfoAutomaticBackupsHolder.beVisibleIf(isRPlus() && config.autoBackup)
+
+        binding.settingsInfoAutomaticBackupsCreate.apply {
+            val getProperPrimaryColor = getProperPrimaryColor()
+            setTextColor(getProperPrimaryColor.getContrastColor())
+            background.setTint(getProperPrimaryColor)
+            setOnClickListener {
+                backupContacts{success -> updateAutomaticBackupsLastAndNext() }
+            }
+        }
+        updateAutomaticBackupsLastAndNext()
+    }
+
+    private fun setupManageAutomaticBackups() {
+        binding.settingsManageAutomaticBackupsHolder.beVisibleIf(isRPlus() && config.autoBackup)
+        binding.settingsManageAutomaticBackupsHolder.setOnClickListener {
+            ManageAutoBackupsDialog(
+                activity = this,
+                onSuccess = {
+                    scheduleNextAutomaticBackup()
+                    updateAutomaticBackupsLastAndNext()
+                }
+            )
+        }
+    }
+
+    private fun updateAutomaticBackupsLastAndNext() {
+        val lastAutoBackup = if (config.lastAutoBackupTime == 0L) getString(com.goodwy.commons.R.string.none)
+                                    else config.lastAutoBackupTime.formatDate(this)
+        val lastAutoBackupText = getString(com.goodwy.commons.R.string.last_g, lastAutoBackup)
+        binding.settingsInfoAutomaticBackupsLast.text = lastAutoBackupText
+        binding.settingsInfoAutomaticBackupsLast.contentDescription = lastAutoBackupText
+
+        val nextBackup = if (config.nextAutoBackupTime == 0L) getString(com.goodwy.commons.R.string.none)
+                                else config.nextAutoBackupTime.formatDate(this)
+        val nextAutoBackupText = getString(com.goodwy.commons.R.string.next_g, nextBackup)
+        binding.settingsInfoAutomaticBackupsNext.text = nextAutoBackupText
+        binding.settingsInfoAutomaticBackupsNext.contentDescription = nextAutoBackupText
+    }
+
+    private fun enableOrDisableAutomaticBackups(enable: Boolean) {
+        config.autoBackup = enable
+        binding.settingsEnableAutomaticBackups.isChecked = enable
+        binding.settingsManageAutomaticBackupsHolder.beVisibleIf(enable)
+        binding.settingsInfoAutomaticBackupsHolder.beVisibleIf(enable)
     }
 
     private fun setupExportContacts() {
-        settings_export_contacts_chevron.applyColorFilter(getProperTextColor())
-        settings_export_contacts_holder.setOnClickListener { tryExportContacts() }
+        binding.contactsExportHolder.setOnClickListener {
+            tryExportContacts()
+        }
+    }
+
+    private fun setupImportContacts() {
+        binding.contactsImportHolder.setOnClickListener {
+            tryImportContacts()
+        }
     }
 
     private fun tryImportContacts() {
@@ -426,7 +582,7 @@ class SettingsActivity : SimpleActivity() {
                 try {
                     startActivityForResult(this, PICK_IMPORT_SOURCE_INTENT)
                 } catch (e: ActivityNotFoundException) {
-                    toast(R.string.system_service_disabled, Toast.LENGTH_LONG)
+                    toast(com.goodwy.commons.R.string.system_service_disabled, Toast.LENGTH_LONG)
                 } catch (e: Exception) {
                     showErrorToast(e)
                 }
@@ -442,54 +598,7 @@ class SettingsActivity : SimpleActivity() {
 
     private fun importContacts() {
         FilePickerDialog(this) {
-            showImportContactsDialog(it)
-        }
-    }
-
-    private fun showImportContactsDialog(path: String) {
-        ImportContactsDialog(this, path) {
-            if (it) {
-                runOnUiThread {
-                    //refreshContacts(ALL_TABS_MASK)
-                }
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, resultData)
-        if (requestCode == PICK_IMPORT_SOURCE_INTENT && resultCode == Activity.RESULT_OK && resultData != null && resultData.data != null) {
-            tryImportContactsFromFile(resultData.data!!)
-        } else if (requestCode == PICK_EXPORT_FILE_INTENT && resultCode == Activity.RESULT_OK && resultData != null && resultData.data != null) {
-            try {
-                val outputStream = contentResolver.openOutputStream(resultData.data!!)
-                exportContactsTo(ignoredExportContactSources, outputStream)
-            } catch (e: Exception) {
-                showErrorToast(e)
-            }
-        }
-    }
-
-    private fun tryImportContactsFromFile(uri: Uri) {
-        when {
-            uri.scheme == "file" -> showImportContactsDialog(uri.path!!)
-            uri.scheme == "content" -> {
-                val tempFile = getTempFile()
-                if (tempFile == null) {
-                    toast(R.string.unknown_error_occurred)
-                    return
-                }
-
-                try {
-                    val inputStream = contentResolver.openInputStream(uri)
-                    val out = FileOutputStream(tempFile)
-                    inputStream!!.copyTo(out)
-                    showImportContactsDialog(tempFile.absolutePath)
-                } catch (e: Exception) {
-                    showErrorToast(e)
-                }
-            }
-            else -> toast(R.string.invalid_file_format)
+            showImportContactsDialog(it) {}
         }
     }
 
@@ -506,7 +615,7 @@ class SettingsActivity : SimpleActivity() {
                     try {
                         startActivityForResult(this, PICK_EXPORT_FILE_INTENT)
                     } catch (e: ActivityNotFoundException) {
-                        toast(R.string.system_service_disabled, Toast.LENGTH_LONG)
+                        toast(com.goodwy.commons.R.string.no_app_found, Toast.LENGTH_LONG)
                     } catch (e: Exception) {
                         showErrorToast(e)
                     }
@@ -528,14 +637,14 @@ class SettingsActivity : SimpleActivity() {
     private fun exportContactsTo(ignoredContactSources: HashSet<String>, outputStream: OutputStream?) {
         ContactsHelper(this).getContacts(true, false, ignoredContactSources) { contacts ->
             if (contacts.isEmpty()) {
-                toast(R.string.no_entries_for_exporting)
+                toast(com.goodwy.commons.R.string.no_entries_for_exporting)
             } else {
                 VcfExporter().exportContacts(this, outputStream, contacts, true) { result ->
                     toast(
                         when (result) {
-                            VcfExporter.ExportResult.EXPORT_OK -> R.string.exporting_successful
-                            VcfExporter.ExportResult.EXPORT_PARTIAL -> R.string.exporting_some_entries_failed
-                            else -> R.string.exporting_failed
+                            VcfExporter.ExportResult.EXPORT_OK -> com.goodwy.commons.R.string.exporting_successful
+                            VcfExporter.ExportResult.EXPORT_PARTIAL -> com.goodwy.commons.R.string.exporting_some_entries_failed
+                            else -> com.goodwy.commons.R.string.exporting_failed
                         }
                     )
                 }
@@ -543,43 +652,110 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == PICK_IMPORT_SOURCE_INTENT && resultCode == Activity.RESULT_OK && resultData?.data != null) {
+            tryImportContactsFromFile(resultData.data!!) {}
+        } else if (requestCode == PICK_EXPORT_FILE_INTENT && resultCode == Activity.RESULT_OK && resultData?.data != null) {
+            try {
+                val outputStream = contentResolver.openOutputStream(resultData.data!!)
+                exportContactsTo(ignoredExportContactSources, outputStream)
+            } catch (e: Exception) {
+                showErrorToast(e)
+            }
+        }
+    }
+
+    private fun setupMaterialDesign3() {
+        binding.apply {
+            settingsMaterialDesign3.isChecked = config.materialDesign3
+            settingsMaterialDesign3Holder.setOnClickListener {
+                settingsMaterialDesign3.toggle()
+                config.materialDesign3 = settingsMaterialDesign3.isChecked
+                config.tabsChanged = true
+            }
+        }
+    }
+
+    private fun setupOverflowIcon() {
+        binding.apply {
+            settingsOverflowIcon.applyColorFilter(getProperTextColor())
+            settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
+            settingsOverflowIconHolder.setOnClickListener {
+                OverflowIconDialog(this@SettingsActivity) {
+                    settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
+                }
+            }
+        }
+    }
+
     private fun setupUseIconTabs() {
-        settings_use_icon_tabs.isChecked = config.useIconTabs
-        settings_use_icon_tabs_holder.setOnClickListener {
-            settings_use_icon_tabs.toggle()
-            config.useIconTabs = settings_use_icon_tabs.isChecked
-            config.tabsChanged = true
+        binding.apply {
+            settingsUseIconTabs.isChecked = config.useIconTabs
+            settingsUseIconTabsHolder.setOnClickListener {
+                settingsUseIconTabs.toggle()
+                config.useIconTabs = settingsUseIconTabs.isChecked
+                config.tabsChanged = true
+            }
         }
     }
 
     private fun setupShowDividers() {
-        settings_show_dividers.isChecked = config.useDividers
-        settings_show_dividers_holder.setOnClickListener {
-            settings_show_dividers.toggle()
-            config.useDividers = settings_show_dividers.isChecked
+        binding.apply {
+            settingsShowDividers.isChecked = config.useDividers
+            settingsShowDividersHolder.setOnClickListener {
+                settingsShowDividers.toggle()
+                config.useDividers = settingsShowDividers.isChecked
+            }
         }
     }
 
     private fun setupUseColoredContacts() {
-        settings_colored_contacts.isChecked = config.useColoredContacts
-        settings_colored_contacts_holder.setOnClickListener {
-            settings_colored_contacts.toggle()
-            config.useColoredContacts = settings_colored_contacts.isChecked
+        updateWrapperUseColoredContacts()
+        binding.apply {
+            settingsColoredContacts.isChecked = config.useColoredContacts
+            settingsColoredContactsHolder.setOnClickListener {
+                settingsColoredContacts.toggle()
+                config.useColoredContacts = settingsColoredContacts.isChecked
+                settingsContactColorListHolder.beVisibleIf(config.useColoredContacts)
+                updateWrapperUseColoredContacts()
+            }
+        }
+    }
+
+    private fun updateWrapperUseColoredContacts() {
+        val getBottomNavigationBackgroundColor = getBottomNavigationBackgroundColor()
+        val wrapperColor = if (config.useColoredContacts) getBottomNavigationBackgroundColor.lightenColor(4) else getBottomNavigationBackgroundColor
+        binding.settingsColoredContactsWrapper.background.applyColorFilter(wrapperColor)
+    }
+
+    private fun setupContactsColorList() {
+        binding.apply {
+            settingsContactColorListHolder.beVisibleIf(config.useColoredContacts)
+            settingsContactColorListIcon.setImageResource(getContactsColorListIcon(config.contactColorList))
+            settingsContactColorListHolder.setOnClickListener {
+                ColorListDialog(this@SettingsActivity) {
+                    config.contactColorList = it as Int
+                    settingsContactColorListIcon.setImageResource(getContactsColorListIcon(it))
+                }
+            }
         }
     }
 
     private fun setupTipJar() {
-        settings_tip_jar_holder.beVisibleIf(isProVersion() || config.isPro)
-        settings_tip_jar_chevron.applyColorFilter(getProperTextColor())
-        settings_tip_jar_holder.setOnClickListener {
-            launchPurchase()
+        binding.settingsTipJarHolder.apply {
+            beVisibleIf(isPro())
+            background.applyColorFilter(getBottomNavigationBackgroundColor().lightenColor(4))
+            setOnClickListener {
+                launchPurchase()
+            }
         }
     }
 
     private fun setupAbout() {
-        settings_about_chevron.applyColorFilter(getProperTextColor())
-        settings_about_version.text = "Version: " + BuildConfig.VERSION_NAME
-        settings_about_holder.setOnClickListener {
+        val version = "Version: " + BuildConfig.VERSION_NAME
+        binding.settingsAboutVersion.text = version
+        binding.settingsAboutHolder.setOnClickListener {
             launchAbout()
         }
     }
@@ -589,18 +765,37 @@ class SettingsActivity : SimpleActivity() {
 
         val faqItems = arrayListOf(
             FAQItem(R.string.faq_1_title, R.string.faq_1_text),
-            FAQItem(R.string.faq_2_title_commons, R.string.faq_2_text_commons_g),
-            //FAQItem(R.string.faq_6_title_commons, R.string.faq_6_text_commons),
-            FAQItem(R.string.faq_7_title_commons, R.string.faq_7_text_commons),
-            FAQItem(R.string.faq_9_title_commons, R.string.faq_9_text_commons)
+            FAQItem(com.goodwy.commons.R.string.faq_9_title_commons, com.goodwy.commons.R.string.faq_9_text_commons),
+            FAQItem(com.goodwy.commons.R.string.faq_100_title_commons_g, com.goodwy.commons.R.string.faq_100_text_commons_g),
+            FAQItem(com.goodwy.commons.R.string.faq_101_title_commons_g, com.goodwy.commons.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
+            FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.commons.R.string.faq_2_text_commons_g),
         )
 
-        startAboutActivity(R.string.app_name_g, licenses, BuildConfig.VERSION_NAME, faqItems, true,
-            BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3, playStoreInstalled = isPlayStoreInstalled())
+
+
+        startAboutActivity(
+            appNameId = R.string.app_name_g,
+            licenseMask = licenses,
+            versionName = BuildConfig.VERSION_NAME,
+            faqItems = faqItems,
+            showFAQBeforeMail = true,
+            licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
+            productIdX1 = productIdX1, productIdX2 = productIdX2, productIdX3 = productIdX3,
+            subscriptionIdX1 = subscriptionIdX1, subscriptionIdX2 = subscriptionIdX2, subscriptionIdX3 = subscriptionIdX3,
+            playStoreInstalled = isPlayStoreInstalled(),
+            ruStoreInstalled = isRuStoreInstalled()
+        )
     }
 
     private fun launchPurchase() {
-        startPurchaseActivity(R.string.app_name_g, BuildConfig.GOOGLE_PLAY_LICENSING_KEY, BuildConfig.PRODUCT_ID_X1, BuildConfig.PRODUCT_ID_X2, BuildConfig.PRODUCT_ID_X3, playStoreInstalled = isPlayStoreInstalled())
+        startPurchaseActivity(
+            R.string.app_name_g,
+            BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
+            productIdX1, productIdX2, productIdX3,
+            subscriptionIdX1, subscriptionIdX2, subscriptionIdX3,
+            playStoreInstalled = isPlayStoreInstalled(),
+            ruStoreInstalled = isRuStoreInstalled()
+        )
     }
 
     private fun openFAQ(faqItems: ArrayList<FAQItem>) {
@@ -609,6 +804,47 @@ class SettingsActivity : SimpleActivity() {
             putExtra(APP_LAUNCHER_NAME, getAppLauncherName())
             putExtra(APP_FAQ, faqItems)
             startActivity(this)
+        }
+    }
+
+    private fun updatePro(isPro: Boolean = isPro()) {
+        binding.apply {
+            settingsPurchaseThankYouHolder.beGoneIf(isPro)
+            settingsCustomizeColorsLabel.text = if (isPro) {
+                getString(com.goodwy.commons.R.string.customize_colors)
+            } else {
+                getString(com.goodwy.commons.R.string.customize_colors_locked)
+            }
+            settingsTipJarHolder.beVisibleIf(isPro)
+        }
+    }
+
+    private fun updateProducts() {
+        val productList: ArrayList<String> = arrayListOf(productIdX1, productIdX2, productIdX3, subscriptionIdX1, subscriptionIdX2, subscriptionIdX3)
+        ruStoreHelper.getProducts(productList)
+    }
+
+    private fun handleEventStart(event: StartPurchasesEvent) {
+        when (event) {
+            is StartPurchasesEvent.PurchasesAvailability -> {
+                when (event.availability) {
+                    is FeatureAvailabilityResult.Available -> {
+                        //Process purchases available
+                        updateProducts()
+                        ruStoreIsConnected = true
+                    }
+
+                    is FeatureAvailabilityResult.Unavailable -> {
+                        //toast(event.availability.cause.message ?: "Process purchases unavailable", Toast.LENGTH_LONG)
+                    }
+
+                    else -> {}
+                }
+            }
+
+            is StartPurchasesEvent.Error -> {
+                //toast(event.throwable.message ?: "Process unknown error", Toast.LENGTH_LONG)
+            }
         }
     }
 }

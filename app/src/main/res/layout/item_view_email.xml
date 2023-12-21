@@ -13,8 +13,8 @@
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/contact_padding_top"
         android:paddingBottom="@dimen/contact_padding_top"
-        android:paddingLeft="@dimen/contact_padding_left"
-        android:paddingRight="@dimen/contact_padding_left">
+        android:paddingLeft="@dimen/activity_margin"
+        android:paddingRight="@dimen/activity_margin">
 
         <com.goodwy.commons.views.MyTextView
             android:id="@+id/contact_email_type"
@@ -49,8 +49,8 @@
         android:id="@+id/divider_contact_email"
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:layout_marginStart="@dimen/contact_padding_left"
-        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:layout_marginStart="@dimen/activity_margin"
+        android:layout_marginEnd="@dimen/activity_margin"
         android:background="@drawable/divider_settings"
         android:alpha="0.2"
         android:layout_below="@+id/contact_holder"/>

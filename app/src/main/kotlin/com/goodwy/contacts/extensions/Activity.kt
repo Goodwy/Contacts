@@ -17,8 +17,11 @@ import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.EditContactActivity
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.activities.ViewContactActivity
+import com.goodwy.contacts.dialogs.ImportContactsDialog
 import com.goodwy.contacts.helpers.DEFAULT_FILE_NAME
 import com.goodwy.contacts.helpers.VcfExporter
+import ezvcard.VCardVersion
+import java.io.FileOutputStream
 
 fun SimpleActivity.startCallIntent(recipient: String) {
     handlePermission(PERMISSION_CALL_PHONE) {
@@ -34,8 +37,8 @@ fun SimpleActivity.tryStartCallRecommendation(contact: Contact) {
     val simpleDialer = "com.goodwy.dialer"
     val simpleDialerDebug = "com.goodwy.dialer.debug"
     if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleDialer) && !isPackageInstalled(simpleDialerDebug))) {
-        NewAppDialog(this, simpleDialer, getString(R.string.recommendation_dialog_dialer_g), getString(R.string.right_dialer),
-            AppCompatResources.getDrawable(this, R.mipmap.ic_dialer)) {
+        NewAppDialog(this, simpleDialer, getString(com.goodwy.commons.R.string.recommendation_dialog_dialer_g), getString(com.goodwy.commons.R.string.right_dialer),
+            AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_dialer)) {
             tryStartCall(contact)
         }
     } else {
@@ -46,31 +49,10 @@ fun SimpleActivity.tryStartCallRecommendation(contact: Contact) {
 fun SimpleActivity.tryStartCall(contact: Contact) {
     if (config.showCallConfirmation) {
         CallConfirmationDialog(this, contact.getNameToDisplay()) {
-            startCall(contact)
+            callContact(contact)
         }
     } else {
-        startCall(contact)
-    }
-}
-
-fun SimpleActivity.startCall(contact: Contact) {
-    val numbers = contact.phoneNumbers
-    if (numbers.size == 1) {
-        startCallIntent(numbers.first().value)
-    } else if (numbers.size > 1) {
-        val primaryNumber = contact.phoneNumbers.find { it.isPrimary }
-        if (primaryNumber != null) {
-            startCallIntent(primaryNumber.value)
-        } else {
-            val items = ArrayList<RadioItem>()
-            numbers.forEachIndexed { index, phoneNumber ->
-                items.add(RadioItem(index, "${phoneNumber.value} (${getPhoneNumberTypeText(phoneNumber.type, phoneNumber.label)})", phoneNumber.value))
-            }
-
-            RadioGroupDialog(this, items) {
-                startCallIntent(it as String)
-            }
-        }
+        callContact(contact)
     }
 }
 
@@ -105,12 +87,14 @@ fun BaseSimpleActivity.shareContacts(contacts: ArrayList<Contact>) {
 
     val file = getTempFile(filename)
     if (file == null) {
-        toast(R.string.unknown_error_occurred)
+        toast(com.goodwy.commons.R.string.unknown_error_occurred)
         return
     }
 
     getFileOutputStream(file.toFileDirItem(this), true) {
-        VcfExporter().exportContacts(this, it, contacts, false) {
+
+        // whatsApp does not support vCard version 4.0 yet
+        VcfExporter().exportContacts(this, it, contacts, false, version = VCardVersion.V3_0) {
             if (it == VcfExporter.ExportResult.EXPORT_OK) {
                 sharePathIntent(file.absolutePath, BuildConfig.APPLICATION_ID)
             } else {
@@ -131,9 +115,9 @@ fun SimpleActivity.handleGenericContactClick(contact: Contact) {
 fun SimpleActivity.callContact(contact: Contact) {
     hideKeyboard()
     if (contact.phoneNumbers.isNotEmpty()) {
-        tryStartCall(contact)
+        tryInitiateCall(contact) { startCallIntent(it) }
     } else {
-        toast(R.string.no_phone_number_found)
+        toast(com.goodwy.commons.R.string.no_phone_number_found)
     }
 }
 
@@ -153,4 +137,32 @@ fun Activity.editContact(contact: Contact) {
         putExtra(IS_PRIVATE, contact.isPrivate())
         startActivity(this)
     }
+}
+
+fun SimpleActivity.tryImportContactsFromFile(uri: Uri, callback: (Boolean) -> Unit) {
+    when (uri.scheme) {
+        "file" -> showImportContactsDialog(uri.path!!, callback)
+        "content" -> {
+            val tempFile = getTempFile()
+            if (tempFile == null) {
+                toast(com.goodwy.commons.R.string.unknown_error_occurred)
+                return
+            }
+
+            try {
+                val inputStream = contentResolver.openInputStream(uri)
+                val out = FileOutputStream(tempFile)
+                inputStream!!.copyTo(out)
+                showImportContactsDialog(tempFile.absolutePath, callback)
+            } catch (e: Exception) {
+                showErrorToast(e)
+            }
+        }
+
+        else -> toast(com.goodwy.commons.R.string.invalid_file_format)
+    }
+}
+
+fun SimpleActivity.showImportContactsDialog(path: String, callback: (Boolean) -> Unit) {
+    ImportContactsDialog(this, path, callback)
 }

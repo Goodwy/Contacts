@@ -6,8 +6,8 @@
     android:layout_height="wrap_content"
     android:paddingTop="@dimen/contact_padding_top"
     android:paddingBottom="@dimen/contact_padding_top"
-    android:paddingLeft="@dimen/contact_padding_left"
-    android:paddingRight="@dimen/contact_padding_left"
+    android:paddingLeft="@dimen/activity_margin"
+    android:paddingRight="@dimen/activity_margin"
     android:background="@drawable/ripple_all_corners">
 
     <com.goodwy.commons.views.MyTextView

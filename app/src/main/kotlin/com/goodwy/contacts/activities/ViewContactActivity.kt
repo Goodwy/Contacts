@@ -1,5 +1,6 @@
 package com.goodwy.contacts.activities
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.ContentUris
 import android.content.Intent
@@ -19,11 +20,8 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.FitCenter
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.signature.ObjectKey
 import com.goodwy.commons.dialogs.CallConfirmationDialog
 import com.goodwy.commons.dialogs.ConfirmationDialog
 import com.goodwy.commons.dialogs.SelectAlarmSoundDialog
@@ -32,24 +30,12 @@ import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.PhoneNumber
 import com.goodwy.commons.models.contacts.*
 import com.goodwy.contacts.R
+import com.goodwy.contacts.databinding.*
 import com.goodwy.contacts.dialogs.ChooseSocialDialog
 import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.*
-import kotlinx.android.synthetic.main.activity_view_contact.*
-import kotlinx.android.synthetic.main.item_view_address.view.*
-import kotlinx.android.synthetic.main.item_view_contact_source.view.*
-import kotlinx.android.synthetic.main.item_view_email.view.*
-import kotlinx.android.synthetic.main.item_view_event.view.*
-import kotlinx.android.synthetic.main.item_view_group.view.*
-import kotlinx.android.synthetic.main.item_view_header.view.*
-import kotlinx.android.synthetic.main.item_view_im.view.*
-import kotlinx.android.synthetic.main.item_view_messengers_actions.view.*
-import kotlinx.android.synthetic.main.item_view_note.view.*
-import kotlinx.android.synthetic.main.item_view_phone_number.view.*
-import kotlinx.android.synthetic.main.item_view_relation.view.*
-import kotlinx.android.synthetic.main.item_website.view.*
-import kotlinx.android.synthetic.main.top_view.*
+import java.util.Locale
 
 class ViewContactActivity : ContactActivity() {
     private var isViewIntent = false
@@ -60,33 +46,40 @@ class ViewContactActivity : ContactActivity() {
     private var fullContact: Contact? = null    // contact with all fields filled from duplicates
     private var duplicateInitialized = false
     private val mergeDuplicate: Boolean get() = config.mergeDuplicateContacts
+    private val binding by viewBinding(ActivityViewContactBinding::inflate)
     private val white = 0xFFFFFFFF.toInt()
     private val gray = 0xFFEBEBEB.toInt()
+    private var buttonBg = white
 
-    private val COMPARABLE_PHONE_NUMBER_LENGTH = 9
+    companion object {
+        private const val COMPARABLE_PHONE_NUMBER_LENGTH = 9
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         showTransparentTop = true
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_view_contact)
+        setContentView(binding.root)
 
         if (checkAppSideloading()) {
             return
         }
 
-        updateMaterialActivityViews(contact_wrapper, contact_holder, useTransparentNavigation = false, useTopSearchMenu = false)
+        updateMaterialActivityViews(binding.contactWrapper, binding.contactHolder, useTransparentNavigation = false, useTopSearchMenu = false)
         setWindowTransparency(true) { _, _, leftNavigationBarSize, rightNavigationBarSize ->
-            contact_wrapper.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
+            binding.contactWrapper.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
             updateNavigationBarColor(getProperBackgroundColor())
         }
 
         showFields = config.showContactFields
-        contact_wrapper.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        binding.contactWrapper.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         setupMenu()
+        initButton()
     }
 
     override fun onResume() {
         super.onResume()
+        buttonBg = if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) white else getBottomNavigationBackgroundColor()
+
         isViewIntent = intent.action == ContactsContract.QuickContact.ACTION_QUICK_CONTACT || intent.action == Intent.ACTION_VIEW
         if (isViewIntent) {
             handlePermission(PERMISSION_READ_CONTACTS) {
@@ -95,7 +88,7 @@ class ViewContactActivity : ContactActivity() {
                         initContact()
                     }
                 } else {
-                    toast(R.string.no_contacts_permission)
+                    toast(com.goodwy.commons.R.string.no_contacts_permission)
                     finish()
                 }
             }
@@ -107,61 +100,60 @@ class ViewContactActivity : ContactActivity() {
         updateColors()
     }
 
-    private fun updateColors(color: Int = getProperBackgroundColor()) {
-        val whiteButton = AppCompatResources.getDrawable(this, R.drawable.call_history_button_white)
+    private fun initButton() {
+        val properPrimaryColor = getProperPrimaryColor()
+
+        var drawableSMS = AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_messages)
+        drawableSMS = DrawableCompat.wrap(drawableSMS!!)
+        DrawableCompat.setTint(drawableSMS, properPrimaryColor)
+        DrawableCompat.setTintMode(drawableSMS, PorterDuff.Mode.SRC_IN)
+        binding.contactSendSms.setCompoundDrawablesWithIntrinsicBounds(null, drawableSMS, null, null)
+        binding.contactSendSms.setTextColor(properPrimaryColor)
+
+        var drawableCall = AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_phone_vector)
+        drawableCall = DrawableCompat.wrap(drawableCall!!)
+        DrawableCompat.setTint(drawableCall, properPrimaryColor)
+        DrawableCompat.setTintMode(drawableCall, PorterDuff.Mode.SRC_IN)
+        binding.contactStartCall.setCompoundDrawablesWithIntrinsicBounds(null, drawableCall, null, null)
+        binding.contactStartCall.setTextColor(properPrimaryColor)
+
+        var drawableVideoCall = AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_videocam_vector)
+        drawableVideoCall = DrawableCompat.wrap(drawableVideoCall!!)
+        DrawableCompat.setTint(drawableVideoCall, properPrimaryColor)
+        DrawableCompat.setTintMode(drawableVideoCall, PorterDuff.Mode.SRC_IN)
+        binding.contactVideoCall.setCompoundDrawablesWithIntrinsicBounds(null, drawableVideoCall, null, null)
+        binding.contactVideoCall.setTextColor(properPrimaryColor)
+
+        var drawableMail = AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_mail_vector)
+        drawableMail = DrawableCompat.wrap(drawableMail!!)
+        DrawableCompat.setTint(drawableMail, properPrimaryColor)
+        DrawableCompat.setTintMode(drawableMail, PorterDuff.Mode.SRC_IN)
+        binding.contactSendEmail.setCompoundDrawablesWithIntrinsicBounds(null, drawableMail, null, null)
+        binding.contactSendEmail.setTextColor(properPrimaryColor)
+    }
+
+    private fun updateColors() {
+        val properBackgroundColor = getProperBackgroundColor()
 
         if (baseConfig.backgroundColor == white) {
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(0xFFf2f2f6.toInt()))
-            window.decorView.setBackgroundColor(0xFFf2f2f6.toInt())
-            window.statusBarColor = 0xFFf2f2f6.toInt()
-            window.navigationBarColor = 0xFFf2f2f6.toInt()
-        } else window.decorView.setBackgroundColor(color)
+            val colorToWhite = 0xFFf2f2f6.toInt()
+            supportActionBar?.setBackgroundDrawable(ColorDrawable(colorToWhite))
+            window.decorView.setBackgroundColor(colorToWhite)
+            window.statusBarColor = colorToWhite
+            //window.navigationBarColor = colorToWhite
+        } else window.decorView.setBackgroundColor(properBackgroundColor)
 
-        if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-            contact_send_sms.background = whiteButton
-            contact_start_call.background = whiteButton
-            contact_video_call.background = whiteButton
-            contact_send_email.background = whiteButton
-            val paddingLeftRight = resources.getDimensionPixelOffset(R.dimen.small_margin)
-            val paddingTop = resources.getDimensionPixelOffset(R.dimen.ten_dpi)
-            val paddingBottom = resources.getDimensionPixelOffset(R.dimen.medium_margin)
-            contact_send_sms.setPadding(paddingLeftRight, paddingTop ,paddingLeftRight ,paddingBottom)
-            contact_start_call.setPadding(paddingLeftRight, paddingTop ,paddingLeftRight ,paddingBottom)
-            contact_video_call.setPadding(paddingLeftRight, paddingTop ,paddingLeftRight ,paddingBottom)
-            contact_send_email.setPadding(paddingLeftRight, paddingTop ,paddingLeftRight ,paddingBottom)
-        } else window.decorView.setBackgroundColor(color)
-
-        var drawableSMS = resources.getDrawable(R.drawable.ic_messages)
-        drawableSMS = DrawableCompat.wrap(drawableSMS!!)
-        DrawableCompat.setTint(drawableSMS, getProperPrimaryColor())
-        DrawableCompat.setTintMode(drawableSMS, PorterDuff.Mode.SRC_IN)
-        contact_send_sms.setCompoundDrawablesWithIntrinsicBounds(null, drawableSMS, null, null)
-        contact_send_sms.setTextColor(getProperPrimaryColor())
-
-        var drawableCall = resources.getDrawable(R.drawable.ic_phone_vector)
-        drawableCall = DrawableCompat.wrap(drawableCall!!)
-        DrawableCompat.setTint(drawableCall, getProperPrimaryColor())
-        DrawableCompat.setTintMode(drawableCall, PorterDuff.Mode.SRC_IN)
-        contact_start_call.setCompoundDrawablesWithIntrinsicBounds(null, drawableCall, null, null)
-        contact_start_call.setTextColor(getProperPrimaryColor())
-
-        var drawableVideoCall = resources.getDrawable(R.drawable.ic_videocam_vector)
-        drawableVideoCall = DrawableCompat.wrap(drawableVideoCall!!)
-        DrawableCompat.setTint(drawableVideoCall, getProperPrimaryColor())
-        DrawableCompat.setTintMode(drawableVideoCall, PorterDuff.Mode.SRC_IN)
-        contact_video_call.setCompoundDrawablesWithIntrinsicBounds(null, drawableVideoCall, null, null)
-        contact_video_call.setTextColor(getProperPrimaryColor())
-
-        var drawableMail = resources.getDrawable(R.drawable.ic_mail_vector)
-        drawableMail = DrawableCompat.wrap(drawableMail!!)
-        DrawableCompat.setTint(drawableMail, getProperPrimaryColor())
-        DrawableCompat.setTintMode(drawableMail, PorterDuff.Mode.SRC_IN)
-        contact_send_email.setCompoundDrawablesWithIntrinsicBounds(null, drawableMail, null, null)
-        contact_send_email.setTextColor(getProperPrimaryColor())
+        binding.apply {
+            arrayOf(
+                contactSendSms, contactStartCall, contactVideoCall, contactSendEmail,
+            ).forEach {
+                it.background.setTint(buttonBg)
+            }
+        }
     }
 
     override fun onBackPressed() {
-        if (contact_photo_big.alpha == 1f) {
+        if (binding.contactPhotoBig.alpha == 1f) {
             hideBigContactPhoto()
         } else {
             super.onBackPressed()
@@ -169,10 +161,13 @@ class ViewContactActivity : ContactActivity() {
     }
 
     private fun setupMenu() {
+        val contrastColor = getProperBackgroundColor().getContrastColor()
+        val primaryColor = getProperPrimaryColor()
+        val iconColor = if (baseConfig.topAppBarColorIcon) primaryColor else contrastColor
         //(contact_appbar.layoutParams as CoordinatorLayout.LayoutParams).topMargin = statusBarHeight
-        (contact_wrapper.layoutParams as FrameLayout.LayoutParams).topMargin = statusBarHeight
-        contact_toolbar.overflowIcon = resources.getColoredDrawableWithColor(R.drawable.ic_three_dots_vector, getProperBackgroundColor().getContrastColor())
-        contact_toolbar.menu.apply {
+        (binding.contactWrapper.layoutParams as FrameLayout.LayoutParams).topMargin = statusBarHeight
+        binding.contactToolbar.overflowIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_three_dots_vector, iconColor)
+        binding.contactToolbar.menu.apply {
             updateMenuItemColors(this)
             findItem(R.id.favorite).setOnMenuItemClickListener {
                 val newIsStarred = if (contact!!.starred == 1) 0 else 1
@@ -186,7 +181,7 @@ class ViewContactActivity : ContactActivity() {
                 }
                 contact!!.starred = newIsStarred
                 val favoriteIcon = getStarDrawable(contact!!.starred == 1)
-                favoriteIcon.setTint(getProperBackgroundColor().getContrastColor())
+                favoriteIcon.setTint(iconColor)
                 findItem(R.id.favorite).icon = favoriteIcon
                 true
             }
@@ -226,9 +221,8 @@ class ViewContactActivity : ContactActivity() {
             }
         }
 
-        val color = getProperBackgroundColor().getContrastColor()
-        contact_toolbar.setNavigationIconTint(color)
-        contact_toolbar.setNavigationOnClickListener {
+        binding.contactToolbar.setNavigationIconTint(iconColor)
+        binding.contactToolbar.setNavigationOnClickListener {
             finish()
         }
     }
@@ -270,7 +264,7 @@ class ViewContactActivity : ContactActivity() {
 
             if (contact == null) {
                 if (!wasEditLaunched) {
-                    toast(R.string.unknown_error_occurred)
+                    toast(com.goodwy.commons.R.string.unknown_error_occurred)
                 }
                 finish()
             } else {
@@ -294,12 +288,12 @@ class ViewContactActivity : ContactActivity() {
             return
         }
 
-        contact_scrollview.beVisible()
+        binding.contactScrollview.beVisible()
         setupViewContact()
 
         val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(contact!!.getNameToDisplay()))
         if (contact!!.photoUri.isEmpty() && contact!!.photo == null) {
-            contact_photo.setImageDrawable(placeholderImage)
+            binding.topDetails.contactPhoto.setImageDrawable(placeholderImage)
         } else {
             /*val options = RequestOptions()
                 .signature(ObjectKey(contact!!.getSignatureKey()))
@@ -319,7 +313,7 @@ class ViewContactActivity : ContactActivity() {
                 .apply(RequestOptions.circleCropTransform())
                 .into(contact_photo)*/
 
-            updateContactPhoto(contact!!.photoUri, contact_photo, contact_photo_bottom_shadow, contact!!.photo)
+            updateContactPhoto(contact!!.photoUri, binding.topDetails.contactPhoto, binding.contactPhotoBottomShadow, contact!!.photo)
             val optionsBig = RequestOptions()
                 //.transform(FitCenter(), RoundedCorners(resources.getDimension(R.dimen.normal_margin).toInt()))
                 .transform(FitCenter())
@@ -327,21 +321,21 @@ class ViewContactActivity : ContactActivity() {
             Glide.with(this)
                 .load(contact!!.photo ?: currentContactPhotoPath)
                 .apply(optionsBig)
-                .into(contact_photo_big)
+                .into(binding.contactPhotoBig)
 
-            contact_photo.setOnClickListener {
-                contact_photo_big.alpha = 0f
-                contact_photo_big.beVisible()
-                contact_photo_big.animate().alpha(1f).start()
+            binding.topDetails.contactPhoto.setOnClickListener {
+                binding.contactPhotoBig.alpha = 0f
+                binding.contactPhotoBig.beVisible()
+                binding.contactPhotoBig.animate().alpha(1f).start()
             }
 
-            contact_photo_big.setOnClickListener {
+            binding.contactPhotoBig.setOnClickListener {
                 hideBigContactPhoto()
             }
         }
 
-        updateTextColors(contact_scrollview)
-        contact_toolbar.menu.findItem(R.id.open_with).isVisible = contact?.isPrivate() == false
+        updateTextColors(binding.contactScrollview)
+        binding.contactToolbar.menu.findItem(R.id.open_with).isVisible = contact?.isPrivate() == false
     }
 
     private fun setupViewContact() {
@@ -381,7 +375,7 @@ class ViewContactActivity : ContactActivity() {
         setupNotes()
         setupRingtone()
         setupOrganization()
-        updateTextColors(contact_scrollview)
+        updateTextColors(binding.contactScrollview)
     }
 
     private fun launchEditContact(contact: Contact) {
@@ -398,11 +392,14 @@ class ViewContactActivity : ContactActivity() {
     }
 
     private fun setupFavorite() {
+        val contrastColor = getProperBackgroundColor().getContrastColor()
+        val primaryColor = getProperPrimaryColor()
+        val iconColor = if (baseConfig.topAppBarColorIcon) primaryColor else contrastColor
         val favoriteIcon = getStarDrawable(contact!!.starred == 1)
-        favoriteIcon.setTint(getProperBackgroundColor().getContrastColor())
-        contact_toolbar.menu.findItem(R.id.favorite).icon = favoriteIcon
+        favoriteIcon.setTint(iconColor)
+        binding.contactToolbar.menu.findItem(R.id.favorite).icon = favoriteIcon
 
-        contact_toggle_favorite.apply {
+        binding.contactToggleFavorite.apply {
             //beVisible()
             applyColorFilter(getProperTextColor())
             tag = contact!!.starred
@@ -436,10 +433,10 @@ class ViewContactActivity : ContactActivity() {
         val showNameFields = showFields and SHOW_PREFIX_FIELD != 0 || showFields and SHOW_FIRST_NAME_FIELD != 0 || showFields and SHOW_MIDDLE_NAME_FIELD != 0 ||
             showFields and SHOW_SURNAME_FIELD != 0 || showFields and SHOW_SUFFIX_FIELD != 0
 
-        contact_name.text = displayName
-        contact_name.setTextColor(getProperTextColor())
-        contact_name.copyOnLongClick(displayName)
-        contact_name.beVisibleIf(displayName.isNotEmpty() && !contact!!.isABusinessContact() && showNameFields)
+        binding.topDetails.contactName.text = displayName
+        binding.topDetails.contactName.setTextColor(getProperTextColor())
+        binding.topDetails.contactName.copyOnLongClick(displayName)
+        binding.topDetails.contactName.beVisibleIf(displayName.isNotEmpty() && !contact!!.isABusinessContact() && showNameFields)
 
         /*collapsingToolbar.setExpandedTitleColor(getProperTextColor())
         collapsingToolbar.setCollapsedTitleTextColor(getProperTextColor())
@@ -487,20 +484,20 @@ class ViewContactActivity : ContactActivity() {
 
         phoneNumbers = phoneNumbers.sortedBy { it.type }.toMutableSet() as LinkedHashSet<PhoneNumber>
         fullContact!!.phoneNumbers = phoneNumbers.toMutableList() as ArrayList<PhoneNumber>
-        contact_numbers_holder.removeAllViews()
+        binding.contactNumbersHolder.removeAllViews()
 
         if (phoneNumbers.isNotEmpty() && showFields and SHOW_PHONE_NUMBERS_FIELD != 0) {
             val isFirstItem = phoneNumbers.first()
             val isLastItem = phoneNumbers.last()
             phoneNumbers.forEach { phoneNumber ->
-                layoutInflater.inflate(R.layout.item_view_phone_number, contact_numbers_holder, false).apply {
+                ItemViewPhoneNumberBinding.inflate(layoutInflater, binding.contactNumbersHolder, false).apply {
 
-                    contact_numbers_holder.addView(this)
-                    contact_number.text = phoneNumber.value
-                    contact_number_type.text = getPhoneNumberTypeText(phoneNumber.type, phoneNumber.label)
-                    copyOnLongClick(phoneNumber.value)
+                    binding.contactNumbersHolder.addView(root)
+                    contactNumber.text = phoneNumber.value
+                    contactNumberType.text = getPhoneNumberTypeText(phoneNumber.type, phoneNumber.label)
+                    root.copyOnLongClick(phoneNumber.value)
 
-                    setOnClickListener {
+                    root.setOnClickListener {
                         if (config.showCallConfirmation) {
                             CallConfirmationDialog(this@ViewContactActivity, phoneNumber.value) {
                                 startCallIntent(phoneNumber.value)
@@ -510,30 +507,27 @@ class ViewContactActivity : ContactActivity() {
                         }
                     }
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_numbers_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_numbers_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactNumbersHolder.background .setTint(buttonBg)
 
-                    contact_number_holder.default_toggle_icon.isVisible = phoneNumber.isPrimary
-                    contact_number_holder.default_toggle_icon.setColorFilter(getProperTextColor())
-                    contact_number_holder.contact_number_icon.isVisible = isFirstItem == phoneNumber
-                    contact_number_holder.contact_number_icon.setColorFilter(getProperTextColor())
-                    contact_number_holder.divider_phone_number.setBackgroundColor(getProperTextColor())
-                    contact_number_holder.divider_phone_number.isGone = isLastItem == phoneNumber
-                    contact_number_holder.contact_number.setTextColor(getProperPrimaryColor())
+                    val getProperTextColor = getProperTextColor()
+                    defaultToggleIcon.isVisible = phoneNumber.isPrimary
+                    defaultToggleIcon.setColorFilter(getProperTextColor)
+                    contactNumberIcon.isVisible = isFirstItem == phoneNumber
+                    contactNumberIcon.setColorFilter(getProperTextColor)
+                    dividerPhoneNumber.setBackgroundColor(getProperTextColor)
+                    dividerPhoneNumber.isGone = isLastItem == phoneNumber
+                    contactNumber.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_numbers_holder.beVisible()
+            binding.contactNumbersHolder.beVisible()
         } else {
-            contact_numbers_holder.beGone()
+            binding.contactNumbersHolder.beGone()
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupMessengersActions() {
-        contact_messengers_actions_holder.removeAllViews()
+        binding.contactMessengersActionsHolder.removeAllViews()
         if (showFields and SHOW_MESSENGERS_ACTIONS_FIELD != 0) {
             var sources = HashMap<Contact, String>()
             sources[contact!!] = getPublicContactSourceSync(contact!!.source, contactSources)
@@ -545,213 +539,239 @@ class ViewContactActivity : ContactActivity() {
             }
 
             if (sources.size > 1) {
-                sources = sources.toList().sortedBy { (key, value) -> value.toLowerCase() }.toMap() as LinkedHashMap<Contact, String>
+                sources = sources.toList().sortedBy { (key, value) -> value.lowercase(Locale.getDefault()) }.toMap() as LinkedHashMap<Contact, String>
             }
 
             for ((key, value) in sources) {
                 val isLastItem = sources.keys.last()
-                layoutInflater.inflate(R.layout.item_view_messengers_actions, contact_messengers_actions_holder, false).apply {
-                    contact_messenger_action_name.text = if (value == "") getString(R.string.phone_storage) else value
-                    contact_messenger_action_account.text = " (ID:" + key.source + ")"
-                    contact_messenger_action_holder.setOnClickListener {
-                        if (contact_messenger_action_account.isVisible()) contact_messenger_action_account.beGone()
-                        else contact_messenger_action_account.beVisible()
+                ItemViewMessengersActionsBinding.inflate(layoutInflater, binding.contactMessengersActionsHolder, false).apply {
+                    contactMessengerActionName.text = if (value == "") getString(R.string.phone_storage) else value
+                    contactMessengerActionAccount.text = " (ID:" + key.source + ")"
+                    contactMessengerActionHolder.setOnClickListener {
+                        if (contactMessengerActionAccount.isVisible()) contactMessengerActionAccount.beGone()
+                        else contactMessengerActionAccount.beVisible()
                     }
-                    contact_messenger_action_number.setTextColor(getProperPrimaryColor())
-                    contact_messengers_actions_holder.addView(this)
+                    val getProperPrimaryColor = getProperPrimaryColor()
+                    val getProperTextColor = getProperTextColor()
+                    contactMessengerActionName.setTextColor(getProperPrimaryColor)
+                    contactMessengerActionNumber.setTextColor(getProperPrimaryColor)
+                    binding.contactMessengersActionsHolder.addView(root)
+                    binding.contactMessengersActionsHolder.background .setTint(buttonBg)
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_messengers_actions_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_messengers_actions_holder.setPadding(padding, padding ,padding ,padding)
+                    arrayOf(
+                        contactMessengerActionMessageIcon, contactMessengerActionCallIcon, contactMessengerActionVideoIcon,
+                    ).forEach {
+                        it.background.setTint(getProperTextColor)
+                        it.background.alpha = 40
+                        it.setColorFilter(getProperPrimaryColor)
                     }
 
-                    contact_messenger_action_message_icon.background.setTint(getProperTextColor())
-                    contact_messenger_action_message_icon.background.alpha = 40
-                    contact_messenger_action_message_icon.setColorFilter(getProperPrimaryColor())
-                    contact_messenger_action_call_icon.background.setTint(getProperTextColor())
-                    contact_messenger_action_call_icon.background.alpha = 40
-                    contact_messenger_action_call_icon.setColorFilter(getProperPrimaryColor())
-                    contact_messenger_action_video_icon.background.setTint(getProperTextColor())
-                    contact_messenger_action_video_icon.background.alpha = 40
-                    contact_messenger_action_video_icon.setColorFilter(getProperPrimaryColor())
-                    contact_messenger_action_holder.divider_contact_messenger_action.setBackgroundColor(getProperTextColor())
-                    contact_messenger_action_holder.divider_contact_messenger_action.isGone = isLastItem == key
+                    dividerContactMessengerAction.setBackgroundColor(getProperTextColor)
+                    dividerContactMessengerAction.beGoneIf(isLastItem == key)
 
-                    if (value.toLowerCase() == WHATSAPP) {
+                    if (value.lowercase(Locale.getDefault()) == WHATSAPP) {
                         val actions = getSocialActions(key.id)
                         if (actions.firstOrNull() != null) {
                             val plus = if (actions.firstOrNull()!!.label.contains("+", ignoreCase = true)) "+" else ""
                             val number = plus + actions.firstOrNull()!!.label.filter { it.isDigit() }
-                            contact_messenger_action_number.text = number
-                            copyOnLongClick(number)
-                            contact_messengers_actions_holder.beVisible()
-                            contact_messenger_action_holder.beVisible()
+                            contactMessengerActionNumber.text = number
+                            root.copyOnLongClick(number)
+                            binding.contactMessengersActionsHolder.beVisible()
+                            contactMessengerActionHolder.beVisible()
                             val callActions = actions.filter { it.type == 0 } as ArrayList<SocialAction>
                             val videoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
                             val messageActions = actions.filter { it.type == 2 } as ArrayList<SocialAction>
-                            if (messageActions.isNotEmpty()) contact_messenger_action_message.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(messageActions)
+                            if (messageActions.isNotEmpty()) {
+                                contactMessengerActionMessage.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(messageActions)
+                                    }
                                 }
                             }
-                            if (callActions.isNotEmpty()) contact_messenger_action_call.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(callActions)
+                            if (callActions.isNotEmpty()) {
+                                contactMessengerActionCall.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(callActions)
+                                    }
                                 }
                             }
-                            if (videoActions.isNotEmpty()) contact_messenger_action_video.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(videoActions)
+                            if (videoActions.isNotEmpty()) {
+                                contactMessengerActionVideo.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(videoActions)
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (value.toLowerCase() == SIGNAL) {
+                    if (value.lowercase(Locale.getDefault()) == SIGNAL) {
                         val actions = getSocialActions(key.id)
                         if (actions.firstOrNull() != null) {
                             val plus = if (actions.firstOrNull()!!.label.contains("+", ignoreCase = true)) "+" else ""
                             val number = plus + actions.firstOrNull()!!.label.filter { it.isDigit() }
-                            contact_messenger_action_number.text = number
-                            copyOnLongClick(number)
-                            contact_messengers_actions_holder.beVisible()
-                            contact_messenger_action_holder.beVisible() //hide not messengers
+                            contactMessengerActionNumber.text = number
+                            root.copyOnLongClick(number)
+                            binding.contactMessengersActionsHolder.beVisible()
+                            contactMessengerActionHolder.beVisible() //hide not messengers
                             val callActions = actions.filter { it.type == 0 } as ArrayList<SocialAction>
                             val videoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
                             val messageActions = actions.filter { it.type == 2 } as ArrayList<SocialAction>
-                            if (messageActions.isNotEmpty()) contact_messenger_action_message.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(messageActions)
+                            if (messageActions.isNotEmpty()) {
+                                contactMessengerActionMessage.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(messageActions)
+                                    }
                                 }
                             }
-                            if (callActions.isNotEmpty()) contact_messenger_action_call.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(callActions)
+                            if (callActions.isNotEmpty()) {
+                                contactMessengerActionCall.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(callActions)
+                                    }
                                 }
                             }
-                            if (videoActions.isNotEmpty()) contact_messenger_action_video.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(videoActions)
+                            if (videoActions.isNotEmpty()) {
+                                contactMessengerActionVideo.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(videoActions)
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (value.toLowerCase() == VIBER) {
+                    if (value.lowercase(Locale.getDefault()) == VIBER) {
                         val actions = getSocialActions(key.id)
                         if (actions.firstOrNull() != null) {
                             val plus = if (actions.firstOrNull()!!.label.contains("+", ignoreCase = true)) "+" else ""
                             val number = plus + actions.firstOrNull()!!.label.filter { it.isDigit() }
-                            contact_messenger_action_number.text = number
-                            copyOnLongClick(number)
-                            contact_messengers_actions_holder.beVisible()
-                            contact_messenger_action_holder.beVisible()
+                            contactMessengerActionNumber.text = number
+                            root.copyOnLongClick(number)
+                            binding.contactMessengersActionsHolder.beVisible()
+                            contactMessengerActionHolder.beVisible()
                             val callActions = actions.filter { it.type == 0 } as ArrayList<SocialAction>
                             val videoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
                             val messageActions = actions.filter { it.type == 2 } as ArrayList<SocialAction>
-                            contact_messenger_action_number.beGoneIf(contact!!.phoneNumbers.size > 1 && messageActions.isEmpty())
-                            if (messageActions.isNotEmpty()) contact_messenger_action_message.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(messageActions)
+                            contactMessengerActionNumber.beGoneIf(contact!!.phoneNumbers.size > 1 && messageActions.isEmpty())
+                            if (messageActions.isNotEmpty()) {
+                                contactMessengerActionMessage.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(messageActions)
+                                    }
                                 }
                             }
-                            if (callActions.isNotEmpty()) contact_messenger_action_call.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(callActions)
+                            if (callActions.isNotEmpty()) {
+                                contactMessengerActionCall.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(callActions)
+                                    }
                                 }
                             }
-                            if (videoActions.isNotEmpty()) contact_messenger_action_video.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(videoActions)
+                            if (videoActions.isNotEmpty()) {
+                                contactMessengerActionVideo.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(videoActions)
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (value.toLowerCase() == TELEGRAM) {
+                    if (value.lowercase(Locale.getDefault()) == TELEGRAM) {
                         val actions = getSocialActions(key.id)
                         if (actions.firstOrNull() != null) {
                             val plus = if (actions.firstOrNull()!!.label.contains("+", ignoreCase = true)) "+" else ""
                             val number = plus + actions.firstOrNull()!!.label.filter { it.isDigit() }
-                            contact_messenger_action_number.text = number
-                            copyOnLongClick(number)
-                            contact_messengers_actions_holder.beVisible()
-                            contact_messenger_action_holder.beVisible()
+                            contactMessengerActionNumber.text = number
+                            root.copyOnLongClick(number)
+                            binding.contactMessengersActionsHolder.beVisible()
+                            contactMessengerActionHolder.beVisible()
                             val callActions = actions.filter { it.type == 0 } as ArrayList<SocialAction>
                             val videoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
                             val messageActions = actions.filter { it.type == 2 } as ArrayList<SocialAction>
-                            if (messageActions.isNotEmpty()) contact_messenger_action_message.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    //startMessengerAction(messageActions)
-                                    showMessengerAction(messageActions)
+                            if (messageActions.isNotEmpty()) {
+                                contactMessengerActionMessage.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        //startMessengerAction(messageActions)
+                                        showMessengerAction(messageActions)
+                                    }
                                 }
                             }
-                            if (callActions.isNotEmpty()) contact_messenger_action_call.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    //startMessengerAction(callActions)
-                                    showMessengerAction(callActions)
+                            if (callActions.isNotEmpty()) {
+                                contactMessengerActionCall.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        //startMessengerAction(callActions)
+                                        showMessengerAction(callActions)
+                                    }
                                 }
                             }
-                            if (videoActions.isNotEmpty()) contact_messenger_action_video.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    //startMessengerAction(videoActions)
-                                    showMessengerAction(videoActions)
+                            if (videoActions.isNotEmpty()) {
+                                contactMessengerActionVideo.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        //startMessengerAction(videoActions)
+                                        showMessengerAction(videoActions)
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (value.toLowerCase() == THREEMA) {
+                    if (value.lowercase(Locale.getDefault()) == THREEMA) {
                         val actions = getSocialActions(key.id)
                         if (actions.firstOrNull() != null) {
                             val plus = if (actions.firstOrNull()!!.label.contains("+", ignoreCase = true)) "+" else ""
                             val number = plus + actions.firstOrNull()!!.label.filter { it.isDigit() }
-                            contact_messenger_action_number.text = number
-                            copyOnLongClick(number)
-                            contact_messengers_actions_holder.beVisible()
-                            contact_messenger_action_holder.beVisible()
+                            contactMessengerActionNumber.text = number
+                            root.copyOnLongClick(number)
+                            binding.contactMessengersActionsHolder.beVisible()
+                            contactMessengerActionHolder.beVisible()
                             val callActions = actions.filter { it.type == 0 } as ArrayList<SocialAction>
                             val videoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
                             val messageActions = actions.filter { it.type == 2 } as ArrayList<SocialAction>
-                            if (messageActions.isNotEmpty()) contact_messenger_action_message.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(messageActions)
+                            if (messageActions.isNotEmpty()) {
+                                contactMessengerActionMessage.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(messageActions)
+                                    }
                                 }
                             }
-                            if (callActions.isNotEmpty()) contact_messenger_action_call.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(callActions)
+                            if (callActions.isNotEmpty()) {
+                                contactMessengerActionCall.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(callActions)
+                                    }
                                 }
                             }
-                            if (videoActions.isNotEmpty()) contact_messenger_action_video.apply {
-                                beVisible()
-                                setOnClickListener {
-                                    showMessengerAction(videoActions)
+                            if (videoActions.isNotEmpty()) {
+                                contactMessengerActionVideo.apply {
+                                    beVisible()
+                                    setOnClickListener {
+                                        showMessengerAction(videoActions)
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            //contact_messengers_actions_holder.beVisible()
+            //binding.contactMessengersActionsHolder.beVisible()
         } else {
-            contact_messengers_actions_holder.beGone()
+            binding.contactMessengersActionsHolder.beGone()
         }
     }
 
@@ -766,13 +786,13 @@ class ViewContactActivity : ContactActivity() {
         }
 
         if (sources.size > 1) {
-            sources = sources.toList().sortedBy { (key, value) -> value.toLowerCase() }.toMap() as LinkedHashMap<Contact, String>
+            sources = sources.toList().sortedBy { (key, value) -> value.lowercase(Locale.getDefault()) }.toMap() as LinkedHashMap<Contact, String>
         }
 
         val videoActions = arrayListOf<SocialAction>()
         for ((key, value) in sources) {
 
-            if (value.toLowerCase() == WHATSAPP) {
+            if (value.lowercase(Locale.getDefault()) == WHATSAPP) {
                 val actions = getSocialActions(key.id)
                 if (actions.firstOrNull() != null) {
                     val whatsappVideoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
@@ -780,7 +800,7 @@ class ViewContactActivity : ContactActivity() {
                 }
             }
 
-            if (value.toLowerCase() == SIGNAL) {
+            if (value.lowercase(Locale.getDefault()) == SIGNAL) {
                 val actions = getSocialActions(key.id)
                 if (actions.firstOrNull() != null) {
                     val signalVideoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
@@ -788,7 +808,7 @@ class ViewContactActivity : ContactActivity() {
                 }
             }
 
-            if (value.toLowerCase() == VIBER) {
+            if (value.lowercase(Locale.getDefault()) == VIBER) {
                 val actions = getSocialActions(key.id)
                 if (actions.firstOrNull() != null) {
                     val viberVideoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
@@ -796,7 +816,7 @@ class ViewContactActivity : ContactActivity() {
                 }
             }
 
-            if (value.toLowerCase() == TELEGRAM) {
+            if (value.lowercase(Locale.getDefault()) == TELEGRAM) {
                 val actions = getSocialActions(key.id)
                 if (actions.firstOrNull() != null) {
                     val telegramVideoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
@@ -804,7 +824,7 @@ class ViewContactActivity : ContactActivity() {
                 }
             }
 
-            if (value.toLowerCase() == THREEMA) {
+            if (value.lowercase(Locale.getDefault()) == THREEMA) {
                 val actions = getSocialActions(key.id)
                 if (actions.firstOrNull() != null) {
                     val threemaVideoActions = actions.filter { it.type == 1 } as ArrayList<SocialAction>
@@ -813,67 +833,58 @@ class ViewContactActivity : ContactActivity() {
             }
         }
 
-        //contact_send_sms.isEnabled = contact!!.phoneNumbers.isNotEmpty()
-        contact_send_sms.alpha = if (contact!!.phoneNumbers.isNotEmpty()) 1f else 0.5f
-        //contact_start_call.isEnabled = contact!!.phoneNumbers.isNotEmpty()
-        contact_start_call.alpha = if (contact!!.phoneNumbers.isNotEmpty()) 1f else 0.5f
-        //contact_video_call.isEnabled = videoActions.isNotEmpty()
-        contact_video_call.alpha = if (videoActions.isNotEmpty()) 1f else 0.5f
-        //contact_send_email.isEnabled = contact!!.emails.isNotEmpty()
-        contact_send_email.alpha = if (contact!!.emails.isNotEmpty()) 1f else 0.5f
+        binding.contactSendSms.alpha = if (contact!!.phoneNumbers.isNotEmpty()) 1f else 0.5f
+        binding.contactStartCall.alpha = if (contact!!.phoneNumbers.isNotEmpty()) 1f else 0.5f
+        binding.contactVideoCall.alpha = if (videoActions.isNotEmpty()) 1f else 0.5f
+        binding.contactSendEmail.alpha = if (contact!!.emails.isNotEmpty()) 1f else 0.5f
 
-        if (contact!!.phoneNumbers.isNotEmpty()) contact_send_sms.setOnClickListener { trySendSMSRecommendation() }
-        if (contact!!.phoneNumbers.isNotEmpty()) contact_start_call.setOnClickListener { tryStartCallRecommendation(contact!!) }
-        if (videoActions.isNotEmpty()) contact_video_call.setOnClickListener { showVideoCallAction(videoActions) }
-        if (contact!!.emails.isNotEmpty()) contact_send_email.setOnClickListener { trySendEmail() }
+        if (contact!!.phoneNumbers.isNotEmpty()) binding.contactSendSms.setOnClickListener { trySendSMSRecommendation() }
+        if (contact!!.phoneNumbers.isNotEmpty()) binding.contactStartCall.setOnClickListener { tryStartCallRecommendation(contact!!) }
+        if (videoActions.isNotEmpty()) binding.contactVideoCall.setOnClickListener { showVideoCallAction(videoActions) }
+        if (contact!!.emails.isNotEmpty()) binding.contactSendEmail.setOnClickListener { trySendEmail() }
 
-        contact_send_sms.setOnLongClickListener { toast(R.string.send_sms); true; }
-        contact_start_call.setOnLongClickListener { toast(R.string.call_contact); true; }
-        contact_video_call.setOnLongClickListener { toast(R.string.video_call); true; }
-        contact_send_email.setOnLongClickListener { toast(R.string.send_email); true; }
+        binding.contactSendSms.setOnLongClickListener { toast(com.goodwy.commons.R.string.send_sms); true; }
+        binding.contactStartCall.setOnLongClickListener { toast(R.string.call_contact); true; }
+        binding.contactVideoCall.setOnLongClickListener { toast(com.goodwy.commons.R.string.video_call); true; }
+        binding.contactSendEmail.setOnLongClickListener { toast(com.goodwy.commons.R.string.send_email); true; }
     }
 
     // a contact cannot have different emails per contact source. Such contacts are handled as separate ones, not duplicates of each other
     private fun setupEmails() {
-        contact_emails_holder.removeAllViews()
+        binding.contactEmailsHolder.removeAllViews()
         val emails = contact!!.emails
         if (emails.isNotEmpty() && showFields and SHOW_EMAILS_FIELD != 0) {
             val isFirstItem = emails.first()
             val isLastItem = emails.last()
             emails.forEach {
-                layoutInflater.inflate(R.layout.item_view_email, contact_emails_holder, false).apply {
+                ItemViewEmailBinding.inflate(layoutInflater, binding.contactEmailsHolder, false).apply {
                     val email = it
-                    contact_emails_holder.addView(this)
-                    contact_email.text = email.value
-                    contact_email_type.text = getEmailTypeText(email.type, email.label)
-                    copyOnLongClick(email.value)
+                    binding.contactEmailsHolder.addView(root)
+                    contactEmail.text = email.value
+                    contactEmailType.text = getEmailTypeText(email.type, email.label)
+                    root.copyOnLongClick(email.value)
 
-                    setOnClickListener {
+                    root.setOnClickListener {
                         sendEmailIntent(email.value)
                     }
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_emails_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_emails_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactEmailsHolder.background .setTint(buttonBg)
 
-                    contact_email_holder.contact_email_icon.isVisible = isFirstItem == email
-                    contact_email_holder.contact_email_icon.setColorFilter(getProperTextColor())
-                    contact_email_holder.divider_contact_email.setBackgroundColor(getProperTextColor())
-                    contact_email_holder.divider_contact_email.isGone = isLastItem == email
-                    contact_email_holder.contact_email.setTextColor(getProperPrimaryColor())
+                    contactEmailIcon.isVisible = isFirstItem == email
+                    contactEmailIcon.setColorFilter(getProperTextColor())
+                    dividerContactEmail.setBackgroundColor(getProperTextColor())
+                    dividerContactEmail.isGone = isLastItem == email
+                    contactEmail.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_emails_holder.beVisible()
+            binding.contactEmailsHolder.beVisible()
         } else {
-            contact_emails_holder.beGone()
+            binding.contactEmailsHolder.beGone()
         }
     }
 
     private fun setupRelations() {
-        var relations: ArrayList<ContactRelation> = contact!!.relations
+        val relations: ArrayList<ContactRelation> = contact!!.relations
 
         if (mergeDuplicate) {
             duplicateContacts.forEach {
@@ -884,36 +895,31 @@ class ViewContactActivity : ContactActivity() {
         relations.sortBy { it.type }
         fullContact!!.relations = relations
 
-        contact_relations_holder.removeAllViews()
+        binding.contactRelationsHolder.removeAllViews()
 
         if (relations.isNotEmpty() && showFields and SHOW_RELATIONS_FIELD != 0) {
             val isFirstItem = relations.first()
             val isLastItem = relations.last()
             relations.forEach {
-                layoutInflater.inflate(R.layout.item_view_relation, contact_relations_holder, false).apply {
+                ItemViewRelationBinding.inflate(layoutInflater, binding.contactRelationsHolder, false).apply {
                     val relation = it
-                    contact_relations_holder.addView(this)
-                    contact_relation.text = relation.name
-                    contact_relation_type.text = getRelationTypeText(relation.type, relation.label)
-                    copyOnLongClick(relation.name)
+                    binding.contactRelationsHolder.addView(root)
+                    contactRelation.text = relation.name
+                    contactRelationType.text = getRelationTypeText(relation.type, relation.label)
+                    root.copyOnLongClick(relation.name)
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_relations_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_relations_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactRelationsHolder.background .setTint(buttonBg)
 
-                    contact_relation_holder.contact_relation_icon.isVisible = isFirstItem == relation
-                    contact_relation_holder.contact_relation_icon.setColorFilter(getProperTextColor())
-                    contact_relation_holder.divider_contact_relation.setBackgroundColor(getProperTextColor())
-                    contact_relation_holder.divider_contact_relation.isGone = isLastItem == relation
-                    contact_relation_holder.contact_relation.setTextColor(getProperPrimaryColor())
+                    contactRelationIcon.isVisible = isFirstItem == relation
+                    contactRelationIcon.setColorFilter(getProperTextColor())
+                    dividerContactRelation.setBackgroundColor(getProperTextColor())
+                    dividerContactRelation.isGone = isLastItem == relation
+                    contactRelation.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_relations_holder.beVisible()
+            binding.contactRelationsHolder.beVisible()
         } else {
-            contact_relations_holder.beGone()
+            binding.contactRelationsHolder.beGone()
         }
     }
 
@@ -928,40 +934,36 @@ class ViewContactActivity : ContactActivity() {
 
         addresses = addresses.sortedBy { it.type }.toMutableSet() as LinkedHashSet<Address>
         fullContact!!.addresses = addresses.toMutableList() as ArrayList<Address>
-        contact_addresses_holder.removeAllViews()
+        binding.contactAddressesHolder.removeAllViews()
 
         if (addresses.isNotEmpty() && showFields and SHOW_ADDRESSES_FIELD != 0) {
             val isFirstItem = addresses.first()
             val isLastItem = addresses.last()
             addresses.forEach {
-                layoutInflater.inflate(R.layout.item_view_address, contact_addresses_holder, false).apply {
+                ItemViewAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false).apply {
                     val address = it
-                    contact_addresses_holder.addView(this)
-                    contact_address.text = address.value
-                    contact_address_type.text = getAddressTypeText(address.type, address.label)
-                    copyOnLongClick(address.value)
+                    binding.contactAddressesHolder.addView(root)
+                    contactAddress.text = address.value
+                    contactAddressType.text = getAddressTypeText(address.type, address.label)
+                    root.copyOnLongClick(address.value)
 
-                    setOnClickListener {
+                    root.setOnClickListener {
                         sendAddressIntent(address.value)
                     }
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_addresses_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_addresses_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactAddressesHolder.background .setTint(buttonBg)
 
-                    contact_address_holder.contact_address_icon.isVisible = isFirstItem == address
-                    contact_address_holder.contact_address_icon.setColorFilter(getProperTextColor())
-                    contact_address_holder.divider_contact_address.setBackgroundColor(getProperTextColor())
-                    contact_address_holder.divider_contact_address.isGone = isLastItem == address
-                    contact_address_holder.contact_address.setTextColor(getProperPrimaryColor())
+                    val getProperTextColor = getProperTextColor()
+                    contactAddressIcon.isVisible = isFirstItem == address
+                    contactAddressIcon.setColorFilter(getProperTextColor)
+                    dividerContactAddress.setBackgroundColor(getProperTextColor)
+                    dividerContactAddress.isGone = isLastItem == address
+                    contactAddress.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_addresses_holder.beVisible()
+            binding.contactAddressesHolder.beVisible()
         } else {
-            contact_addresses_holder.beGone()
+            binding.contactAddressesHolder.beGone()
         }
     }
 
@@ -976,36 +978,31 @@ class ViewContactActivity : ContactActivity() {
 
         IMs = IMs.sortedBy { it.type }.toMutableSet() as LinkedHashSet<IM>
         fullContact!!.IMs = IMs.toMutableList() as ArrayList<IM>
-        contact_ims_holder.removeAllViews()
+        binding.contactImsHolder.removeAllViews()
 
         if (IMs.isNotEmpty() && showFields and SHOW_IMS_FIELD != 0) {
             val isFirstItem = IMs.first()
             val isLastItem = IMs.last()
             IMs.forEach {
-                layoutInflater.inflate(R.layout.item_view_im, contact_ims_holder, false).apply {
+                ItemViewImBinding.inflate(layoutInflater, binding.contactImsHolder, false).apply {
                     val IM = it
-                    contact_ims_holder.addView(this)
-                    contact_im.text = IM.value
-                    contact_im_type.text = getIMTypeText(IM.type, IM.label)
-                    copyOnLongClick(IM.value)
+                    binding.contactImsHolder.addView(root)
+                    contactIm.text = IM.value
+                    contactImType.text = getIMTypeText(IM.type, IM.label)
+                    root.copyOnLongClick(IM.value)
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_ims_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_ims_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactImsHolder.background .setTint(buttonBg)
 
-                    contact_im_holder.contact_im_icon.isVisible = isFirstItem == IM
-                    contact_im_holder.contact_im_icon.setColorFilter(getProperTextColor())
-                    contact_im_holder.divider_contact_im.setBackgroundColor(getProperTextColor())
-                    contact_im_holder.divider_contact_im.isGone = isLastItem == IM
-                    contact_im_holder.contact_im.setTextColor(getProperPrimaryColor())
+                    contactImIcon.isVisible = isFirstItem == IM
+                    contactImIcon.setColorFilter(getProperTextColor())
+                    dividerContactIm.setBackgroundColor(getProperTextColor())
+                    dividerContactIm.isGone = isLastItem == IM
+                    contactIm.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_ims_holder.beVisible()
+            binding.contactImsHolder.beVisible()
         } else {
-            contact_ims_holder.beGone()
+            binding.contactImsHolder.beGone()
         }
     }
 
@@ -1020,36 +1017,30 @@ class ViewContactActivity : ContactActivity() {
 
         events = events.sortedBy { it.type }.toMutableSet() as LinkedHashSet<Event>
         fullContact!!.events = events.toMutableList() as ArrayList<Event>
-        contact_events_holder.removeAllViews()
+        binding.contactEventsHolder.removeAllViews()
 
         if (events.isNotEmpty() && showFields and SHOW_EVENTS_FIELD != 0) {
             val isFirstItem = events.first()
             val isLastItem = events.last()
             events.forEach {
-                layoutInflater.inflate(R.layout.item_view_event, contact_events_holder, false).apply {
-                    val event = it
-                    contact_events_holder.addView(this)
-                    it.value.getDateTimeFromDateString(true, contact_event)
-                    contact_event_type.setText(getEventTextId(it.type))
-                    copyOnLongClick(it.value)
+                ItemViewEventBinding.inflate(layoutInflater, binding.contactEventsHolder, false).apply {
+                    binding.contactEventsHolder.addView(root)
+                    it.value.getDateTimeFromDateString(true, contactEvent)
+                    contactEventType.setText(getEventTextId(it.type))
+                    root.copyOnLongClick(it.value)
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_events_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_events_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactEventsHolder.background .setTint(buttonBg)
 
-                    contact_event_holder.contact_event_icon.isVisible = isFirstItem == event
-                    contact_event_holder.contact_event_icon.setColorFilter(getProperTextColor())
-                    contact_event_holder.divider_contact_event.setBackgroundColor(getProperTextColor())
-                    contact_event_holder.divider_contact_event.isGone = isLastItem == event
-                    contact_event_holder.contact_event.setTextColor(getProperPrimaryColor())
+                    contactEventIcon.isVisible = isFirstItem == it
+                    contactEventIcon.setColorFilter(getProperTextColor())
+                    dividerContactEvent.setBackgroundColor(getProperTextColor())
+                    dividerContactEvent.isGone = isLastItem == it
+                    contactEvent.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_events_holder.beVisible()
+            binding.contactEventsHolder.beVisible()
         } else {
-            contact_events_holder.beGone()
+            binding.contactEventsHolder.beGone()
         }
     }
 
@@ -1064,43 +1055,38 @@ class ViewContactActivity : ContactActivity() {
 
         websites = websites.sorted().toMutableSet() as LinkedHashSet<String>
         fullContact!!.websites = websites.toMutableList() as ArrayList<String>
-        contact_websites_holder.removeAllViews()
+        binding.contactWebsitesHolder.removeAllViews()
 
         if (websites.isNotEmpty() && showFields and SHOW_WEBSITES_FIELD != 0) {
             val isLastItem = websites.last()
-            layoutInflater.inflate(R.layout.item_view_header, contact_websites_holder, false).apply {
-                contact_websites_holder.addView(this)
-                contact_header_holder.contact_header_type.text = getString(R.string.websites)
-                contact_header_holder.contact_header_icon.setImageResource(R.drawable.ic_link_vector)
-                contact_header_holder.contact_header_icon.setColorFilter(getProperTextColor())
+            ItemViewHeaderBinding.inflate(layoutInflater, binding.contactWebsitesHolder, false).apply {
+                binding.contactWebsitesHolder.addView(root)
+                contactHeaderType.text = getString(R.string.websites)
+                contactHeaderIcon.setImageResource(com.goodwy.commons.R.drawable.ic_link_vector)
+                contactHeaderIcon.setColorFilter(getProperTextColor())
             }
             websites.forEach {
                 val url = it
-                layoutInflater.inflate(R.layout.item_website, contact_websites_holder, false).apply {
+                ItemWebsiteBinding.inflate(layoutInflater, binding.contactWebsitesHolder, false).apply {
                     val website = it
-                    contact_websites_holder.addView(this)
-                    contact_website.text = url
-                    copyOnLongClick(url)
+                    binding.contactWebsitesHolder.addView(root)
+                    contactWebsite.text = url
+                    root.copyOnLongClick(url)
 
-                    setOnClickListener {
+                    root.setOnClickListener {
                         openWebsiteIntent(url)
                     }
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_websites_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_websites_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactWebsitesHolder.background .setTint(buttonBg)
 
-                    contact_website_holder.divider_contact_website.setBackgroundColor(getProperTextColor())
-                    contact_website_holder.divider_contact_website.isGone = isLastItem == website
-                    contact_website_holder.contact_website.setTextColor(getProperPrimaryColor())
+                    dividerContactWebsite.setBackgroundColor(getProperTextColor())
+                    dividerContactWebsite.isGone = isLastItem == website
+                    contactWebsite.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_websites_holder.beVisible()
+            binding.contactWebsitesHolder.beVisible()
         } else {
-            contact_websites_holder.beGone()
+            binding.contactWebsitesHolder.beGone()
         }
     }
 
@@ -1115,43 +1101,38 @@ class ViewContactActivity : ContactActivity() {
 
         groups = groups.sortedBy { it.title }.toMutableSet() as LinkedHashSet<Group>
         fullContact!!.groups = groups.toMutableList() as ArrayList<Group>
-        contact_groups_holder.removeAllViews()
+        binding.contactGroupsHolder.removeAllViews()
 
         if (groups.isNotEmpty() && showFields and SHOW_GROUPS_FIELD != 0) {
             val isLastItem = groups.last()
-            layoutInflater.inflate(R.layout.item_view_header, contact_groups_holder, false).apply {
-                contact_groups_holder.addView(this)
-                contact_header_holder.contact_header_type.text = getString(R.string.groups)
-                contact_header_holder.contact_header_icon.setImageResource(R.drawable.ic_people_rounded)
-                contact_header_holder.contact_header_icon.setColorFilter(getProperTextColor())
+            ItemViewHeaderBinding.inflate(layoutInflater, binding.contactGroupsHolder, false).apply {
+                binding.contactGroupsHolder.addView(root)
+                contactHeaderType.text = getString(R.string.groups)
+                contactHeaderIcon.setImageResource(com.goodwy.commons.R.drawable.ic_people_rounded)
+                contactHeaderIcon.setColorFilter(getProperTextColor())
             }
             groups.forEach {
-                layoutInflater.inflate(R.layout.item_view_group, contact_groups_holder, false).apply {
+                ItemViewGroupBinding.inflate(layoutInflater, binding.contactGroupsHolder, false).apply {
                     val group = it
-                    contact_groups_holder.addView(this)
-                    contact_group.text = group.title
-                    copyOnLongClick(group.title)
+                    binding.contactGroupsHolder.addView(root)
+                    contactGroup.text = group.title
+                    root.copyOnLongClick(group.title)
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_groups_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_groups_holder.setPadding(padding, padding ,padding ,padding)
-                    }
+                    binding.contactGroupsHolder.background .setTint(buttonBg)
 
-                    contact_group_holder.divider_contact_group.setBackgroundColor(getProperTextColor())
-                    contact_group_holder.divider_contact_group.isGone = isLastItem == group
-                    contact_group_holder.contact_group.setTextColor(getProperPrimaryColor())
+                    dividerContactGroup.setBackgroundColor(getProperTextColor())
+                    dividerContactGroup.isGone = isLastItem == group
+                    contactGroup.setTextColor(getProperPrimaryColor())
                 }
             }
-            contact_groups_holder.beVisible()
+            binding.contactGroupsHolder.beVisible()
         } else {
-            contact_groups_holder.beGone()
+            binding.contactGroupsHolder.beGone()
         }
     }
 
     private fun setupContactSources() {
-        contact_sources_holder.removeAllViews()
+        binding.contactSourcesHolder.removeAllViews()
         if (showFields and SHOW_CONTACT_SOURCE_FIELD != 0) {
             var sources = HashMap<Contact, String>()
             sources[contact!!] = getPublicContactSourceSync(contact!!.source, contactSources)
@@ -1163,143 +1144,138 @@ class ViewContactActivity : ContactActivity() {
             }
 
             if (sources.size > 1) {
-                sources = sources.toList().sortedBy { (key, value) -> value.toLowerCase() }.toMap() as LinkedHashMap<Contact, String>
+                sources = sources.toList().sortedBy { (key, value) -> value.lowercase(Locale.getDefault()) }.toMap() as LinkedHashMap<Contact, String>
             }
 
-            layoutInflater.inflate(R.layout.item_view_header, contact_sources_holder, false).apply {
-                contact_sources_holder.addView(this)
-                contact_header_holder.contact_header_type.text = getString(R.string.contact_source)
-                contact_header_holder.contact_header_icon.setImageResource(R.drawable.ic_source_vector)
-                contact_header_holder.contact_header_icon.setColorFilter(getProperTextColor())
+            ItemViewHeaderBinding.inflate(layoutInflater, binding.contactSourcesHolder, false).apply {
+                binding.contactSourcesHolder.addView(root)
+                contactHeaderType.text = getString(R.string.contact_source)
+                contactHeaderIcon.setImageResource(R.drawable.ic_source_vector)
+                contactHeaderIcon.setColorFilter(getProperTextColor())
             }
 
             for ((key, value) in sources) {
                 val isLastItem = sources.keys.last()
-                layoutInflater.inflate(R.layout.item_view_contact_source, contact_sources_holder, false).apply {
-                    contact_source.text = if (value == "") getString(R.string.phone_storage) else value
-                    contact_source.setTextColor(getProperPrimaryColor())
-                    contact_source.copyOnLongClick(value)
-                    contact_sources_holder.addView(this)
+                ItemViewContactSourceBinding.inflate(layoutInflater, binding.contactSourcesHolder, false).apply {
+                    contactSource.text = if (value == "") getString(R.string.phone_storage) else value
+                    contactSource.setTextColor(getProperPrimaryColor())
+                    contactSource.copyOnLongClick(value)
+                    binding.contactSourcesHolder.addView(root)
 
-                    contact_source.setOnClickListener {
+                    contactSource.setOnClickListener {
                         launchEditContact(key)
                     }
 
-                    val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                    if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                        contact_sources_holder.background = whiteButton
-                        val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                        contact_sources_holder.setPadding(padding, padding ,padding ,padding)
+                    binding.contactSourcesHolder.background .setTint(buttonBg)
+
+                    dividerContactSource.setBackgroundColor(getProperTextColor())
+                    dividerContactSource.isGone = isLastItem == key
+
+                    if (key.source.contains("gmail.com", true) || key.source.contains("googlemail.com", true)) {
+                        contactSourceImage.setImageDrawable(getPackageDrawable("google"))
+                        contactSourceImage.beVisible()
                     }
 
-                    contact_source_holder.divider_contact_source.setBackgroundColor(getProperTextColor())
-                    contact_source_holder.divider_contact_source.isGone = isLastItem == key
+                    if (key.source == SMT_PRIVATE) {
+                        contactSourceImage.setImageDrawable(getPackageDrawable(SMT_PRIVATE))
+                        contactSourceImage.beVisible()
+                    }
 
-                    if (value.toLowerCase() == WHATSAPP) {
-                        contact_source_image.setImageDrawable(getPackageDrawable(WHATSAPP_PACKAGE))
-                        contact_source_image.beVisible()
-                        contact_source_image.setOnClickListener {
+                    if (value.lowercase(Locale.getDefault()) == WHATSAPP) {
+                        contactSourceImage.setImageDrawable(getPackageDrawable(WHATSAPP_PACKAGE))
+                        contactSourceImage.beVisible()
+                        contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
                     }
 
-                    if (value.toLowerCase() == SIGNAL) {
-                        contact_source_image.setImageDrawable(getPackageDrawable(SIGNAL_PACKAGE))
-                        contact_source_image.beVisible()
-                        contact_source_image.setOnClickListener {
+                    if (value.lowercase(Locale.getDefault()) == SIGNAL) {
+                        contactSourceImage.setImageDrawable(getPackageDrawable(SIGNAL_PACKAGE))
+                        contactSourceImage.beVisible()
+                        contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
                     }
 
-                    if (value.toLowerCase() == VIBER) {
-                        contact_source_image.setImageDrawable(getPackageDrawable(VIBER_PACKAGE))
-                        contact_source_image.beVisible()
-                        contact_source_image.setOnClickListener {
+                    if (value.lowercase(Locale.getDefault()) == VIBER) {
+                        contactSourceImage.setImageDrawable(getPackageDrawable(VIBER_PACKAGE))
+                        contactSourceImage.beVisible()
+                        contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
                     }
 
-                    if (value.toLowerCase() == TELEGRAM) {
-                        contact_source_image.setImageDrawable(getPackageDrawable(TELEGRAM_PACKAGE))
-                        contact_source_image.beVisible()
-                        contact_source_image.setOnClickListener {
+                    if (value.lowercase(Locale.getDefault()) == TELEGRAM) {
+                        contactSourceImage.setImageDrawable(getPackageDrawable(TELEGRAM_PACKAGE))
+                        contactSourceImage.beVisible()
+                        contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
                     }
 
-                    if (value.toLowerCase() == THREEMA) {
-                        contact_source_image.setImageDrawable(getPackageDrawable(THREEMA_PACKAGE))
-                        contact_source_image.beVisible()
-                        contact_source_image.setOnClickListener {
+                    if (value.lowercase(Locale.getDefault()) == THREEMA) {
+                        contactSourceImage.setImageDrawable(getPackageDrawable(THREEMA_PACKAGE))
+                        contactSourceImage.beVisible()
+                        contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
                     }
                 }
             }
-            contact_sources_holder.beVisible()
+            binding.contactSourcesHolder.beVisible()
         } else {
-            contact_sources_holder.beGone()
+            binding.contactSourcesHolder.beGone()
         }
     }
 
     private fun setupNotes() {
         val notes = contact!!.notes
-        contact_notes.removeAllViews()
+        binding.contactNotes.removeAllViews()
         if (notes.isNotEmpty() && showFields and SHOW_NOTES_FIELD != 0) {
-            layoutInflater.inflate(R.layout.item_view_header, contact_notes, false).apply {
-                contact_notes.addView(this)
-                contact_header_holder.contact_header_type.text = getString(R.string.notes)
-                contact_header_holder.contact_header_icon.setImageResource(R.drawable.ic_article_vector)
-                contact_header_holder.contact_header_icon.setColorFilter(getProperTextColor())
+            ItemViewHeaderBinding.inflate(layoutInflater, binding.contactNotes, false).apply {
+                binding.contactNotes.addView(root)
+                contactHeaderType.text = getString(com.goodwy.commons.R.string.notes)
+                contactHeaderIcon.setImageResource(com.goodwy.commons.R.drawable.ic_article_vector)
+                contactHeaderIcon.setColorFilter(getProperTextColor())
             }
-            layoutInflater.inflate(R.layout.item_view_note, contact_notes, false).apply {
-                contact_notes.addView(this)
-                contact_note_holder.contact_note.text = notes
-                copyOnLongClick(notes)
+            ItemViewNoteBinding.inflate(layoutInflater, binding.contactNotes, false).apply {
+                binding.contactNotes.addView(root)
+                contactNote.text = notes
+                root.copyOnLongClick(notes)
 
-                val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-                if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                    contact_notes.background = whiteButton
-                    val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                    contact_notes.setPadding(padding, padding ,padding ,padding)
-                }
+                binding.contactNotes.background .setTint(buttonBg)
             }
-            contact_notes.beVisible()
+            binding.contactNotes.beVisible()
         } else {
-            contact_notes.beGone()
+            binding.contactNotes.beGone()
         }
     }
 
     private fun setupRingtone() {
         if (showFields and SHOW_RINGTONE_FIELD != 0) {
-            contact_ringtone_holder.beVisible()
+            binding.contactRingtoneHolder.beVisible()
 
-            val whiteButton = AppCompatResources.getDrawable(this@ViewContactActivity, R.drawable.call_history_button_white)
-            if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray || (baseConfig.isUsingSystemTheme && !isUsingSystemDarkTheme())) {
-                contact_ringtone_holder.background = whiteButton
-                val padding = resources.getDimensionPixelOffset(R.dimen.small_margin)
-                contact_ringtone_holder.setPadding(padding, padding ,padding ,padding)
-            }
-            contact_ringtone_chevron.setColorFilter(getProperTextColor())
-            contact_ringtone.setTextColor(getProperPrimaryColor())
+            binding.contactRingtoneHolder.background .setTint(buttonBg)
+            binding.contactRingtoneChevron.setColorFilter(getProperTextColor())
+            binding.contactRingtone.setTextColor(getProperPrimaryColor())
 
             val ringtone = contact!!.ringtone
             if (ringtone?.isEmpty() == true) {
-                contact_ringtone.text = getString(R.string.no_sound)
+                binding.contactRingtone.text = getString(com.goodwy.commons.R.string.no_sound)
             } else if (ringtone?.isNotEmpty() == true && ringtone != getDefaultRingtoneUri().toString()) {
                 if (ringtone == SILENT) {
-                    contact_ringtone.text = getString(R.string.no_sound)
+                    binding.contactRingtone.text = getString(com.goodwy.commons.R.string.no_sound)
                 } else {
                     systemRingtoneSelected(Uri.parse(ringtone))
                 }
             } else {
-                contact_ringtone_holder.beGone()
+                binding.contactRingtoneHolder.beGone()
                 return
             }
 
-            contact_ringtone_press.copyOnLongClick(contact_ringtone.text.toString())
+            binding.contactRingtonePress.copyOnLongClick(binding.contactRingtone.text.toString())
 
-            contact_ringtone_press.setOnClickListener {
+            binding.contactRingtonePress.setOnClickListener {
                 val ringtonePickerIntent = getRingtonePickerIntent()
                 try {
                     startActivityForResult(ringtonePickerIntent, INTENT_SELECT_RINGTONE)
@@ -1312,7 +1288,7 @@ class ViewContactActivity : ContactActivity() {
                         RingtoneManager.TYPE_RINGTONE,
                         true,
                         onAlarmPicked = {
-                            contact_ringtone.text = it?.title
+                            binding.contactRingtone.text = it?.title
                             ringtoneUpdated(it?.uri)
                         },
                         onAlarmSoundDeleted = {}
@@ -1320,30 +1296,33 @@ class ViewContactActivity : ContactActivity() {
                 }
             }
         } else {
-            contact_ringtone_holder.beGone()
+            binding.contactRingtoneHolder.beGone()
         }
     }
 
     private fun setupOrganization() {
         val organization = contact!!.organization
         if (organization.isNotEmpty() && showFields and SHOW_ORGANIZATION_FIELD != 0) {
-            contact_organization_company.setTextColor(getProperTextColor())
-            contact_organization_job_position.setTextColor(getProperTextColor())
+            binding.topDetails.contactOrganizationCompany.setTextColor(getProperTextColor())
+            binding.topDetails.contactOrganizationJobPosition.setTextColor(getProperTextColor())
 
-            contact_organization_company.text = organization.company
-            contact_organization_job_position.text = organization.jobPosition
-            //contact_organization_image.beGoneIf(organization.isEmpty())
-            contact_organization_company.beGoneIf(organization.company.isEmpty())
-            contact_organization_job_position.beGoneIf(organization.jobPosition.isEmpty())
-            contact_organization_company.copyOnLongClick(contact_organization_company.value)
-            contact_organization_job_position.copyOnLongClick(contact_organization_job_position.value)
+            binding.topDetails.contactOrganizationCompany.text = organization.company
+            binding.topDetails.contactOrganizationJobPosition.text = organization.jobPosition
+            //binding.topDetails.contactOrganizationImage.beGoneIf(organization.isEmpty())
+            binding.topDetails.contactOrganizationCompany.beGoneIf(organization.company.isEmpty())
+            binding.topDetails.contactOrganizationJobPosition.beGoneIf(organization.jobPosition.isEmpty())
+            binding.topDetails.contactOrganizationCompany.copyOnLongClick(binding.topDetails.contactOrganizationCompany.value)
+            binding.topDetails.contactOrganizationJobPosition.copyOnLongClick(binding.topDetails.contactOrganizationJobPosition.value)
 
-            /*if (organization.company.isEmpty() && organization.jobPosition.isNotEmpty()) {
-                (contact_organization_image.layoutParams as RelativeLayout.LayoutParams).addRule(RelativeLayout.ALIGN_TOP, contact_organization_job_position.id)
-            }*/
+//            if (organization.company.isEmpty() && organization.jobPosition.isNotEmpty()) {
+//                (binding.topDetails.contactOrganizationImage.layoutParams as RelativeLayout.LayoutParams).addRule(
+//                    RelativeLayout.ALIGN_TOP,
+//                    binding.topDetails.contactOrganizationJobPosition.id
+//                )
+//            }
         } else {
-            contact_organization_company.beGone()
-            contact_organization_job_position.beGone()
+            binding.topDetails.contactOrganizationCompany.beGone()
+            binding.topDetails.contactOrganizationJobPosition.beGone()
         }
     }
 
@@ -1364,11 +1343,11 @@ class ViewContactActivity : ContactActivity() {
                                     if (success) {
                                         startActivity(this)
                                     } else {
-                                        toast(R.string.no_phone_call_permission)
+                                        toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                     }
                                 }
                             } catch (e: ActivityNotFoundException) {
-                                toast(R.string.no_app_found)
+                                toast(com.goodwy.commons.R.string.no_app_found)
                             } catch (e: Exception) {
                                 showErrorToast(e)
                             }
@@ -1396,11 +1375,11 @@ class ViewContactActivity : ContactActivity() {
                                         if (success) {
                                             startActivity(this)
                                         } else {
-                                            toast(R.string.no_phone_call_permission)
+                                            toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                         }
                                     }
                                 } catch (e: ActivityNotFoundException) {
-                                    toast(R.string.no_app_found)
+                                    toast(com.goodwy.commons.R.string.no_app_found)
                                 } catch (e: Exception) {
                                     showErrorToast(e)
                                 }
@@ -1419,11 +1398,11 @@ class ViewContactActivity : ContactActivity() {
                                     if (success) {
                                         startActivity(this)
                                     } else {
-                                        toast(R.string.no_phone_call_permission)
+                                        toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                     }
                                 }
                             } catch (e: ActivityNotFoundException) {
-                                toast(R.string.no_app_found)
+                                toast(com.goodwy.commons.R.string.no_app_found)
                             } catch (e: Exception) {
                                 showErrorToast(e)
                             }
@@ -1450,11 +1429,11 @@ class ViewContactActivity : ContactActivity() {
                                     if (success) {
                                         startActivity(this)
                                     } else {
-                                        toast(R.string.no_phone_call_permission)
+                                        toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                     }
                                 }
                             } catch (e: ActivityNotFoundException) {
-                                toast(R.string.no_app_found)
+                                toast(com.goodwy.commons.R.string.no_app_found)
                             } catch (e: Exception) {
                                 showErrorToast(e)
                             }
@@ -1465,39 +1444,39 @@ class ViewContactActivity : ContactActivity() {
         }
     }
 
-    private fun startMessengerAction(action: SocialAction) {
-        ensureBackgroundThread {
-            Intent(Intent.ACTION_VIEW).apply {
-                val uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, action.dataId)
-                setDataAndType(uri, action.mimetype)
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
-                try {
-                    startActivity(this)
-                } catch (e: SecurityException) {
-                    handlePermission(PERMISSION_CALL_PHONE) { success ->
-                        if (success) {
-                            startActivity(this)
-                        } else {
-                            toast(R.string.no_phone_call_permission)
-                        }
-                    }
-                } catch (e: ActivityNotFoundException) {
-                    toast(R.string.no_app_found)
-                } catch (e: Exception) {
-                    showErrorToast(e)
-                }
-            }
-        }
-    }
+//    private fun startMessengerAction(action: SocialAction) {
+//        ensureBackgroundThread {
+//            Intent(Intent.ACTION_VIEW).apply {
+//                val uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, action.dataId)
+//                setDataAndType(uri, action.mimetype)
+//                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+//                try {
+//                    startActivity(this)
+//                } catch (e: SecurityException) {
+//                    handlePermission(PERMISSION_CALL_PHONE) { success ->
+//                        if (success) {
+//                            startActivity(this)
+//                        } else {
+//                            toast(com.goodwy.commons.R.string.no_phone_call_permission)
+//                        }
+//                    }
+//                } catch (e: ActivityNotFoundException) {
+//                    toast(com.goodwy.commons.R.string.no_app_found)
+//                } catch (e: Exception) {
+//                    showErrorToast(e)
+//                }
+//            }
+//        }
+//    }
 
     override fun customRingtoneSelected(ringtonePath: String) {
-        contact_ringtone.text = ringtonePath.getFilenameFromPath()
+        binding.contactRingtone.text = ringtonePath.getFilenameFromPath()
         ringtoneUpdated(ringtonePath)
     }
 
     override fun systemRingtoneSelected(uri: Uri?) {
         val contactRingtone = RingtoneManager.getRingtone(this, uri)
-        contact_ringtone.text = contactRingtone.getTitle(this)
+        binding.contactRingtone.text = contactRingtone.getTitle(this)
         ringtoneUpdated(uri?.toString() ?: "")
     }
 
@@ -1533,13 +1512,13 @@ class ViewContactActivity : ContactActivity() {
     }
 
     private fun deleteContactFromAllSources() {
-        val addition = if (contact_sources_holder.childCount > 1) {
+        val addition = if (binding.contactSourcesHolder.childCount > 1) {
             "\n\n${getString(R.string.delete_from_all_sources)}"
         } else {
             ""
         }
 
-        val message = "${getString(R.string.proceed_with_deletion)}$addition"
+        val message = "${getString(com.goodwy.commons.R.string.proceed_with_deletion)}$addition"
         ConfirmationDialog(this, message) {
             if (contact != null) {
                 ContactsHelper(this).deleteContact(contact!!, true) {
@@ -1549,10 +1528,11 @@ class ViewContactActivity : ContactActivity() {
         }
     }
 
-    private fun getStarDrawable(on: Boolean) = resources.getDrawable(if (on) R.drawable.ic_star_vector else R.drawable.ic_star_outline_vector)
+    private fun getStarDrawable(on: Boolean) =
+        resources.getDrawable(if (on) com.goodwy.commons.R.drawable.ic_star_vector else com.goodwy.commons.R.drawable.ic_star_outline_vector)
 
     private fun hideBigContactPhoto() {
-        contact_photo_big.animate().alpha(0f).withEndAction { contact_photo_big.beGone() }.start()
+        binding.contactPhotoBig.animate().alpha(0f).withEndAction { binding.contactPhotoBig.beGone() }.start()
     }
 
     private fun View.copyOnLongClick(value: String) {

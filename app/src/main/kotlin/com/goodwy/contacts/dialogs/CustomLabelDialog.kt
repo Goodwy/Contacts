@@ -3,23 +3,22 @@ package com.goodwy.contacts.dialogs
 import androidx.appcompat.app.AlertDialog
 import com.goodwy.commons.activities.BaseSimpleActivity
 import com.goodwy.commons.extensions.*
-import com.goodwy.contacts.R
-import kotlinx.android.synthetic.main.dialog_custom_label.view.*
+import com.goodwy.contacts.databinding.DialogCustomLabelBinding
 
 class CustomLabelDialog(val activity: BaseSimpleActivity, val callback: (label: String) -> Unit) {
     init {
-        val view = activity.layoutInflater.inflate(R.layout.dialog_custom_label, null)
+        val binding = DialogCustomLabelBinding.inflate(activity.layoutInflater)
 
         activity.getAlertDialogBuilder()
-            .setPositiveButton(R.string.ok, null)
-            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(com.goodwy.commons.R.string.ok, null)
+            .setNegativeButton(com.goodwy.commons.R.string.cancel, null)
             .apply {
-                activity.setupDialogStuff(view, this, R.string.label) { alertDialog ->
-                    alertDialog.showKeyboard(view.custom_label_edittext)
+                activity.setupDialogStuff(binding.root, this, com.goodwy.commons.R.string.label) { alertDialog ->
+                    alertDialog.showKeyboard(binding.customLabelEdittext)
                     alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                        val label = view.custom_label_edittext.value
+                        val label = binding.customLabelEdittext.value
                         if (label.isEmpty()) {
-                            activity.toast(R.string.empty_name)
+                            activity.toast(com.goodwy.commons.R.string.empty_name)
                             return@setOnClickListener
                         }
 

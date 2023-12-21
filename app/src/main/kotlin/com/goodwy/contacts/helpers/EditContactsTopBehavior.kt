@@ -7,29 +7,32 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import com.behaviorule.arturdumchev.library.*
 import com.goodwy.contacts.R
+import com.goodwy.contacts.databinding.ActivityEditContactBinding
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
-import kotlinx.android.synthetic.main.activity_edit_contact.view.*
-import kotlinx.android.synthetic.main.top_edit_view.view.*
 
 class EditContactsTopBehavior(
     context: Context?,
     attrs: AttributeSet?
 ) : BehaviorByRules(context, attrs) {
+    private lateinit var binding: ActivityEditContactBinding
 
     override fun calcAppbarHeight(child: View): Int = with(child) {
         return height
     }
 
-    override fun View.provideAppbar(): AppBarLayout = contact_appbar
-    override fun View.provideCollapsingToolbar(): CollapsingToolbarLayout = collapsing_toolbar
+    override fun View.provideAppbar(): AppBarLayout {
+        binding = ActivityEditContactBinding.bind(this)
+        return  binding.contactAppbar
+    }
+    override fun View.provideCollapsingToolbar(): CollapsingToolbarLayout = binding.collapsingToolbar
     override fun canUpdateHeight(progress: Float): Boolean = progress >= GONE_VIEW_THRESHOLD
 
     override fun View.setUpViews(): List<RuledView> {
         val height = height
         return listOf(
             RuledView(
-                top_details,
+                binding.topDetails.root,
                 BRuleYOffset(
                     min = -(height/4).toFloat(),
                     max = pixels(R.dimen.zero),
@@ -37,7 +40,7 @@ class EditContactsTopBehavior(
                 )
             ),
             RuledView(
-                contact_photo,
+                binding.topDetails.contactPhoto,
                 BRuleXOffset(
                     min = 0f, max = pixels(R.dimen.image_edit_right_margin),
                     interpolator = ReverseInterpolator(LinearInterpolator())

@@ -14,7 +14,6 @@ import com.goodwy.commons.extensions.showErrorToast
 import com.goodwy.commons.extensions.toast
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.models.contacts.ContactRelation
-import com.goodwy.contacts.R
 import com.goodwy.contacts.helpers.VcfExporter.ExportResult.EXPORT_FAIL
 import ezvcard.Ezvcard
 import ezvcard.VCard
@@ -23,7 +22,7 @@ import ezvcard.parameter.ImageType
 import ezvcard.parameter.RelatedType
 import ezvcard.property.*
 import java.io.OutputStream
-import java.util.*
+import java.util.Calendar
 
 class VcfExporter {
     enum class ExportResult {
@@ -38,6 +37,7 @@ class VcfExporter {
         outputStream: OutputStream?,
         contacts: ArrayList<Contact>,
         showExportingToast: Boolean,
+        version: VCardVersion = VCardVersion.V4_0,
         callback: (result: ExportResult) -> Unit
     ) {
         try {
@@ -47,7 +47,7 @@ class VcfExporter {
             }
 
             if (showExportingToast) {
-                activity.toast(R.string.exporting)
+                activity.toast(com.goodwy.commons.R.string.exporting)
             }
 
             val cards = ArrayList<VCard>()
@@ -239,7 +239,7 @@ class VcfExporter {
                 contactsExported++
             }
 
-            Ezvcard.write(cards).version(VCardVersion.V4_0).go(outputStream)
+            Ezvcard.write(cards).version(version).go(outputStream)
         } catch (e: Exception) {
             activity.showErrorToast(e)
         }

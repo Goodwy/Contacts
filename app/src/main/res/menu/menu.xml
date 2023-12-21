@@ -13,39 +13,34 @@
         android:id="@+id/sort"
         android:icon="@drawable/ic_sort_vector"
         android:title="@string/sort_by"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/filter"
         android:icon="@drawable/ic_filter_vector"
         android:title="@string/filter"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/dialpad"
         android:icon="@drawable/ic_dialpad_vector"
         android:title="@string/dialpad"
         android:visible="false"
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/import_contacts"
-        android:showAsAction="never"
-        android:title="@string/import_contacts_from_vcf"
-        android:visible="false"
         app:showAsAction="never" />
     <item
-        android:id="@+id/export_contacts"
-        android:showAsAction="never"
-        android:title="@string/export_contacts_to_vcf"
-        android:visible="false"
+        android:id="@+id/change_view_type"
+        android:title="@string/change_view_type"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/column_count"
+        android:title="@string/column_count"
         app:showAsAction="never" />
     <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_more_horiz"
         android:title="@string/settings"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
     <item
         android:id="@+id/about"
         android:icon="@drawable/ic_info_vector"
         android:title="@string/about"
-        app:showAsAction="ifRoom"
-        android:visible="false"/>
+        app:showAsAction="never"/>
 </menu>
