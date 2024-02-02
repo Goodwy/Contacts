@@ -67,7 +67,7 @@ abstract class ContactActivity : SimpleActivity() {
 
     fun showPhotoPlaceholder(photoView: ImageView) {
         //val placeholder = BitmapDrawable(resources, getBigLetterPlaceholder(contact?.getNameToDisplay() ?: "A"))
-        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(contact!!.getNameToDisplay()))
+        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(contact?.getNameToDisplay() ?: "A"))
         photoView.setImageDrawable(placeholderImage)
         currentContactPhotoPath = ""
         contact?.photo = null

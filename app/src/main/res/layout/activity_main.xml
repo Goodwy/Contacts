@@ -25,14 +25,13 @@
             app:menu="@menu/menu"
             app:title="@string/app_launcher_name"
             app:titleTextAppearance="@style/AppTheme.ActionBar.TitleTextStyle" />
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/main_holder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="150dp"
+        android:layout_marginTop="96dp"
         android:fillViewport="true"
         android:scrollbars="none">
 

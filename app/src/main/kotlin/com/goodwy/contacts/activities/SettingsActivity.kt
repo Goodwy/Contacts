@@ -47,6 +47,9 @@ class SettingsActivity : SimpleActivity() {
     private val subscriptionIdX1 = BuildConfig.SUBSCRIPTION_ID_X1
     private val subscriptionIdX2 = BuildConfig.SUBSCRIPTION_ID_X2
     private val subscriptionIdX3 = BuildConfig.SUBSCRIPTION_ID_X3
+    private val subscriptionYearIdX1 = BuildConfig.SUBSCRIPTION_YEAR_ID_X1
+    private val subscriptionYearIdX2 = BuildConfig.SUBSCRIPTION_YEAR_ID_X2
+    private val subscriptionYearIdX3 = BuildConfig.SUBSCRIPTION_YEAR_ID_X3
     private var ruStoreIsConnected = false
 
     private var ignoredExportContactSources = HashSet<String>()
@@ -63,7 +66,7 @@ class SettingsActivity : SimpleActivity() {
             //PlayStore
             purchaseHelper.initBillingClient()
             val iapList: ArrayList<String> = arrayListOf(productIdX1, productIdX2, productIdX3)
-            val subList: ArrayList<String> = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3)
+            val subList: ArrayList<String> = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3, subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3)
             purchaseHelper.retrieveDonation(iapList, subList)
 
             purchaseHelper.isIapPurchased.observe(this) {
@@ -204,40 +207,38 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupPurchaseThankYou() {
-        binding.apply {
-            settingsPurchaseThankYouHolder.beGoneIf(isPro())
-            settingsPurchaseThankYouHolder.setOnClickListener {
-                launchPurchase()
-            }
-            moreButton.setOnClickListener {
-                launchPurchase()
-            }
-            val appDrawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.ic_plus_support, getProperPrimaryColor())
-            purchaseLogo.setImageDrawable(appDrawable)
-            val drawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.button_gray_bg, getProperPrimaryColor())
-            moreButton.background = drawable
-            moreButton.setTextColor(getProperBackgroundColor())
-            moreButton.setPadding(2, 2, 2, 2)
+    private fun setupPurchaseThankYou() = binding.apply {
+        settingsPurchaseThankYouHolder.beGoneIf(isPro())
+        settingsPurchaseThankYouHolder.setOnClickListener {
+            launchPurchase()
         }
+        moreButton.setOnClickListener {
+            launchPurchase()
+        }
+        val appDrawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.ic_plus_support, getProperPrimaryColor())
+        purchaseLogo.setImageDrawable(appDrawable)
+        val drawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.button_gray_bg, getProperPrimaryColor())
+        moreButton.background = drawable
+        moreButton.setTextColor(getProperBackgroundColor())
+        moreButton.setPadding(2, 2, 2, 2)
     }
 
-    private fun setupCustomizeColors() {
-        binding.settingsCustomizeColorsLabel.text = if (isPro()) {
-            getString(com.goodwy.commons.R.string.customize_colors)
-        } else {
-            getString(com.goodwy.commons.R.string.customize_colors_locked)
-        }
-        binding.settingsCustomizeColorsHolder.setOnClickListener {
+    private fun setupCustomizeColors() = binding.apply {
+//        settingsCustomizeColorsLabel.text = if (isPro()) {
+//            getString(com.goodwy.commons.R.string.customize_colors)
+//        } else {
+//            getString(com.goodwy.commons.R.string.customize_colors_locked)
+//        }
+        settingsCustomizeColorsHolder.setOnClickListener {
             startCustomizationActivity(
                 showAccentColor = false,
                 licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
-                productIdX1 = productIdX1,
-                productIdX2 = productIdX2,
-                productIdX3 = productIdX3,
-                subscriptionIdX1 = subscriptionIdX1,
-                subscriptionIdX2 = subscriptionIdX2,
-                subscriptionIdX3 = subscriptionIdX3,
+                productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
+                productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
+                subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+                subscriptionIdListRu = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+                subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
+                subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
                 playStoreInstalled = isPlayStoreInstalled(),
                 ruStoreInstalled = isRuStoreInstalled()
             )
@@ -346,25 +347,21 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupUseEnglish() {
-        binding.apply {
-            settingsUseEnglishHolder.beVisibleIf((config.wasUseEnglishToggled || Locale.getDefault().language != "en") && !isTiramisuPlus())
-            settingsUseEnglish.isChecked = config.useEnglish
-            settingsUseEnglishHolder.setOnClickListener {
-                settingsUseEnglish.toggle()
-                config.useEnglish = settingsUseEnglish.isChecked
-                exitProcess(0)
-            }
+    private fun setupUseEnglish() = binding.apply {
+        settingsUseEnglishHolder.beVisibleIf((config.wasUseEnglishToggled || Locale.getDefault().language != "en") && !isTiramisuPlus())
+        settingsUseEnglish.isChecked = config.useEnglish
+        settingsUseEnglishHolder.setOnClickListener {
+            settingsUseEnglish.toggle()
+            config.useEnglish = settingsUseEnglish.isChecked
+            exitProcess(0)
         }
     }
 
-    private fun setupLanguage() {
-        binding.apply {
-            settingsLanguage.text = Locale.getDefault().displayLanguage
-            settingsLanguageHolder.beVisibleIf(isTiramisuPlus())
-            settingsLanguageHolder.setOnClickListener {
-                launchChangeAppLanguageIntent()
-            }
+    private fun setupLanguage() = binding.apply {
+        settingsLanguage.text = Locale.getDefault().displayLanguage
+        settingsLanguageHolder.beVisibleIf(isTiramisuPlus())
+        settingsLanguageHolder.setOnClickListener {
+            launchChangeAppLanguageIntent()
         }
     }
 
@@ -677,14 +674,12 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupOverflowIcon() {
-        binding.apply {
-            settingsOverflowIcon.applyColorFilter(getProperTextColor())
-            settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
-            settingsOverflowIconHolder.setOnClickListener {
-                OverflowIconDialog(this@SettingsActivity) {
-                    settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
-                }
+    private fun setupOverflowIcon() = binding.apply {
+        settingsOverflowIcon.applyColorFilter(getProperTextColor())
+        settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
+        settingsOverflowIconHolder.setOnClickListener {
+            OverflowIconDialog(this@SettingsActivity) {
+                settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
             }
         }
     }
@@ -710,9 +705,8 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupUseColoredContacts() {
+    private fun setupUseColoredContacts() = binding.apply {
         updateWrapperUseColoredContacts()
-        binding.apply {
             settingsColoredContacts.isChecked = config.useColoredContacts
             settingsColoredContactsHolder.setOnClickListener {
                 settingsColoredContacts.toggle()
@@ -720,7 +714,6 @@ class SettingsActivity : SimpleActivity() {
                 settingsContactColorListHolder.beVisibleIf(config.useColoredContacts)
                 updateWrapperUseColoredContacts()
             }
-        }
     }
 
     private fun updateWrapperUseColoredContacts() {
@@ -729,21 +722,19 @@ class SettingsActivity : SimpleActivity() {
         binding.settingsColoredContactsWrapper.background.applyColorFilter(wrapperColor)
     }
 
-    private fun setupContactsColorList() {
-        binding.apply {
-            settingsContactColorListHolder.beVisibleIf(config.useColoredContacts)
-            settingsContactColorListIcon.setImageResource(getContactsColorListIcon(config.contactColorList))
-            settingsContactColorListHolder.setOnClickListener {
-                ColorListDialog(this@SettingsActivity) {
-                    config.contactColorList = it as Int
-                    settingsContactColorListIcon.setImageResource(getContactsColorListIcon(it))
-                }
+    private fun setupContactsColorList() = binding.apply {
+        settingsContactColorListHolder.beVisibleIf(config.useColoredContacts)
+        settingsContactColorListIcon.setImageResource(getContactsColorListIcon(config.contactColorList))
+        settingsContactColorListHolder.setOnClickListener {
+            ColorListDialog(this@SettingsActivity) {
+                config.contactColorList = it as Int
+                settingsContactColorListIcon.setImageResource(getContactsColorListIcon(it))
             }
         }
     }
 
-    private fun setupTipJar() {
-        binding.settingsTipJarHolder.apply {
+    private fun setupTipJar() = binding.apply {
+        settingsTipJarHolder.apply {
             beVisibleIf(isPro())
             background.applyColorFilter(getBottomNavigationBackgroundColor().lightenColor(4))
             setOnClickListener {
@@ -752,10 +743,9 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupAbout() {
-        val version = "Version: " + BuildConfig.VERSION_NAME
-        binding.settingsAboutVersion.text = version
-        binding.settingsAboutHolder.setOnClickListener {
+    private fun setupAbout() = binding.apply {
+        settingsAboutVersion.text = "Version: " + BuildConfig.VERSION_NAME
+        settingsAboutHolder.setOnClickListener {
             launchAbout()
         }
     }
@@ -771,8 +761,6 @@ class SettingsActivity : SimpleActivity() {
             FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.commons.R.string.faq_2_text_commons_g),
         )
 
-
-
         startAboutActivity(
             appNameId = R.string.app_name_g,
             licenseMask = licenses,
@@ -780,8 +768,12 @@ class SettingsActivity : SimpleActivity() {
             faqItems = faqItems,
             showFAQBeforeMail = true,
             licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
-            productIdX1 = productIdX1, productIdX2 = productIdX2, productIdX3 = productIdX3,
-            subscriptionIdX1 = subscriptionIdX1, subscriptionIdX2 = subscriptionIdX2, subscriptionIdX3 = subscriptionIdX3,
+            productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
+            productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
+            subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+            subscriptionIdListRu = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+            subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
+            subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
             playStoreInstalled = isPlayStoreInstalled(),
             ruStoreInstalled = isRuStoreInstalled()
         )
@@ -791,8 +783,12 @@ class SettingsActivity : SimpleActivity() {
         startPurchaseActivity(
             R.string.app_name_g,
             BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
-            productIdX1, productIdX2, productIdX3,
-            subscriptionIdX1, subscriptionIdX2, subscriptionIdX3,
+            productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
+            productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
+            subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+            subscriptionIdListRu = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+            subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
+            subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
             playStoreInstalled = isPlayStoreInstalled(),
             ruStoreInstalled = isRuStoreInstalled()
         )
@@ -810,17 +806,17 @@ class SettingsActivity : SimpleActivity() {
     private fun updatePro(isPro: Boolean = isPro()) {
         binding.apply {
             settingsPurchaseThankYouHolder.beGoneIf(isPro)
-            settingsCustomizeColorsLabel.text = if (isPro) {
-                getString(com.goodwy.commons.R.string.customize_colors)
-            } else {
-                getString(com.goodwy.commons.R.string.customize_colors_locked)
-            }
+//            settingsCustomizeColorsLabel.text = if (isPro) {
+//                getString(com.goodwy.commons.R.string.customize_colors)
+//            } else {
+//                getString(com.goodwy.commons.R.string.customize_colors_locked)
+//            }
             settingsTipJarHolder.beVisibleIf(isPro)
         }
     }
 
     private fun updateProducts() {
-        val productList: ArrayList<String> = arrayListOf(productIdX1, productIdX2, productIdX3, subscriptionIdX1, subscriptionIdX2, subscriptionIdX3)
+        val productList: ArrayList<String> = arrayListOf(productIdX1, productIdX2, productIdX3, subscriptionIdX1, subscriptionIdX2, subscriptionIdX3, subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3)
         ruStoreHelper.getProducts(productList)
     }
 

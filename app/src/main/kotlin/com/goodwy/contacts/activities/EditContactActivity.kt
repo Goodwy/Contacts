@@ -345,15 +345,16 @@ class EditContactActivity : ContactActivity() {
         binding.contactToolbar.menu.apply {
             updateMenuItemColors(this)
             findItem(R.id.favorite).setOnMenuItemClickListener {
+                toggleFavorite()
                 val newIsStarred = if (contact!!.starred == 1) 0 else 1
-                ensureBackgroundThread {
-                    val contacts = arrayListOf(contact!!)
-                    if (newIsStarred == 1) {
-                        ContactsHelper(this@EditContactActivity).addFavorites(contacts)
-                    } else {
-                        ContactsHelper(this@EditContactActivity).removeFavorites(contacts)
-                    }
-                }
+//                ensureBackgroundThread {
+//                    val contacts = arrayListOf(contact!!)
+//                    if (newIsStarred == 1) {
+//                        ContactsHelper(this@EditContactActivity).addFavorites(contacts)
+//                    } else {
+//                        ContactsHelper(this@EditContactActivity).removeFavorites(contacts)
+//                    }
+//                }
                 contact!!.starred = newIsStarred
                 val favoriteIcon = getStarDrawable(contact!!.starred == 1)
                 favoriteIcon.setTint(iconColor)
@@ -1214,6 +1215,8 @@ class EditContactActivity : ContactActivity() {
                 contactGroup.setOnClickListener {
                     setupGroupsPicker(contactGroup)
                 }
+                contactGroup.setTextColor(getProperTextColor())
+                contactGroup.alpha = 0.5f
                 contactGroupRemove.beGone()
                 dividerContactGroup.beGone()
                 contactGroupAdd.beVisible()

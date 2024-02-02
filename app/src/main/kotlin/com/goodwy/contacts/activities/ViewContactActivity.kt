@@ -291,7 +291,7 @@ class ViewContactActivity : ContactActivity() {
         binding.contactScrollview.beVisible()
         setupViewContact()
 
-        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(contact!!.getNameToDisplay()))
+        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(contact?.getNameToDisplay() ?: "A"))
         if (contact!!.photoUri.isEmpty() && contact!!.photo == null) {
             binding.topDetails.contactPhoto.setImageDrawable(placeholderImage)
         } else {

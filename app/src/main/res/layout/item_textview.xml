@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.goodwy.commons.views.MyTextView
+<TextView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/item_textview"
     android:layout_width="match_parent"

@@ -390,6 +390,8 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
 
     abstract fun placeholderClicked()
 
+    abstract fun myRecyclerView(): MyRecyclerView
+
     interface InnerBinding {
         val fragmentList: MyRecyclerView
         val fragmentPlaceholder: MyTextView

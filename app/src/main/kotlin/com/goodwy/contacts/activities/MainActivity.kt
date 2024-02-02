@@ -16,7 +16,9 @@ import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuItemCompat
+import androidx.core.view.ScrollingView
 import androidx.core.view.updateLayoutParams
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager.widget.ViewPager
 import com.behaviorule.arturdumchev.library.pixels
 import com.goodwy.commons.databases.ContactsDatabase
@@ -28,7 +30,9 @@ import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.FAQItem
 import com.goodwy.commons.models.RadioItem
+import com.goodwy.commons.models.Release
 import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.views.MySearchMenu
 import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
 import com.goodwy.contacts.adapters.ViewPagerAdapter
@@ -61,6 +65,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     private var storedStartNameWithSurname = false
     private var storedFontSize = 0
     private var storedShowTabs = 0
+    private var currentOldScrollY = 0
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +79,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         storeStateVariables()
         setupTabs()
         checkContactPermissions()
-        //checkWhatsNewDialog()
+        checkWhatsNewDialog()
 
         // TODO TRANSPARENT Navigation Bar
         if (!useBottomNavigationBar) {
@@ -140,10 +145,10 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             it?.setBackgroundColor(properBackgroundColor)
         }
 
-        updateMenuColors()
         setupTabColors()
         setupToolbar(binding.mainToolbar, searchMenuItem = mSearchMenuItem)
         updateTextColors(binding.mainCoordinator)
+        binding.mainMenu.updateColors(getStartRequiredStatusBarColor(), scrollingView?.computeVerticalScrollOffset() ?: 0)
 
         val configStartNameWithSurname = config.startNameWithSurname
         if (storedStartNameWithSurname != configStartNameWithSurname) {
@@ -276,11 +281,6 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 findViewById<FavoritesFragment>(R.id.favorites_fragment)?.columnCountChanged()
             }
         }
-    }
-
-    private fun updateMenuColors() {
-        updateStatusbarColor(getProperBackgroundColor())
-        binding.mainMenu.updateColors()
     }
 
     private fun storeStateVariables() {
@@ -526,8 +526,11 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
 
             override fun onPageSelected(position: Int) {
-                binding.mainTopTabsHolder.getTabAt(position)?.select()
-                binding.mainTabsHolder.getTabAt(position)?.select()
+                if (config.bottomNavigationBar) {
+                    binding.mainTabsHolder.getTabAt(position)?.select()
+                    scrollChange()
+                } else binding.mainTopTabsHolder.getTabAt(position)?.select()
+
                 getAllFragments().forEach {
                     it?.finishActMode()
                 }
@@ -538,6 +541,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         binding.viewPager.onGlobalLayout {
             refreshContacts(ALL_TABS_MASK)
             refreshMenuItems()
+            if (config.bottomNavigationBar) scrollChange()
         }
 
         if (intent?.action == Intent.ACTION_VIEW && intent.data != null) {
@@ -587,6 +591,49 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
 
         binding.mainTopTabsContainer.beGoneIf(binding.mainTopTabsHolder.tabCount == 1 || config.bottomNavigationBar)
+    }
+
+    private fun scrollChange() {
+        val myRecyclerView = getCurrentFragment()?.myRecyclerView()
+        scrollingView = myRecyclerView
+        val scrollingViewOffset = scrollingView?.computeVerticalScrollOffset() ?: 0
+        currentOldScrollY = scrollingViewOffset
+        binding.mainMenu.updateColors(getStartRequiredStatusBarColor(), scrollingViewOffset)
+        setupSearchMenuScrollListenerNew(myRecyclerView, binding.mainMenu)
+    }
+
+    private fun setupSearchMenuScrollListenerNew(scrollingView: ScrollingView?, searchMenu: MySearchMenu) {
+        this.scrollingView = scrollingView
+        this.mySearchMenu = searchMenu
+        if (scrollingView is RecyclerView) {
+            scrollingView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+                val newScrollY = scrollingView.computeVerticalScrollOffset()
+                scrollingChanged(newScrollY)
+                currentScrollY = newScrollY
+                currentOldScrollY = currentScrollY
+            }
+        }
+    }
+
+    private fun scrollingChanged(newScrollY: Int) {
+        if (newScrollY > 0 && currentOldScrollY == 0) {
+            val colorFrom = window.statusBarColor
+            val colorTo = getColoredMaterialStatusBarColor()
+            animateMySearchMenuColors(colorFrom, colorTo)
+        } else if (newScrollY == 0 && currentOldScrollY > 0) {
+            val colorFrom = window.statusBarColor
+            val colorTo = getRequiredStatusBarColor()
+            animateMySearchMenuColors(colorFrom, colorTo)
+        }
+    }
+
+    private fun getStartRequiredStatusBarColor(): Int {
+        val scrollingViewOffset = scrollingView?.computeVerticalScrollOffset() ?: 0
+        return if (scrollingViewOffset == 0) {
+            getProperBackgroundColor()
+        } else {
+            getColoredMaterialStatusBarColor()
+        }
     }
 
     private fun setupTabs() {
@@ -689,6 +736,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         val subscriptionIdX1 = BuildConfig.SUBSCRIPTION_ID_X1
         val subscriptionIdX2 = BuildConfig.SUBSCRIPTION_ID_X2
         val subscriptionIdX3 = BuildConfig.SUBSCRIPTION_ID_X3
+        val subscriptionYearIdX1 = BuildConfig.SUBSCRIPTION_YEAR_ID_X1
+        val subscriptionYearIdX2 = BuildConfig.SUBSCRIPTION_YEAR_ID_X2
+        val subscriptionYearIdX3 = BuildConfig.SUBSCRIPTION_YEAR_ID_X3
 
         startAboutActivity(
             appNameId = R.string.app_name_g,
@@ -697,8 +747,12 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             faqItems = faqItems,
             showFAQBeforeMail = true,
             licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
-            productIdX1 = productIdX1, productIdX2 = productIdX2, productIdX3 = productIdX3,
-            subscriptionIdX1 = subscriptionIdX1, subscriptionIdX2 = subscriptionIdX2, subscriptionIdX3 = subscriptionIdX3,
+            productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
+            productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
+            subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+            subscriptionIdListRu = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+            subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
+            subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
             playStoreInstalled = isPlayStoreInstalled(),
             ruStoreInstalled = isRuStoreInstalled()
         )
@@ -798,23 +852,13 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
     }
 
-//    private fun checkWhatsNewDialog() {
-//        arrayListOf<Release>().apply {
-//            add(Release(10, R.string.release_10))
-//            add(Release(11, R.string.release_11))
-//            add(Release(16, R.string.release_16))
-//            add(Release(27, R.string.release_27))
-//            add(Release(29, R.string.release_29))
-//            add(Release(31, R.string.release_31))
-//            add(Release(32, R.string.release_32))
-//            add(Release(34, R.string.release_34))
-//            add(Release(39, R.string.release_39))
-//            add(Release(40, R.string.release_40))
-//            add(Release(47, R.string.release_47))
-//            add(Release(56, R.string.release_56))
-//            checkWhatsNew(this, BuildConfig.VERSION_CODE)
-//        }
-//    }
+    private fun checkWhatsNewDialog() {
+        arrayListOf<Release>().apply {
+            add(Release(414, R.string.release_414))
+            add(Release(500, R.string.release_500))
+            checkWhatsNew(this, BuildConfig.VERSION_CODE)
+        }
+    }
 
     private val actionBarSize
         get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))

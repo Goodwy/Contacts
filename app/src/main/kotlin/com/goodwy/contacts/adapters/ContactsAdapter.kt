@@ -93,7 +93,7 @@ class ContactsAdapter(
         menu.apply {
             findItem(R.id.cab_edit).isVisible = isOneItemSelected()
             findItem(R.id.cab_remove).isVisible = location == LOCATION_FAVORITES_TAB || location == LOCATION_GROUP_CONTACTS
-            findItem(R.id.cab_add_to_favorites).isVisible = location == LOCATION_CONTACTS_TAB
+            findItem(R.id.cab_add_to_favorites).isVisible = location == LOCATION_CONTACTS_TAB && getSelectedItems().all {it.starred != 1}
             findItem(R.id.cab_add_to_group).isVisible = location == LOCATION_CONTACTS_TAB || location == LOCATION_FAVORITES_TAB
             findItem(R.id.cab_send_sms_to_contacts).isVisible =
                 location == LOCATION_CONTACTS_TAB || location == LOCATION_FAVORITES_TAB || location == LOCATION_GROUP_CONTACTS
@@ -248,10 +248,11 @@ class ContactsAdapter(
         if (location == LOCATION_FAVORITES_TAB) {
             ContactsHelper(activity).removeFavorites(contactsToRemove)
             if (contactItems.isEmpty()) {
-                refreshListener?.refreshContacts(TAB_FAVORITES)
+                refreshListener?.refreshContacts(TAB_CONTACTS or TAB_FAVORITES)
                 finishActMode()
             } else {
                 removeSelectedItems(positions)
+                refreshListener?.refreshContacts(TAB_CONTACTS)
             }
         } else if (location == LOCATION_GROUP_CONTACTS) {
             removeListener?.removeFromGroup(contactsToRemove)
@@ -261,7 +262,7 @@ class ContactsAdapter(
 
     private fun addToFavorites() {
         ContactsHelper(activity).addFavorites(getSelectedItems())
-        refreshListener?.refreshContacts(TAB_FAVORITES)
+        refreshListener?.refreshContacts(TAB_CONTACTS or TAB_FAVORITES)
         finishActMode()
     }
 

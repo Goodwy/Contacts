@@ -175,4 +175,5 @@ class FavoritesFragment(context: Context, attributeSet: AttributeSet) : MyViewPa
         }
     }
 
+    override fun myRecyclerView() = innerBinding.fragmentList
 }

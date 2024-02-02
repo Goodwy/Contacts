@@ -13,8 +13,8 @@ class MyDatePickerDialog(val activity: BaseSimpleActivity, val defaultDate: Stri
     private val binding = DialogDatePickerBinding.inflate(activity.layoutInflater)
 
     init {
-        //activity.getAlertDialogBuilder()
-        AlertDialog.Builder(activity, com.goodwy.commons.R.style.MyDialogTheme_Black)
+//        activity.getAlertDialogBuilder()
+        AlertDialog.Builder(activity, activity.getDatePickerDialogTheme())
             .setPositiveButton(com.goodwy.commons.R.string.ok) { dialog, which -> dialogConfirmed() }
             .setNegativeButton(com.goodwy.commons.R.string.cancel, null)
             .apply {
@@ -38,7 +38,7 @@ class MyDatePickerDialog(val activity: BaseSimpleActivity, val defaultDate: Stri
                         }
                     }
 
-                    if (activity.config.isUsingSystemTheme && isSPlus() || activity.isBlackTheme()) {
+                    if (activity.config.isUsingSystemTheme && isSPlus()) {
                         val dialogBackgroundColor = activity.getColor(com.goodwy.commons.R.color.you_dialog_background_color)
                         binding.dialogHolder.setBackgroundColor(dialogBackgroundColor)
                         binding.datePicker.setBackgroundColor(dialogBackgroundColor)

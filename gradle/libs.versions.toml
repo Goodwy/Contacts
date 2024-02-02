@@ -18,7 +18,7 @@ room = "2.6.0-alpha02"
 #Gradle
 gradlePlugins-agp = "8.1.1"
 #Goodwy
-right-commons = "80b5a784ee"
+right-commons = "a5fe0960e7"
 rustore = "2.2.0"
 behavioRule = "1.0.1"
 rxAnimation = "2.1.1"
@@ -31,8 +31,8 @@ app-build-javaVersion = "VERSION_17"
 app-build-kotlinJVMTarget = "17"
 #versioning
 app-version-appId = "com.goodwy.contacts"
-app-version-versionCode = "413"
-app-version-versionName = "4.1.3"
+app-version-versionCode = "500"
+app-version-versionName = "5.0.0"
 [libraries]
 #AndroidX
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "androidx-swiperefreshlayout" }
@@ -41,7 +41,8 @@ autofittextview = { module = "me.grantland:autofittextview", version.ref = "auto
 #EzVcard
 ezvcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "ezvcard" }
 #IndicatorFastScroll
-indicatorfastscroll = { module = "com.github.tibbi:IndicatorFastScroll", version.ref = "indicatorfastscroll" }
+#indicatorfastscroll = { module = "com.github.tibbi:IndicatorFastScroll", version.ref = "indicatorfastscroll" }
+indicatorfastscroll = { module = "com.github.goodwy:IndicatorFastScroll", version.ref = "indicatorfastscroll" }
 #Room
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }

@@ -33,4 +33,6 @@ class GroupsFragment(context: Context, attributeSet: AttributeSet) : MyViewPager
             (activity as? MainActivity)?.refreshContacts(TAB_GROUPS)
         }
     }
+
+    override fun myRecyclerView() = innerBinding.fragmentList
 }

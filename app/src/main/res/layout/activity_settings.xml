@@ -125,7 +125,6 @@
                         android:layout_centerVertical="true"
                         android:layout_marginEnd="@dimen/smaller_margin"
                         android:contentDescription="@string/customization_theme_summary" />
-
                 </RelativeLayout>
 
                 <RelativeLayout
@@ -137,7 +136,6 @@
                         style="@style/SettingsSwitchStyle"
                         android:text="@string/show_dialpad_button"
                         app:switchPadding="@dimen/bigger_margin" />
-
                 </RelativeLayout>
 
                 <RelativeLayout
