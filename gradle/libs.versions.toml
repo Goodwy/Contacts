@@ -18,11 +18,13 @@ room = "2.6.0-alpha02"
 #Gradle
 gradlePlugins-agp = "8.1.1"
 #Goodwy
-right-commons = "a5fe0960e7"
-rustore = "2.2.0"
+right-commons = "37cb4a0bda"
+rustore = "3.1.0"
 behavioRule = "1.0.1"
 rxAnimation = "2.1.1"
+rxJava3 = "3.1.5"
 androidx-lifecycle = "2.6.1"
+swipeToActionLayout = "035dfba3fb"
 #build
 app-build-compileSDKVersion = "34"
 app-build-targetSDK = "34"
@@ -31,8 +33,8 @@ app-build-javaVersion = "VERSION_17"
 app-build-kotlinJVMTarget = "17"
 #versioning
 app-version-appId = "com.goodwy.contacts"
-app-version-versionCode = "500"
-app-version-versionName = "5.0.0"
+app-version-versionCode = "510"
+app-version-versionName = "5.1.0"
 [libraries]
 #AndroidX
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "androidx-swiperefreshlayout" }
@@ -54,6 +56,8 @@ goodwy-commons = { module = "com.github.Goodwy:Goodwy-Commons", version.ref = "r
 rustore-client = { module = "ru.rustore.sdk:billingclient", version.ref = "rustore" }
 behavio-rule = { module = "com.github.Liverm0r:BehavioRule", version.ref = "behavioRule" }
 rx-animation = { module = "com.mikhaellopez:rxanimation", version.ref = "rxAnimation" }
+rx-java = { module = "io.reactivex.rxjava3:rxjava", version.ref = "rxJava3" }
+swipe-action = { module = "com.github.Goodwy:SwipeActionView", version.ref = "swipeToActionLayout" }
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewModel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }

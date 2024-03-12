@@ -4,8 +4,11 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.goodwy.commons.activities.FAQActivity
@@ -16,7 +19,6 @@ import com.goodwy.commons.helpers.rustore.RuStoreHelper
 import com.goodwy.commons.helpers.rustore.model.StartPurchasesEvent
 import com.goodwy.commons.models.FAQItem
 import com.goodwy.commons.models.RadioItem
-import com.goodwy.commons.models.SimpleListItem
 import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
 import com.goodwy.contacts.databinding.ActivitySettingsBinding
@@ -25,7 +27,11 @@ import com.goodwy.contacts.dialogs.ManageAutoBackupsDialog
 import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.dialogs.ManageVisibleTabsDialog
 import com.goodwy.contacts.extensions.*
+import com.goodwy.contacts.helpers.*
 import com.goodwy.contacts.helpers.VcfExporter
+import com.google.android.material.snackbar.Snackbar
+import com.mikhaellopez.rxanimation.RxAnimation
+import com.mikhaellopez.rxanimation.shake
 import kotlinx.coroutines.launch
 import ru.rustore.sdk.core.feature.model.FeatureAvailabilityResult
 import java.io.OutputStream
@@ -138,13 +144,6 @@ class SettingsActivity : SimpleActivity() {
         setupUseColoredContacts()
         setupContactsColorList()
 
-        setupDefaultTab()
-        setupManageShownTabs()
-        setupNavigationBarStyle()
-        setupUseIconTabs()
-        setupScreenSlideAnimation()
-        setupOpenSearch()
-
         setupManageShownContactFields()
         setupMergeDuplicateContacts()
         setupShowCallConfirmation()
@@ -154,6 +153,19 @@ class SettingsActivity : SimpleActivity() {
         setupFontSize()
         setupUseEnglish()
         setupLanguage()
+
+        setupDefaultTab()
+        setupManageShownTabs()
+        setupNavigationBarStyle()
+        setupUseIconTabs()
+        setupScreenSlideAnimation()
+        setupOpenSearch()
+
+        setupUseSwipeToAction()
+        setupSwipeVibration()
+        setupSwipeRightAction()
+        setupSwipeLeftAction()
+        setupDeleteConfirmation()
 
         setupShowDividers()
         setupShowContactThumbnails()
@@ -173,8 +185,9 @@ class SettingsActivity : SimpleActivity() {
 
         arrayOf(
             binding.settingsAppearanceLabel,
-            binding.settingsTabsLabel,
             binding.settingsGeneralLabel,
+            binding.settingsTabsLabel,
+            binding.settingsSwipeGesturesLabel,
             binding.settingsListViewLabel,
             binding.settingsBackupsLabel,
             binding.settingsOtherLabel).forEach {
@@ -183,8 +196,9 @@ class SettingsActivity : SimpleActivity() {
 
         arrayOf(
             binding.settingsColorCustomizationHolder,
-            binding.settingsTabsHolder,
             binding.settingsGeneralHolder,
+            binding.settingsTabsHolder,
+            binding.settingsSwipeGesturesHolder,
             binding.settingsListViewHolder,
             binding.settingsBackupsHolder,
             binding.settingsOtherHolder
@@ -224,11 +238,6 @@ class SettingsActivity : SimpleActivity() {
     }
 
     private fun setupCustomizeColors() = binding.apply {
-//        settingsCustomizeColorsLabel.text = if (isPro()) {
-//            getString(com.goodwy.commons.R.string.customize_colors)
-//        } else {
-//            getString(com.goodwy.commons.R.string.customize_colors_locked)
-//        }
         settingsCustomizeColorsHolder.setOnClickListener {
             startCustomizationActivity(
                 showAccentColor = false,
@@ -261,11 +270,12 @@ class SettingsActivity : SimpleActivity() {
         binding.settingsScreenSlideAnimation.text = getScreenSlideAnimationText()
         binding.settingsScreenSlideAnimationHolder.setOnClickListener {
             val items = arrayListOf(
-                RadioItem(0, getString(com.goodwy.commons.R.string.no)),
-                RadioItem(1, getString(com.goodwy.commons.R.string.screen_slide_animation_zoomout)),
-                RadioItem(2, getString(com.goodwy.commons.R.string.screen_slide_animation_depth)))
+                RadioItem(0, getString(com.goodwy.commons.R.string.no), icon = com.goodwy.commons.R.drawable.ic_view_array),
+                RadioItem(1, getString(com.goodwy.commons.R.string.screen_slide_animation_zoomout), icon = com.goodwy.commons.R.drawable.ic_view_carousel),
+                RadioItem(2, getString(com.goodwy.commons.R.string.screen_slide_animation_depth), icon = com.goodwy.commons.R.drawable.ic_playing_cards),
+            )
 
-            RadioGroupDialog(this@SettingsActivity, items, config.screenSlideAnimation) {
+            RadioGroupIconDialog(this@SettingsActivity, items, config.screenSlideAnimation, com.goodwy.commons.R.string.screen_slide_animation) {
                 config.screenSlideAnimation = it as Int
                 config.tabsChanged = true
                 binding.settingsScreenSlideAnimation.text = getScreenSlideAnimationText()
@@ -288,11 +298,11 @@ class SettingsActivity : SimpleActivity() {
         binding.settingsDefaultTabHolder.setOnClickListener {
             val items = arrayListOf(
                 RadioItem(TAB_LAST_USED, getString(com.goodwy.commons.R.string.last_used_tab)),
-                RadioItem(TAB_FAVORITES, getString(com.goodwy.commons.R.string.favorites_tab)),
-                RadioItem(TAB_CONTACTS, getString(com.goodwy.commons.R.string.contacts_tab)),
-                RadioItem(TAB_GROUPS, getString(com.goodwy.commons.R.string.groups_tab)))
+                RadioItem(TAB_FAVORITES, getString(com.goodwy.commons.R.string.favorites_tab), icon = R.drawable.ic_star_vector_scaled),
+                RadioItem(TAB_CONTACTS, getString(com.goodwy.commons.R.string.contacts_tab), icon = R.drawable.ic_person_rounded_scaled),
+                RadioItem(TAB_GROUPS, getString(com.goodwy.commons.R.string.groups_tab), icon = com.goodwy.commons.R.drawable.ic_people_rounded))
 
-            RadioGroupDialog(this@SettingsActivity, items, config.defaultTab) {
+            RadioGroupIconDialog(this@SettingsActivity, items, config.defaultTab, com.goodwy.commons.R.string.default_tab) {
                 config.defaultTab = it as Int
                 binding.settingsDefaultTab.text = getDefaultTabText()
             }
@@ -311,22 +321,17 @@ class SettingsActivity : SimpleActivity() {
     private fun setupNavigationBarStyle() {
         binding.settingsNavigationBarStyle.text = getNavigationBarStyleText()
         binding.settingsNavigationBarStyleHolder.setOnClickListener {
-            launchNavigationBarStyleDialog()
-        }
-    }
-
-    private fun launchNavigationBarStyleDialog() {
-        BottomSheetChooserDialog.createChooser(
-            fragmentManager = supportFragmentManager,
-            title = com.goodwy.commons.R.string.tab_navigation,
-            items = arrayOf(
-                SimpleListItem(0, com.goodwy.commons.R.string.top, imageRes = com.goodwy.commons.R.drawable.ic_tab_top, selected = !config.bottomNavigationBar),
-                SimpleListItem(1, com.goodwy.commons.R.string.bottom, imageRes = com.goodwy.commons.R.drawable.ic_tab_bottom, selected = config.bottomNavigationBar)
+            val items = arrayListOf(
+                RadioItem(0, getString(com.goodwy.commons.R.string.top), icon = com.goodwy.commons.R.drawable.ic_tab_top),
+                RadioItem(1, getString(com.goodwy.commons.R.string.bottom), icon = com.goodwy.commons.R.drawable.ic_tab_bottom),
             )
-        ) {
-            config.bottomNavigationBar = it.id == 1
-            config.tabsChanged = true
-            binding.settingsNavigationBarStyle.text = getNavigationBarStyleText()
+
+            val checkedItemId = if (config.bottomNavigationBar) 1 else 0
+            RadioGroupIconDialog(this@SettingsActivity, items, checkedItemId, com.goodwy.commons.R.string.tab_navigation) {
+                config.bottomNavigationBar = it == 1
+                config.tabsChanged = true
+                binding.settingsNavigationBarStyle.text = getNavigationBarStyleText()
+            }
         }
     }
 
@@ -339,7 +344,7 @@ class SettingsActivity : SimpleActivity() {
                 RadioItem(FONT_SIZE_LARGE, getString(com.goodwy.commons.R.string.large)),
                 RadioItem(FONT_SIZE_EXTRA_LARGE, getString(com.goodwy.commons.R.string.extra_large)))
 
-            RadioGroupDialog(this@SettingsActivity, items, config.fontSize) {
+            RadioGroupDialog(this@SettingsActivity, items, config.fontSize, com.goodwy.commons.R.string.font_size) {
                 config.fontSize = it as Int
                 binding.settingsFontSize.text = getFontSizeText()
                 config.tabsChanged = true
@@ -441,12 +446,12 @@ class SettingsActivity : SimpleActivity() {
             settingsOnContactClick.text = getOnContactClickText()
             settingsOnContactClickHolder.setOnClickListener {
                 val items = arrayListOf(
-                    RadioItem(ON_CLICK_CALL_CONTACT, getString(R.string.call_contact)),
-                    RadioItem(ON_CLICK_VIEW_CONTACT, getString(R.string.view_contact)),
-                    RadioItem(ON_CLICK_EDIT_CONTACT, getString(R.string.edit_contact))
+                    RadioItem(ON_CLICK_CALL_CONTACT, getString(R.string.call_contact), icon = com.goodwy.commons.R.drawable.ic_phone_vector),
+                    RadioItem(ON_CLICK_VIEW_CONTACT, getString(R.string.view_contact), icon = com.goodwy.commons.R.drawable.ic_contact_details),
+                    RadioItem(ON_CLICK_EDIT_CONTACT, getString(R.string.edit_contact), icon = com.goodwy.commons.R.drawable.ic_edit_vector)
                 )
 
-                RadioGroupDialog(this@SettingsActivity, items, config.onContactClick) {
+                RadioGroupIconDialog(this@SettingsActivity, items, config.onContactClick, R.string.on_contact_click) {
                     config.onContactClick = it as Int
                     settingsOnContactClick.text = getOnContactClickText()
                 }
@@ -733,6 +738,113 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    private fun setupUseSwipeToAction() {
+        updateSwipeToActionVisible()
+        binding.apply {
+            settingsUseSwipeToAction.isChecked = config.useSwipeToAction
+            settingsUseSwipeToActionHolder.setOnClickListener {
+                settingsUseSwipeToAction.toggle()
+                config.useSwipeToAction = settingsUseSwipeToAction.isChecked
+                config.tabsChanged = true
+                updateSwipeToActionVisible()
+            }
+        }
+    }
+
+    private fun updateSwipeToActionVisible() {
+        binding.apply {
+            settingsSwipeVibrationHolder.beVisibleIf(config.useSwipeToAction)
+            settingsSwipeRightActionHolder.beVisibleIf(config.useSwipeToAction)
+            settingsSwipeLeftActionHolder.beVisibleIf(config.useSwipeToAction)
+            settingsSkipDeleteConfirmationHolder.beVisibleIf(config.useSwipeToAction &&(config.swipeLeftAction == SWIPE_ACTION_DELETE || config.swipeRightAction == SWIPE_ACTION_DELETE))
+        }
+    }
+
+    private fun setupSwipeVibration() {
+        binding.apply {
+            settingsSwipeVibration.isChecked = config.swipeVibration
+            settingsSwipeVibrationHolder.setOnClickListener {
+                settingsSwipeVibration.toggle()
+                config.swipeVibration = settingsSwipeVibration.isChecked
+            }
+        }
+    }
+
+    private fun setupSwipeRightAction() = binding.apply {
+        if (isRTLLayout) settingsSwipeRightActionLabel.text = getString(com.goodwy.commons.R.string.swipe_left_action)
+        settingsSwipeRightAction.text = getSwipeActionText(false)
+        settingsSwipeRightActionHolder.setOnClickListener {
+            val items = arrayListOf(
+                RadioItem(SWIPE_ACTION_DELETE, getString(com.goodwy.commons.R.string.delete), icon = com.goodwy.commons.R.drawable.ic_delete_outline),
+                RadioItem(SWIPE_ACTION_EDIT, getString(com.goodwy.commons.R.string.edit), icon = com.goodwy.commons.R.drawable.ic_edit_vector),
+                RadioItem(SWIPE_ACTION_CALL, getString(com.goodwy.commons.R.string.call), icon = com.goodwy.commons.R.drawable.ic_phone_vector),
+                RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = com.goodwy.commons.R.drawable.ic_messages),
+            )
+
+            val title =
+                if (isRTLLayout) com.goodwy.commons.R.string.swipe_left_action else com.goodwy.commons.R.string.swipe_right_action
+            RadioGroupIconDialog(this@SettingsActivity, items, config.swipeRightAction, title) {
+                config.swipeRightAction = it as Int
+                config.tabsChanged = true
+                settingsSwipeRightAction.text = getSwipeActionText(false)
+                settingsSkipDeleteConfirmationHolder.beVisibleIf(config.swipeLeftAction == SWIPE_ACTION_DELETE || config.swipeRightAction == SWIPE_ACTION_DELETE)
+            }
+        }
+    }
+
+    private fun setupSwipeLeftAction() = binding.apply {
+        val pro = isPro()
+        settingsSwipeLeftActionHolder.alpha = if (pro) 1f else 0.4f
+        val stringId = if (isRTLLayout) com.goodwy.commons.R.string.swipe_right_action else com.goodwy.commons.R.string.swipe_left_action
+        settingsSwipeLeftActionLabel.text = addLockedLabelIfNeeded(stringId, pro)
+        settingsSwipeLeftAction.text = getSwipeActionText(true)
+        settingsSwipeLeftActionHolder.setOnClickListener {
+            if (pro) {
+                val items = arrayListOf(
+                    RadioItem(SWIPE_ACTION_DELETE, getString(com.goodwy.commons.R.string.delete), icon = com.goodwy.commons.R.drawable.ic_delete_outline),
+                    RadioItem(SWIPE_ACTION_EDIT, getString(com.goodwy.commons.R.string.edit), icon = com.goodwy.commons.R.drawable.ic_edit_vector),
+                    RadioItem(SWIPE_ACTION_CALL, getString(com.goodwy.commons.R.string.call), icon = com.goodwy.commons.R.drawable.ic_phone_vector),
+                    RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = com.goodwy.commons.R.drawable.ic_messages),
+                )
+
+                val title =
+                    if (isRTLLayout) com.goodwy.commons.R.string.swipe_right_action else com.goodwy.commons.R.string.swipe_left_action
+                RadioGroupIconDialog(this@SettingsActivity, items, config.swipeLeftAction, title) {
+                    config.swipeLeftAction = it as Int
+                    config.tabsChanged = true
+                    settingsSwipeLeftAction.text = getSwipeActionText(true)
+                    settingsSkipDeleteConfirmationHolder.beVisibleIf(config.swipeLeftAction == SWIPE_ACTION_DELETE || config.swipeRightAction == SWIPE_ACTION_DELETE)
+                }
+            } else {
+                RxAnimation.from(settingsSwipeLeftActionHolder)
+                    .shake(shakeTranslation = 2f)
+                    .subscribe()
+
+                showSnackbar(binding.root)
+            }
+        }
+    }
+
+    private fun getSwipeActionText(left: Boolean) = getString(
+        when (if (left) config.swipeLeftAction else config.swipeRightAction) {
+            SWIPE_ACTION_DELETE -> com.goodwy.commons.R.string.delete
+            SWIPE_ACTION_EDIT -> com.goodwy.commons.R.string.edit
+            SWIPE_ACTION_CALL -> com.goodwy.commons.R.string.call
+            else -> com.goodwy.commons.R.string.send_sms
+        }
+    )
+
+    private fun setupDeleteConfirmation() {
+        binding.apply {
+            //settingsSkipDeleteConfirmationHolder.beVisibleIf(config.swipeLeftAction == SWIPE_ACTION_DELETE || config.swipeRightAction == SWIPE_ACTION_DELETE)
+            settingsSkipDeleteConfirmation.isChecked = config.skipDeleteConfirmation
+            settingsSkipDeleteConfirmationHolder.setOnClickListener {
+                settingsSkipDeleteConfirmation.toggle()
+                config.skipDeleteConfirmation = settingsSkipDeleteConfirmation.isChecked
+            }
+        }
+    }
+
     private fun setupTipJar() = binding.apply {
         settingsTipJarHolder.apply {
             beVisibleIf(isPro())
@@ -748,35 +860,6 @@ class SettingsActivity : SimpleActivity() {
         settingsAboutHolder.setOnClickListener {
             launchAbout()
         }
-    }
-
-    private fun launchAbout() {
-        val licenses = LICENSE_GLIDE or LICENSE_INDICATOR_FAST_SCROLL
-
-        val faqItems = arrayListOf(
-            FAQItem(R.string.faq_1_title, R.string.faq_1_text),
-            FAQItem(com.goodwy.commons.R.string.faq_9_title_commons, com.goodwy.commons.R.string.faq_9_text_commons),
-            FAQItem(com.goodwy.commons.R.string.faq_100_title_commons_g, com.goodwy.commons.R.string.faq_100_text_commons_g),
-            FAQItem(com.goodwy.commons.R.string.faq_101_title_commons_g, com.goodwy.commons.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
-            FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.commons.R.string.faq_2_text_commons_g),
-        )
-
-        startAboutActivity(
-            appNameId = R.string.app_name_g,
-            licenseMask = licenses,
-            versionName = BuildConfig.VERSION_NAME,
-            faqItems = faqItems,
-            showFAQBeforeMail = true,
-            licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
-            productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
-            productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
-            subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
-            subscriptionIdListRu = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
-            subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
-            subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
-            playStoreInstalled = isPlayStoreInstalled(),
-            ruStoreInstalled = isRuStoreInstalled()
-        )
     }
 
     private fun launchPurchase() {
@@ -805,12 +888,8 @@ class SettingsActivity : SimpleActivity() {
 
     private fun updatePro(isPro: Boolean = isPro()) {
         binding.apply {
+            settingsSwipeLeftActionHolder.alpha = if (isPro) 1f else 0.4f
             settingsPurchaseThankYouHolder.beGoneIf(isPro)
-//            settingsCustomizeColorsLabel.text = if (isPro) {
-//                getString(com.goodwy.commons.R.string.customize_colors)
-//            } else {
-//                getString(com.goodwy.commons.R.string.customize_colors_locked)
-//            }
             settingsTipJarHolder.beVisibleIf(isPro)
         }
     }
@@ -842,5 +921,23 @@ class SettingsActivity : SimpleActivity() {
                 //toast(event.throwable.message ?: "Process unknown error", Toast.LENGTH_LONG)
             }
         }
+    }
+
+    private fun showSnackbar(view: View) {
+        view.performHapticFeedback()
+
+        val snackbar = Snackbar.make(view, com.goodwy.commons.R.string.support_project_to_unlock, Snackbar.LENGTH_SHORT)
+            .setAction(com.goodwy.commons.R.string.support) {
+                launchPurchase()
+            }
+
+        val bgDrawable = ResourcesCompat.getDrawable(view.resources, com.goodwy.commons.R.drawable.button_background_16dp, null)
+        snackbar.view.background = bgDrawable
+        val properBackgroundColor = getProperBackgroundColor()
+        val backgroundColor = if (properBackgroundColor == Color.BLACK) getBottomNavigationBackgroundColor().lightenColor(6) else getBottomNavigationBackgroundColor().darkenColor(6)
+        snackbar.setBackgroundTint(backgroundColor)
+        snackbar.setTextColor(getProperTextColor())
+        snackbar.setActionTextColor(getProperPrimaryColor())
+        snackbar.show()
     }
 }

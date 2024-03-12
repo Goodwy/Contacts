@@ -14,14 +14,14 @@
         android:title="@string/edit_contact"
         app:showAsAction="always" />
     <item
-        android:id="@+id/share"
-        android:icon="@drawable/ic_share_vector"
-        android:title="@string/share"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/delete"
         android:icon="@drawable/ic_delete_outline"
         android:title="@string/delete"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/share"
+        android:icon="@drawable/ic_share_vector"
+        android:title="@string/share"
         app:showAsAction="never" />
     <item
         android:id="@+id/open_with"

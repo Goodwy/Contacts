@@ -34,10 +34,10 @@
     <com.reddit.indicatorfastscroll.FastScrollerView
         android:id="@+id/letter_fastscroller"
         android:layout_width="32dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
-        android:paddingTop="@dimen/big_margin"
-        android:paddingBottom="@dimen/big_margin" />
+        android:layout_centerVertical="true"
+        android:paddingTop="@dimen/bigger_margin" />
 
     <com.reddit.indicatorfastscroll.FastScrollerThumbView
         android:id="@+id/letter_fastscroller_thumb"

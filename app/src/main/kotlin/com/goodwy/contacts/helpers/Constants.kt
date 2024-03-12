@@ -86,3 +86,13 @@ fun formatTime(showSeconds: Boolean, use24HourFormat: Boolean, hours: Int, minut
         String.format(format, hours, minutes)
     }
 }
+
+// swiped left action
+const val SWIPE_RIGHT_ACTION = "swipe_right_action"
+const val SWIPE_LEFT_ACTION = "swipe_left_action"
+const val SWIPE_ACTION_DELETE = 2
+const val SWIPE_ACTION_BLOCK = 4 //!! isNougatPlus()
+const val SWIPE_ACTION_CALL = 5
+const val SWIPE_ACTION_MESSAGE = 6
+const val SWIPE_ACTION_EDIT = 7
+const val SWIPE_VIBRATION = "swipe_vibration"

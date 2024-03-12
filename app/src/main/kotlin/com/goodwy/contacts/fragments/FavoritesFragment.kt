@@ -118,7 +118,8 @@ class FavoritesFragment(context: Context, attributeSet: AttributeSet) : MyViewPa
             innerBinding.letterFastscroller.beGone()
             innerBinding.fragmentList.layoutManager = MyGridLayoutManager(context, spanCount)
         } else {
-            innerBinding.letterFastscroller.beVisibleIf(size > 10)
+            innerBinding.letterFastscroller.beGone()
+//            innerBinding.letterFastscroller.beVisibleIf(size > 10)
             innerBinding.fragmentList.layoutManager = MyLinearLayoutManager(context)
         }
     }

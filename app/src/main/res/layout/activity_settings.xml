@@ -168,11 +168,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
                         android:layout_marginEnd="@dimen/settings_margin"
                         android:clickable="false"
                         android:contentDescription="@string/settings_icon"
                         android:src="@drawable/ic_more_horiz" />
-
                 </RelativeLayout>
 
                 <LinearLayout
@@ -212,135 +212,13 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
                             android:layout_marginEnd="@dimen/settings_margin"
                             android:clickable="false"
                             android:contentDescription="@string/contact_color_list"
                             android:src="@drawable/ic_color_list_android"/>
                     </RelativeLayout>
                 </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/settings_tabs_holder"
-                style="@style/SettingsSectionHolder"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/settings_tabs_label"
-                    style="@style/SettingsTextLabelStyle"
-                    android:layout_marginTop="@dimen/normal_margin"
-                    android:layout_marginStart="@dimen/smaller_margin"
-                    android:layout_marginBottom="@dimen/small_margin"
-                    android:text="@string/tabs"
-                    android:textStyle="bold"
-                    tools:textColor="@color/primary" />
-
-                <RelativeLayout
-                    android:id="@+id/settings_default_tab_holder"
-                    style="@style/SettingsHolderStyle">
-
-                    <com.goodwy.commons.views.MyTextView
-                        android:id="@+id/settings_default_tab_label"
-                        style="@style/SettingsTextLabelStyle"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@+id/settings_default_tab"
-                        android:text="@string/default_tab"/>
-
-                    <com.goodwy.commons.views.MyTextView
-                        android:id="@+id/settings_default_tab"
-                        style="@style/SettingsTextValueStyle"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="@dimen/settings_margin"
-                        tools:text="Last used one"/>
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/settings_manage_shown_tabs_holder"
-                    style="@style/SettingsHolderStyle">
-
-                    <com.goodwy.commons.views.MyTextView
-                        android:id="@+id/settings_manage_shown_tabs_label"
-                        style="@style/SettingsTextLabelStyle"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="68dp"
-                        android:text="@string/manage_shown_tabs" />
-
-                    <ImageView
-                        android:id="@+id/settings_manage_shown_tabs_chevron"
-                        style="@style/SettingsChevronStyle"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="@dimen/smaller_margin"
-                        android:contentDescription="@string/manage_shown_tabs"/>
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/settings_navigation_bar_style_holder"
-                    style="@style/SettingsHolderStyle">
-
-                    <com.goodwy.commons.views.MyTextView
-                        android:id="@+id/settings_navigation_bar_style_label"
-                        style="@style/SettingsTextLabelStyle"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@+id/settings_navigation_bar_style"
-                        android:text="@string/tab_navigation" />
-
-                    <com.goodwy.commons.views.MyTextView
-                        android:id="@+id/settings_navigation_bar_style"
-                        style="@style/SettingsTextValueStyle"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="@dimen/settings_margin"
-                        tools:text="@string/top" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/settings_use_icon_tabs_holder"
-                    style="@style/SettingsHolderSwitchStyle">
-
-                    <com.goodwy.commons.views.MySwitchCompat
-                        android:id="@+id/settings_use_icon_tabs"
-                        style="@style/SettingsSwitchStyle"
-                        android:text="@string/use_icon_tabs"
-                        app:switchPadding="@dimen/bigger_margin" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/settings_screen_slide_animation_holder"
-                    style="@style/SettingsHolderStyle">
-
-                    <com.goodwy.commons.views.MyTextView
-                        android:id="@+id/settings_screen_slide_animation_label"
-                        style="@style/SettingsTextLabelStyle"
-                        android:layout_alignParentStart="true"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@+id/settings_screen_slide_animation"
-                        android:text="@string/screen_slide_animation" />
-
-                    <com.goodwy.commons.views.MyTextView
-                        android:id="@+id/settings_screen_slide_animation"
-                        style="@style/SettingsTextValueStyle"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="@dimen/settings_margin"
-                        tools:text="@string/screen_slide_animation_zoomout" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/settings_open_search_holder"
-                    style="@style/SettingsHolderSwitchStyle">
-
-                    <com.goodwy.commons.views.MySwitchCompat
-                        android:id="@+id/settings_open_search"
-                        style="@style/SettingsSwitchStyle"
-                        android:text="@string/open_search_when_open_contacts"
-                        app:switchPadding="@dimen/bigger_margin" />
-
-                </RelativeLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -524,6 +402,238 @@
                         android:layout_marginEnd="@dimen/settings_margin"
                         tools:text="English" />
 
+                </RelativeLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/settings_tabs_holder"
+                style="@style/SettingsSectionHolder"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/settings_tabs_label"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_marginTop="@dimen/normal_margin"
+                    android:layout_marginStart="@dimen/smaller_margin"
+                    android:layout_marginBottom="@dimen/small_margin"
+                    android:text="@string/tabs"
+                    android:textStyle="bold"
+                    tools:textColor="@color/primary" />
+
+                <RelativeLayout
+                    android:id="@+id/settings_default_tab_holder"
+                    style="@style/SettingsHolderStyle">
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settings_default_tab_label"
+                        style="@style/SettingsTextLabelStyle"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/settings_default_tab"
+                        android:text="@string/default_tab"/>
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settings_default_tab"
+                        style="@style/SettingsTextValueStyle"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="@dimen/settings_margin"
+                        tools:text="Last used one"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settings_manage_shown_tabs_holder"
+                    style="@style/SettingsHolderStyle">
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settings_manage_shown_tabs_label"
+                        style="@style/SettingsTextLabelStyle"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="68dp"
+                        android:text="@string/manage_shown_tabs" />
+
+                    <ImageView
+                        android:id="@+id/settings_manage_shown_tabs_chevron"
+                        style="@style/SettingsChevronStyle"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/smaller_margin"
+                        android:contentDescription="@string/manage_shown_tabs"/>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settings_navigation_bar_style_holder"
+                    style="@style/SettingsHolderStyle">
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settings_navigation_bar_style_label"
+                        style="@style/SettingsTextLabelStyle"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/settings_navigation_bar_style"
+                        android:text="@string/tab_navigation" />
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settings_navigation_bar_style"
+                        style="@style/SettingsTextValueStyle"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="@dimen/settings_margin"
+                        tools:text="@string/top" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settings_use_icon_tabs_holder"
+                    style="@style/SettingsHolderSwitchStyle">
+
+                    <com.goodwy.commons.views.MySwitchCompat
+                        android:id="@+id/settings_use_icon_tabs"
+                        style="@style/SettingsSwitchStyle"
+                        android:text="@string/use_icon_tabs"
+                        app:switchPadding="@dimen/bigger_margin" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settings_screen_slide_animation_holder"
+                    style="@style/SettingsHolderStyle">
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settings_screen_slide_animation_label"
+                        style="@style/SettingsTextLabelStyle"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/settings_screen_slide_animation"
+                        android:text="@string/screen_slide_animation" />
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settings_screen_slide_animation"
+                        style="@style/SettingsTextValueStyle"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="@dimen/settings_margin"
+                        tools:text="@string/screen_slide_animation_zoomout" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settings_open_search_holder"
+                    style="@style/SettingsHolderSwitchStyle">
+
+                    <com.goodwy.commons.views.MySwitchCompat
+                        android:id="@+id/settings_open_search"
+                        style="@style/SettingsSwitchStyle"
+                        android:text="@string/open_search_when_open_contacts"
+                        app:switchPadding="@dimen/bigger_margin" />
+
+                </RelativeLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/settingsSwipeGesturesHolder"
+                style="@style/SettingsSectionHolder"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/settingsSwipeGesturesLabel"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_marginTop="@dimen/normal_margin"
+                    android:layout_marginStart="@dimen/smaller_margin"
+                    android:layout_marginBottom="@dimen/small_margin"
+                    android:text="@string/swipe_gestures"
+                    android:textStyle="bold"
+                    tools:textColor="@color/primary" />
+
+                <RelativeLayout
+                    android:id="@+id/settingsUseSwipeToActionHolder"
+                    style="@style/SettingsHolderSwitchStyle">
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settingsUseSwipeToActionLabel"
+                        style="@style/SettingsTextLabelStyle"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="false"
+                        android:layout_toStartOf="@+id/settingsUseSwipeToAction"
+                        android:text="@string/use_swipe_gestures" />
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settingsUseSwipeToActionSummary"
+                        style="@style/SettingsTextSummaryStyle"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/settingsUseSwipeToActionLabel"
+                        android:layout_toStartOf="@+id/settingsUseSwipeToAction"
+                        android:clickable="false"
+                        android:text="@string/use_swipe_gestures_summary"/>
+
+                    <com.goodwy.commons.views.MySwitchCompat
+                        android:id="@+id/settingsUseSwipeToAction"
+                        style="@style/SettingsSwitchStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        app:switchPadding="@dimen/bigger_margin" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settingsSwipeVibrationHolder"
+                    style="@style/SettingsHolderSwitchStyle">
+
+                    <com.goodwy.commons.views.MySwitchCompat
+                        android:id="@+id/settingsSwipeVibration"
+                        style="@style/SettingsSwitchStyle"
+                        android:text="@string/vibrate_g"
+                        app:switchPadding="@dimen/bigger_margin" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settingsSwipeRightActionHolder"
+                    style="@style/SettingsHolderSwitchStyle">
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settingsSwipeRightActionLabel"
+                        style="@style/SettingsTextLabelStyle"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/settingsSwipeRightAction"
+                        android:text="@string/swipe_right_action" />
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settingsSwipeRightAction"
+                        style="@style/SettingsTextValueStyle"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="@dimen/settings_margin"
+                        tools:text="@string/send_sms" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settingsSwipeLeftActionHolder"
+                    style="@style/SettingsHolderSwitchStyle">
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settingsSwipeLeftActionLabel"
+                        style="@style/SettingsTextLabelStyle"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/settingsSwipeLeftAction"
+                        android:text="@string/swipe_left_action" />
+
+                    <com.goodwy.commons.views.MyTextView
+                        android:id="@+id/settingsSwipeLeftAction"
+                        style="@style/SettingsTextValueStyle"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="@dimen/settings_margin"
+                        tools:text="@string/delete" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/settingsSkipDeleteConfirmationHolder"
+                    style="@style/SettingsHolderSwitchStyle">
+
+                    <com.goodwy.commons.views.MySwitchCompat
+                        android:id="@+id/settingsSkipDeleteConfirmation"
+                        style="@style/SettingsSwitchStyle"
+                        android:text="@string/skip_delete_confirmation"
+                        app:switchPadding="@dimen/bigger_margin" />
                 </RelativeLayout>
             </LinearLayout>
 
@@ -725,7 +835,7 @@
                         <com.goodwy.commons.views.MyTextView
                             android:id="@+id/settings_manage_automatic_backups"
                             style="@style/SettingsTextLabelStyle"
-                            android:layout_centerVertical="false"
+                            android:layout_centerVertical="true"
                             android:layout_marginEnd="48dp"
                             android:text="@string/manage_automatic_backups" />
 

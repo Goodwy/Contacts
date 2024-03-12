@@ -1,10 +1,12 @@
 package com.goodwy.contacts.dialogs
 
+import android.content.res.Configuration
 import androidx.appcompat.app.AlertDialog
 import com.reddit.indicatorfastscroll.FastScrollItemIndicator
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.ensureBackgroundThread
 import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.adapters.SelectContactsAdapter
 import com.goodwy.contacts.databinding.DialogSelectContactBinding
@@ -101,5 +103,30 @@ class SelectContactsDialog(
                 FastScrollItemIndicator.Text("")
             }
         })
+
+        try {
+            //Decrease the font size based on the number of letters in the letter scroller
+            val all = allContacts.map { it.getNameToDisplay().substring(0, 1) }
+            val unique: Set<String> = HashSet(all)
+            val sizeUnique = unique.size
+
+            if (isHighScreenSize()) {
+                if (sizeUnique > 39) binding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTooTiny
+                else if (sizeUnique > 32) binding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTiny
+                else binding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleSmall
+            } else {
+                if (sizeUnique > 49) binding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTooTiny
+                else if (sizeUnique > 37) binding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTiny
+                else binding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleSmall
+            }
+        } catch (_: Exception) { }
+    }
+
+    private fun isHighScreenSize(): Boolean {
+        return when (activity.resources.configuration.screenLayout
+            and Configuration.SCREENLAYOUT_LONG_MASK) {
+            Configuration.SCREENLAYOUT_LONG_NO -> false
+            else -> true
+        }
     }
 }

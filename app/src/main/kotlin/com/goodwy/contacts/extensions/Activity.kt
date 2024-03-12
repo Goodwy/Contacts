@@ -10,6 +10,7 @@ import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
+import com.goodwy.commons.models.FAQItem
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.BuildConfig
@@ -165,4 +166,43 @@ fun SimpleActivity.tryImportContactsFromFile(uri: Uri, callback: (Boolean) -> Un
 
 fun SimpleActivity.showImportContactsDialog(path: String, callback: (Boolean) -> Unit) {
     ImportContactsDialog(this, path, callback)
+}
+
+fun SimpleActivity.launchAbout() {
+    val licenses = LICENSE_JODA or LICENSE_GLIDE or LICENSE_GSON or LICENSE_INDICATOR_FAST_SCROLL or LICENSE_AUTOFITTEXTVIEW
+
+    val faqItems = arrayListOf(
+        FAQItem(R.string.faq_1_title, R.string.faq_1_text),
+        FAQItem(com.goodwy.commons.R.string.faq_9_title_commons, com.goodwy.commons.R.string.faq_9_text_commons),
+        FAQItem(com.goodwy.commons.R.string.faq_100_title_commons_g, com.goodwy.commons.R.string.faq_100_text_commons_g),
+        FAQItem(com.goodwy.commons.R.string.faq_101_title_commons_g, com.goodwy.commons.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
+        FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.commons.R.string.faq_2_text_commons_g),
+    )
+
+    val productIdX1 = BuildConfig.PRODUCT_ID_X1
+    val productIdX2 = BuildConfig.PRODUCT_ID_X2
+    val productIdX3 = BuildConfig.PRODUCT_ID_X3
+    val subscriptionIdX1 = BuildConfig.SUBSCRIPTION_ID_X1
+    val subscriptionIdX2 = BuildConfig.SUBSCRIPTION_ID_X2
+    val subscriptionIdX3 = BuildConfig.SUBSCRIPTION_ID_X3
+    val subscriptionYearIdX1 = BuildConfig.SUBSCRIPTION_YEAR_ID_X1
+    val subscriptionYearIdX2 = BuildConfig.SUBSCRIPTION_YEAR_ID_X2
+    val subscriptionYearIdX3 = BuildConfig.SUBSCRIPTION_YEAR_ID_X3
+
+    startAboutActivity(
+        appNameId = R.string.app_name_g,
+        licenseMask = licenses,
+        versionName = BuildConfig.VERSION_NAME,
+        faqItems = faqItems,
+        showFAQBeforeMail = true,
+        licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
+        productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
+        productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
+        subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+        subscriptionIdListRu = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
+        subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
+        subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
+        playStoreInstalled = isPlayStoreInstalled(),
+        ruStoreInstalled = isRuStoreInstalled()
+    )
 }

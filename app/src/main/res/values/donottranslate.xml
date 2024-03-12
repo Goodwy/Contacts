@@ -15,11 +15,15 @@
     <string name="viber">Viber</string>
 
     <!-- Release notes -->
-    <string name="release_414">
-        Bug fixes
+    <string name="release_510">
+        Added swipe gestures (call, message, edit, delete)\n
+        Fixed bugs, improved stability
     </string>
     <string name="release_500">
         Improved interface\n
         Fixed bugs, improved stability
+    </string>
+    <string name="release_414">
+        Bug fixes
     </string>
 </resources>

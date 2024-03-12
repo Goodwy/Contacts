@@ -122,4 +122,6 @@ dependencies {
     implementation(libs.behavio.rule)
     implementation(libs.rx.animation)
     implementation(libs.bundles.lifecycle)
+    implementation(libs.rx.java)
+    implementation(libs.swipe.action)
 }

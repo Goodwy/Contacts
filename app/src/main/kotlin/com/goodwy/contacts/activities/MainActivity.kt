@@ -41,6 +41,7 @@ import com.goodwy.contacts.dialogs.ChangeSortingDialog
 import com.goodwy.contacts.dialogs.FilterContactSourcesDialog
 import com.goodwy.contacts.extensions.config
 import com.goodwy.contacts.extensions.handleGenericContactClick
+import com.goodwy.contacts.extensions.launchAbout
 import com.goodwy.contacts.extensions.tryImportContactsFromFile
 import com.goodwy.contacts.fragments.ContactsFragment
 import com.goodwy.contacts.fragments.FavoritesFragment
@@ -91,10 +92,6 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             }
         }
 
-        val marginTop = if (useBottomNavigationBar) actionBarSize + pixels(R.dimen.top_toolbar_search_height).toInt() else actionBarSize
-        binding.mainHolder.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            setMargins(0, marginTop, 0, 0)
-        }
         binding.mainMenu.updateTitle(getString(R.string.app_launcher_name))
         binding.mainMenu.searchBeVisibleIf(useBottomNavigationBar)
     }
@@ -146,7 +143,6 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
 
         setupTabColors()
-        setupToolbar(binding.mainToolbar, searchMenuItem = mSearchMenuItem)
         updateTextColors(binding.mainCoordinator)
         binding.mainMenu.updateColors(getStartRequiredStatusBarColor(), scrollingView?.computeVerticalScrollOffset() ?: 0)
 
@@ -167,7 +163,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             if (binding.viewPager.adapter == null) {
                 initFragments()
             } else {
-                refreshContacts(ALL_TABS_MASK)
+                if (!binding.mainMenu.isSearchOpen) refreshContacts(ALL_TABS_MASK)
             }
         }
 
@@ -190,6 +186,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             else -> null
         }
         binding.viewPager.setPageTransformer(true, animation)
+        binding.viewPager.setPagingEnabled(!config.useSwipeToAction)
     }
 
     override fun onPause() {
@@ -261,10 +258,13 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     }
 
     private fun changeViewType() {
-        ChangeViewTypeDialog(this) {
-            refreshMenuItems()
-            findViewById<FavoritesFragment>(R.id.favorites_fragment)?.updateFavouritesAdapter()
-        }
+//        ChangeViewTypeDialog(this) {
+//            refreshMenuItems()
+//            findViewById<FavoritesFragment>(R.id.favorites_fragment)?.updateFavouritesAdapter()
+//        }
+        config.viewType = if (config.viewType == VIEW_TYPE_LIST) VIEW_TYPE_GRID else VIEW_TYPE_LIST
+        refreshMenuItems()
+        findViewById<FavoritesFragment>(R.id.favorites_fragment)?.updateFavouritesAdapter()
     }
 
     private fun changeColumnCount() {
@@ -718,46 +718,6 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         startActivity(Intent(applicationContext, SettingsActivity::class.java))
     }
 
-    private fun launchAbout() {
-        closeSearch()
-        val licenses = LICENSE_JODA or LICENSE_GLIDE or LICENSE_GSON or LICENSE_INDICATOR_FAST_SCROLL or LICENSE_AUTOFITTEXTVIEW
-
-        val faqItems = arrayListOf(
-            FAQItem(R.string.faq_1_title, R.string.faq_1_text),
-            FAQItem(com.goodwy.commons.R.string.faq_9_title_commons, com.goodwy.commons.R.string.faq_9_text_commons),
-            FAQItem(com.goodwy.commons.R.string.faq_100_title_commons_g, com.goodwy.commons.R.string.faq_100_text_commons_g),
-            FAQItem(com.goodwy.commons.R.string.faq_101_title_commons_g, com.goodwy.commons.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
-            FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.commons.R.string.faq_2_text_commons_g),
-        )
-
-        val productIdX1 = BuildConfig.PRODUCT_ID_X1
-        val productIdX2 = BuildConfig.PRODUCT_ID_X2
-        val productIdX3 = BuildConfig.PRODUCT_ID_X3
-        val subscriptionIdX1 = BuildConfig.SUBSCRIPTION_ID_X1
-        val subscriptionIdX2 = BuildConfig.SUBSCRIPTION_ID_X2
-        val subscriptionIdX3 = BuildConfig.SUBSCRIPTION_ID_X3
-        val subscriptionYearIdX1 = BuildConfig.SUBSCRIPTION_YEAR_ID_X1
-        val subscriptionYearIdX2 = BuildConfig.SUBSCRIPTION_YEAR_ID_X2
-        val subscriptionYearIdX3 = BuildConfig.SUBSCRIPTION_YEAR_ID_X3
-
-        startAboutActivity(
-            appNameId = R.string.app_name_g,
-            licenseMask = licenses,
-            versionName = BuildConfig.VERSION_NAME,
-            faqItems = faqItems,
-            showFAQBeforeMail = true,
-            licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
-            productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
-            productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
-            subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
-            subscriptionIdListRu = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
-            subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
-            subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
-            playStoreInstalled = isPlayStoreInstalled(),
-            ruStoreInstalled = isRuStoreInstalled()
-        )
-    }
-
     override fun refreshContacts(refreshTabsMask: Int) {
         if (isDestroyed || isFinishing || isGettingContacts) {
             return
@@ -859,8 +819,4 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }
-
-    private val actionBarSize
-        get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
-            .let { attrs -> attrs.getDimension(0, 0F).toInt().also { attrs.recycle() } }
 }

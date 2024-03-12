@@ -2,11 +2,14 @@ package com.goodwy.contacts.fragments
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.util.AttributeSet
 import com.goodwy.commons.extensions.areSystemAnimationsEnabled
 import com.goodwy.commons.extensions.beVisibleIf
 import com.goodwy.commons.extensions.hideKeyboard
+import com.goodwy.commons.extensions.toast
 import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.EditContactActivity
 import com.goodwy.contacts.activities.InsertOrEditContactActivity
 import com.goodwy.contacts.activities.MainActivity
@@ -46,7 +49,26 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
     fun setupContactsAdapter(contacts: List<Contact>) {
         setupViewVisibility(contacts.isNotEmpty())
         val currAdapter = innerBinding.fragmentList.adapter
-        innerBinding.letterFastscroller.beVisibleIf(contacts.size > 10)
+        val showFastscroller = contacts.size > 10
+        innerBinding.letterFastscroller.beVisibleIf(showFastscroller)
+
+        if (showFastscroller) {
+            try {
+                //Decrease the font size based on the number of letters in the letter scroller
+                val all = contacts.map { it.getNameToDisplay().substring(0, 1) }
+                val unique: Set<String> = HashSet(all)
+                val sizeUnique = unique.size
+                if (isHighScreenSize()) {
+                    if (sizeUnique > 48) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTooTiny
+                    else if (sizeUnique > 37) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTiny
+                    else innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleSmall
+                } else {
+                    if (sizeUnique > 36) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTooTiny
+                    else if (sizeUnique > 30) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTiny
+                    else innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleSmall
+                }
+            } catch (_: Exception) { }
+        }
 
         if (currAdapter == null || forceListRedraw) {
             forceListRedraw = false
@@ -76,6 +98,14 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
                 showContactThumbnails = context.config.showContactThumbnails
                 updateItems(contacts)
             }
+        }
+    }
+
+    private fun isHighScreenSize(): Boolean {
+        return when (resources.configuration.screenLayout
+            and Configuration.SCREENLAYOUT_LONG_MASK) {
+            Configuration.SCREENLAYOUT_LONG_NO -> false
+            else -> true
         }
     }
 

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
+import android.content.res.Resources
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
@@ -15,7 +16,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -24,6 +27,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.signature.ObjectKey
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.goodwy.commons.adapters.MyRecyclerViewAdapter
+import com.goodwy.commons.dialogs.CallConfirmationDialog
 import com.goodwy.commons.dialogs.ConfirmationDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
@@ -42,6 +46,9 @@ import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.*
 import com.goodwy.contacts.interfaces.RefreshContactsListener
 import com.goodwy.contacts.interfaces.RemoveFromGroupListener
+import me.thanel.swipeactionview.SwipeActionView
+import me.thanel.swipeactionview.SwipeDirection
+import me.thanel.swipeactionview.SwipeGestureListener
 import java.util.*
 
 class ContactsAdapter(
@@ -95,6 +102,7 @@ class ContactsAdapter(
             findItem(R.id.cab_remove).isVisible = location == LOCATION_FAVORITES_TAB || location == LOCATION_GROUP_CONTACTS
             findItem(R.id.cab_add_to_favorites).isVisible = location == LOCATION_CONTACTS_TAB && getSelectedItems().all {it.starred != 1}
             findItem(R.id.cab_add_to_group).isVisible = location == LOCATION_CONTACTS_TAB || location == LOCATION_FAVORITES_TAB
+            findItem(R.id.cab_call).isVisible = isOneItemSelected()
             findItem(R.id.cab_send_sms_to_contacts).isVisible =
                 location == LOCATION_CONTACTS_TAB || location == LOCATION_FAVORITES_TAB || location == LOCATION_GROUP_CONTACTS
             findItem(R.id.cab_send_email_to_contacts).isVisible =
@@ -120,6 +128,7 @@ class ContactsAdapter(
             R.id.cab_add_to_favorites -> addToFavorites()
             R.id.cab_add_to_group -> addToGroup()
             R.id.cab_share -> shareContacts()
+            R.id.cab_call -> callContact()
             R.id.cab_send_sms_to_contacts -> sendSMSToContacts()
             R.id.cab_send_email_to_contacts -> sendEmailToContacts()
             R.id.cab_create_shortcut -> createShortcut()
@@ -145,13 +154,25 @@ class ContactsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val layout = when (viewType) {
-            VIEW_TYPE_GRID -> {
-                if (showPhoneNumbers) com.goodwy.commons.R.layout.item_contact_with_number_grid else com.goodwy.commons.R.layout.item_contact_without_number_grid
-            }
+        val layout = if (activity.config.useSwipeToAction) {
+            when (viewType) {
+                VIEW_TYPE_GRID -> {
+                    if (showPhoneNumbers) R.layout.item_contact_with_number_grid_swipe else R.layout.item_contact_without_number_grid_swipe
+                }
 
-            else -> {
-                if (showPhoneNumbers) com.goodwy.commons.R.layout.item_contact_with_number else com.goodwy.commons.R.layout.item_contact_without_number
+                else -> {
+                    if (showPhoneNumbers) R.layout.item_contact_with_number_swipe else R.layout.item_contact_without_number_swipe
+                }
+            }
+        } else {
+            when (viewType) {
+                VIEW_TYPE_GRID -> {
+                    if (showPhoneNumbers) com.goodwy.commons.R.layout.item_contact_with_number_grid else com.goodwy.commons.R.layout.item_contact_without_number_grid
+                }
+
+                else -> {
+                    if (showPhoneNumbers) com.goodwy.commons.R.layout.item_contact_with_number else com.goodwy.commons.R.layout.item_contact_without_number
+                }
             }
         }
         return createViewHolder(layout, parent)
@@ -302,12 +323,41 @@ class ContactsAdapter(
         activity.shareContacts(getSelectedItems())
     }
 
+    private fun callContact() {
+        val contact = getItemWithKey(selectedKeys.first()) ?: return
+        if (contact.phoneNumbers.isEmpty()) {
+            activity.toast(com.goodwy.commons.R.string.no_phone_number_found)
+            return
+        }
+        if (activity.config.showCallConfirmation) {
+            CallConfirmationDialog(activity as SimpleActivity, contact.getNameToDisplay()) {
+                activity.apply {
+                    initiateCall(contact) { launchCallIntent(it) }
+                }
+            }
+        } else {
+            activity.apply {
+                initiateCall(contact) { launchCallIntent(it) }
+            }
+        }
+    }
+
     private fun sendSMSToContacts() {
-        activity.sendSMSToContacts(getSelectedItems())
+        val contacts = getSelectedItems()
+        if (!contacts.any { it.phoneNumbers.isNotEmpty() }) {
+            activity.toast(com.goodwy.commons.R.string.no_phone_number_found)
+            return
+        }
+        activity.sendSMSToContacts(contacts)
     }
 
     private fun sendEmailToContacts() {
-        activity.sendEmailToContacts(getSelectedItems())
+        val contacts = getSelectedItems()
+        if (!contacts.any { it.emails.isNotEmpty() }) {
+            activity.toast(com.goodwy.commons.R.string.no_items_found)
+            return
+        }
+        activity.sendEmailToContacts(contacts)
     }
 
     @SuppressLint("NewApi")
@@ -392,7 +442,7 @@ class ContactsAdapter(
             if (getLastItem() == contact || !context.config.useDividers) findViewById<ImageView>(R.id.divider)?.visibility = View.INVISIBLE else findViewById<ImageView>(R.id.divider)?.visibility = View.VISIBLE
 
             setupViewBackground(activity)
-            findViewById<FrameLayout>(com.goodwy.commons.R.id.item_contact_frame)?.isSelected = selectedKeys.contains(contact.id)
+            findViewById<FrameLayout>(R.id.item_contact_frame)?.isSelected = selectedKeys.contains(contact.id)
             val fullName = contact.getNameToDisplay()
             findViewById<TextView>(com.goodwy.commons.R.id.item_contact_name).text = if (textToHighlight.isEmpty()) fullName else {
                 if (fullName.contains(textToHighlight, true)) {
@@ -467,6 +517,55 @@ class ContactsAdapter(
                     setOnTouchListener(null)
                 }
             }
+
+            //swipe
+            if (activity.config.useSwipeToAction && findViewById<SwipeActionView>(R.id.itemContactSwipe) != null) {
+                findViewById<ConstraintLayout>(R.id.itemContactFrameSelect).setupViewBackground(activity)
+                findViewById<FrameLayout>(R.id.item_contact_frame).setBackgroundColor(backgroundColor)
+
+                val isRTL = activity.isRTLLayout
+                val swipeLeftAction = if (isRTL) activity.config.swipeRightAction else activity.config.swipeLeftAction
+                findViewById<ImageView>(R.id.swipeLeftIcon).apply {
+                    setImageResource(swipeActionImageResource(swipeLeftAction))
+                    setColorFilter(properPrimaryColor.getContrastColor())
+                }
+                findViewById<RelativeLayout>(R.id.swipeLeftIconHolder).setBackgroundColor(swipeActionColor(swipeLeftAction))
+
+                val swipeRightAction = if (isRTL) activity.config.swipeLeftAction else activity.config.swipeRightAction
+                findViewById<ImageView>(R.id.swipeRightIcon).apply {
+                    setImageResource(swipeActionImageResource(swipeRightAction))
+                    setColorFilter(properPrimaryColor.getContrastColor())
+                }
+                findViewById<RelativeLayout>(R.id.swipeRightIconHolder).setBackgroundColor(swipeActionColor(swipeRightAction))
+
+                findViewById<SwipeActionView>(R.id.itemContactSwipe).apply {
+                    setRippleColor(SwipeDirection.Left, swipeActionColor(swipeLeftAction))
+                    setRippleColor(SwipeDirection.Right, swipeActionColor(swipeRightAction))
+                    swipeGestureListener = object : SwipeGestureListener {
+                        override fun onSwipedLeft(swipeActionView: SwipeActionView): Boolean {
+                            val swipeLeftOrRightAction = if (activity.isRTLLayout) activity.config.swipeRightAction else activity.config.swipeLeftAction
+                            swipeAction(swipeLeftOrRightAction, contact)
+                            if (activity.config.swipeVibration) this@apply.performHapticFeedback()
+                            return true
+                        }
+
+                        override fun onSwipedRight(swipeActionView: SwipeActionView): Boolean {
+                            val swipeRightOrLeftAction = if (activity.isRTLLayout) activity.config.swipeLeftAction else activity.config.swipeRightAction
+                            swipeAction(swipeRightOrLeftAction, contact)
+                            if (activity.config.swipeVibration) this@apply.performHapticFeedback()
+                            return true
+                        }
+                    }
+                }
+
+                val contactsGridColumnCount = activity.config.contactsGridColumnCount
+                if (viewType == VIEW_TYPE_GRID && contactsGridColumnCount > 1) {
+                    val width =
+                        (Resources.getSystem().displayMetrics.widthPixels / contactsGridColumnCount / 2.5).toInt()
+                    findViewById<RelativeLayout>(R.id.swipeLeftIconHolder).setWidth(width)
+                    findViewById<RelativeLayout>(R.id.swipeRightIconHolder).setWidth(width)
+                }
+            }
         }
     }
 
@@ -492,5 +591,71 @@ class ContactsAdapter(
 
     override fun onRowClear(myViewHolder: ViewHolder?) {
         onDragEndListener?.invoke()
+    }
+
+    private fun swipeActionImageResource(swipeAction: Int): Int {
+        return when (swipeAction) {
+            SWIPE_ACTION_DELETE -> com.goodwy.commons.R.drawable.ic_delete_outline
+            SWIPE_ACTION_MESSAGE -> com.goodwy.commons.R.drawable.ic_messages
+            SWIPE_ACTION_EDIT -> com.goodwy.commons.R.drawable.ic_edit_vector
+            else -> com.goodwy.commons.R.drawable.ic_phone_vector
+        }
+    }
+
+    private fun swipeActionColor(swipeAction: Int): Int {
+        val oneSim = activity.config.currentSIMCardIndex == 0
+        val simColor = if (oneSim) activity.config.simIconsColors[1] else activity.config.simIconsColors[2]
+        return when (swipeAction) {
+            SWIPE_ACTION_DELETE -> resources.getColor(com.goodwy.commons.R.color.red_missed, activity.theme)
+            SWIPE_ACTION_MESSAGE -> resources.getColor(com.goodwy.commons.R.color.ic_messages, activity.theme)
+            SWIPE_ACTION_EDIT -> resources.getColor(R.color.swipe_purple, activity.theme)
+            else -> simColor
+        }
+    }
+
+    private fun swipeAction(swipeAction: Int, contact: Contact) {
+        when (swipeAction) {
+            SWIPE_ACTION_DELETE -> swipedDelete(contact)
+            SWIPE_ACTION_MESSAGE -> swipedSMS(contact)
+            SWIPE_ACTION_EDIT -> swipedEdit(contact)
+            else -> swipedCall(contact)
+        }
+    }
+
+    private fun swipedDelete(contact: Contact) {
+        selectedKeys.add(contact.rawId)
+        if (activity.config.skipDeleteConfirmation) deleteContacts() else askConfirmDelete()
+    }
+
+    private fun swipedSMS(contact: Contact) {
+        if (contact.phoneNumbers.isEmpty()) {
+            activity.toast(com.goodwy.commons.R.string.no_phone_number_found)
+            return
+        }
+        val contactList = ArrayList<Contact>()
+        contactList.add(contact)
+        activity.sendSMSToContacts(contactList)
+    }
+
+    private fun swipedEdit(contact: Contact) {
+        activity.editContact(contact)
+    }
+
+    private fun swipedCall(contact: Contact) {
+        if (contact.phoneNumbers.isEmpty()) {
+            activity.toast(com.goodwy.commons.R.string.no_phone_number_found)
+            return
+        }
+        if (activity.config.showCallConfirmation) {
+            CallConfirmationDialog(activity as SimpleActivity, contact.getNameToDisplay()) {
+                activity.apply {
+                    initiateCall(contact) { launchCallIntent(it) }
+                }
+            }
+        } else {
+            activity.apply {
+                initiateCall(contact) { launchCallIntent(it) }
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.goodwy.contacts.fragments
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.RelativeLayout
