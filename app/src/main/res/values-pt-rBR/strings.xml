@@ -15,13 +15,16 @@
     <string name="send_email_to_group">Enviar e-mail ao grupo</string>
     <string name="fields_empty">Pelo menos 1 campo deve ser preenchido</string>
     <string name="must_be_at_edit">Você deve estar na tela de edição para modificar um contato</string>
+
     <!-- Placeholders -->
     <string name="no_contacts_with_emails">Não foram encontrados contatos com e-mails</string>
     <string name="no_contacts_with_phone_numbers">Não foram encontrados contatos com números de telefone</string>
+
     <string name="new_contact">Novo contato</string>
     <string name="edit_contact">Editar contato</string>
     <string name="select_contact">Selecionar contato</string>
     <string name="nickname">Apelido</string>
+
     <!-- Groups -->
     <string name="no_groups">Nenhum grupo</string>
     <string name="create_new_group">Criar um novo grupo</string>
@@ -32,28 +35,33 @@
     <string name="create_group">Criar grupo</string>
     <string name="add_to_group">Adicionar ao grupo</string>
     <string name="create_group_under_account">Criar grupo para a conta</string>
+
     <!-- Photo -->
     <string name="remove_photo">Remover foto</string>
     <string name="change_photo">Alterar foto</string>
+
     <!-- Settings -->
-    <string name="show_phone_numbers">Mostrar números de telefone</string>
-    <string name="show_contact_thumbnails">Mostrar miniatura do contato</string>
-    <string name="show_dialpad_button">Mostrar o botão do discador na tela principal</string>
+    <string name="show_phone_numbers">Exibir números de telefone</string>
+    <string name="show_contact_thumbnails">Exibir miniaturas dos contatos</string>
+    <string name="show_dialpad_button">Exibir o botão do discador na tela principal</string>
     <string name="on_contact_click">Ao tocar no contato</string>
     <string name="call_contact">Ligar para o contato</string>
     <string name="view_contact">Exibir detalhes do contato</string>
     <string name="manage_shown_contact_fields">Gerenciar os campos visíveis</string>
     <string name="contacts">Contatos</string>
-    <string name="show_only_contacts_with_numbers">Mostar apenas os contatos com número de telefone</string>
-    <string name="show_private_contacts">Compartilhar contatos privados com o Simple Dialer, Simple SMS Messenger e Simple Calendar Pro</string>
+    <string name="show_only_contacts_with_numbers">Exibir só os contatos com número de telefone</string>
+    <string name="show_private_contacts">Compartilhar contatos privados com o Right Dialer e Right Messages</string>
     <string name="merge_duplicate_contacts">Mesclar contatos duplicados</string>
+
     <!-- Favorites -->
-    <string name="no_favorites">Parece que você ainda não adicionou nenhum contato favorito.</string>
-    <string name="toggle_favorite">Habilitar favoritos</string>
+    <string name="no_favorites">Parece que você ainda não adicionou algum contato favorito.</string>
+    <string name="toggle_favorite">Ativar favoritos</string>
+
     <!-- Search -->
     <string name="search_contacts">Pesquisar contatos</string>
     <string name="search_favorites">Pesquisar favoritos</string>
     <string name="search_groups">Pesquisar grupos</string>
+
     <!-- Export / Import -->
     <string name="import_contacts">Importar contatos</string>
     <string name="export_contacts">Exportar contatos</string>
@@ -63,9 +71,11 @@
     <string name="target_contact_source">Destino da fonte de contatos</string>
     <string name="include_contact_sources">Incluir fonte de contatos</string>
     <string name="filename_without_vcf">Nome do arquivo (sem .vcf)</string>
+
     <!-- Dialpad -->
     <string name="dialpad">Discador</string>
     <string name="add_number_to_contact">Adicionar número ao contato</string>
+
     <!-- Visible fields -->
     <string name="prefix">Prefixo</string>
     <string name="suffix">Sufixo</string>
@@ -79,15 +89,18 @@
     <string name="contact_source">Origem do contato</string>
     <string name="instant_messaging">Mensageiro instantâneo (MI)</string>
     <string name="ringtone">Toque</string>
+
     <!-- Confirmation dialog -->
-    <string name="delete_from_all_sources">O contato será removido de todas removido de todas as fontes de contato.</string>
+    <string name="delete_from_all_sources">O contato será removido de todas as fontes de contato.</string>
     <plurals name="delete_groups">
         <item quantity="one">%d grupo</item>
         <item quantity="other">%d grupos</item>
     </plurals>
+
     <!-- FAQ -->
     <string name="faq_1_title">Quero alterar os campos visíveis dos contatos. Posso fazer isso?</string>
     <string name="faq_1_text">Sim, você só precisa modificar as definições em Configurações -&gt; Gerenciar os campos visíveis. Alguns campos estão desmarcados por padrão, então você encontrará alguns novos por lá.</string>
+
     <!--
         Haven't found some strings? There's more at
         https://github.com/SimpleMobileTools/Simple-Commons/tree/master/commons/src/main/res
