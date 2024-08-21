@@ -3,7 +3,7 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Ações de mensageiros</string>
 
     <!-- Settings -->
     <string name="show_private_contacts_g">Compartilhar contatos privados com o Right Dialer e Right Messages</string>
