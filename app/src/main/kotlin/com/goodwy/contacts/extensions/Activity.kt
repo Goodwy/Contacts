@@ -38,18 +38,8 @@ fun SimpleActivity.tryStartCallRecommendation(contact: Contact) {
     val simpleDialer = "com.goodwy.dialer"
     val simpleDialerDebug = "com.goodwy.dialer.debug"
     if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleDialer) && !isPackageInstalled(simpleDialerDebug))) {
-        NewAppDialog(this, simpleDialer, getString(com.goodwy.commons.R.string.recommendation_dialog_dialer_g), getString(com.goodwy.commons.R.string.right_dialer),
+        NewAppDialog(this, simpleDialer, getString(com.goodwy.strings.R.string.recommendation_dialog_dialer_g), getString(com.goodwy.commons.R.string.right_dialer),
             AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_dialer)) {
-            tryStartCall(contact)
-        }
-    } else {
-        tryStartCall(contact)
-    }
-}
-
-fun SimpleActivity.tryStartCall(contact: Contact) {
-    if (config.showCallConfirmation) {
-        CallConfirmationDialog(this, contact.getNameToDisplay()) {
             callContact(contact)
         }
     } else {
@@ -174,9 +164,9 @@ fun SimpleActivity.launchAbout() {
     val faqItems = arrayListOf(
         FAQItem(R.string.faq_1_title, R.string.faq_1_text),
         FAQItem(com.goodwy.commons.R.string.faq_9_title_commons, com.goodwy.commons.R.string.faq_9_text_commons),
-        FAQItem(com.goodwy.commons.R.string.faq_100_title_commons_g, com.goodwy.commons.R.string.faq_100_text_commons_g),
-        FAQItem(com.goodwy.commons.R.string.faq_101_title_commons_g, com.goodwy.commons.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
-        FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.commons.R.string.faq_2_text_commons_g),
+        FAQItem(com.goodwy.strings.R.string.faq_100_title_commons_g, com.goodwy.strings.R.string.faq_100_text_commons_g),
+        FAQItem(com.goodwy.strings.R.string.faq_101_title_commons_g, com.goodwy.strings.R.string.faq_101_text_commons_g, R.string.phone_storage_hidden),
+        FAQItem(com.goodwy.commons.R.string.faq_2_title_commons, com.goodwy.strings.R.string.faq_2_text_commons_g),
     )
 
     val productIdX1 = BuildConfig.PRODUCT_ID_X1
@@ -195,7 +185,6 @@ fun SimpleActivity.launchAbout() {
         versionName = BuildConfig.VERSION_NAME,
         faqItems = faqItems,
         showFAQBeforeMail = true,
-        licensingKey = BuildConfig.GOOGLE_PLAY_LICENSING_KEY,
         productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
         productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
         subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="contact_photo_size">88dp</dimen>
-    <dimen name="contact_photo_big_size">132dp</dimen>
     <dimen name="contact_actions_size">32dp</dimen>
     <dimen name="contact_icons_size">40dp</dimen>
     <dimen name="top_contact_image_height">300dp</dimen>
@@ -18,9 +16,9 @@
     <!--collapsing toolbar-->
     <dimen name="toolbar_height">102dp</dimen>
     <dimen name="image_top_margin">24dp</dimen>
-    <dimen name="image_right_margin">23dp</dimen>
-    <dimen name="image_edit_right_margin">32dp</dimen>
-    <dimen name="name_top_margin">12dp</dimen>
+    <dimen name="image_right_margin">32dp</dimen>
+    <dimen name="name_top_margin">42dp</dimen>
+    <dimen name="company_top_margin">56dp</dimen>
     <dimen name="name_right_margin">38dp</dimen>
     <dimen name="zero">0dp</dimen>
 

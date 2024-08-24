@@ -49,6 +49,7 @@ import com.goodwy.contacts.extensions.getCachePhotoUri
 import com.goodwy.contacts.extensions.getPackageDrawable
 import com.goodwy.contacts.extensions.showContactSourcePicker
 import com.goodwy.contacts.helpers.*
+import java.util.LinkedList
 import java.util.Locale
 
 class EditContactActivity : ContactActivity() {
@@ -132,13 +133,19 @@ class EditContactActivity : ContactActivity() {
         updateColors()
     }
 
-    private fun updateColors(color: Int = getProperBackgroundColor()) {
+    private fun updateColors() {
+        val properBackgroundColor = getProperBackgroundColor()
         if (baseConfig.backgroundColor == white) {
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(0xFFf2f2f6.toInt()))
-            window.decorView.setBackgroundColor(0xFFf2f2f6.toInt())
-            window.statusBarColor = 0xFFf2f2f6.toInt()
-            window.navigationBarColor = 0xFFf2f2f6.toInt()
-        } else window.decorView.setBackgroundColor(color)
+            val colorToWhite = 0xFFf2f2f6.toInt()
+            supportActionBar?.setBackgroundDrawable(ColorDrawable(colorToWhite))
+            window.decorView.setBackgroundColor(colorToWhite)
+            window.statusBarColor = colorToWhite
+            window.navigationBarColor = colorToWhite
+            binding.contactAppbar.setBackgroundColor(colorToWhite)
+        } else {
+            window.decorView.setBackgroundColor(properBackgroundColor)
+            binding.contactAppbar.setBackgroundColor(properBackgroundColor)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
@@ -718,27 +725,57 @@ class EditContactActivity : ContactActivity() {
     private fun setupAddresses() {
         //binding.contactAddressesHolder.removeAllViews()
         contact!!.addresses.forEachIndexed { index, address ->
-            val addressHolderView = binding.contactAddressesHolder.getChildAt(index)
-            val addressHolder = if (addressHolderView == null) {
-                ItemEditAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false).apply {
+//            val addressHolderView = binding.contactAddressesHolder.getChildAt(index)
+//            val addressHolder = if (addressHolderView == null) {
+//                ItemEditAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false).apply {
+//                    binding.contactAddressesHolder.addView(root)
+//                }
+//            } else {
+//                ItemEditAddressBinding.bind(addressHolderView)
+//            }
+//
+//            addressHolder.apply {
+//                contactAddress.setText(address.value)
+//                setupAddressTypePicker(contactAddressType, address.type, address.label)
+//
+//                val getProperTextColor = getProperTextColor()
+//                dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
+//                dividerContactAddress.setBackgroundColor(getProperTextColor)
+//                contactAddressType.setTextColor(getProperPrimaryColor())
+//                contactAddressRemove.apply {
+//                    beVisible()
+//                    setOnClickListener {
+//                        binding.contactAddressesHolder.removeView(addressHolder.root)
+//                    }
+//                }
+//            }
+            val structuredAddressHolderView = binding.contactAddressesHolder.getChildAt(index)
+            val structuredAddressHolder = if (structuredAddressHolderView == null) {
+                ItemEditStructuredAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false).apply {
                     binding.contactAddressesHolder.addView(root)
                 }
             } else {
-                ItemEditAddressBinding.bind(addressHolderView)
+                ItemEditStructuredAddressBinding.bind(structuredAddressHolderView)
             }
 
-            addressHolder.apply {
-                contactAddress.setText(address.value)
-                setupAddressTypePicker(contactAddressType, address.type, address.label)
+            structuredAddressHolder.apply {
+                contactStreet.setText(address.street)
+                contactNeighborhood.setText(address.neighborhood)
+                contactCity.setText(address.city)
+                contactPostcode.setText(address.postcode)
+                contactPobox.setText(address.pobox)
+                contactRegion.setText(address.region)
+                contactCountry.setText(address.country)
+                setupAddressTypePicker(contactStructuredAddressType, address.type, address.label)
 
                 val getProperTextColor = getProperTextColor()
                 dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
                 dividerContactAddress.setBackgroundColor(getProperTextColor)
-                contactAddressType.setTextColor(getProperPrimaryColor())
+                contactStructuredAddressType.setTextColor(getProperPrimaryColor())
                 contactAddressRemove.apply {
                     beVisible()
                     setOnClickListener {
-                        binding.contactAddressesHolder.removeView(addressHolder.root)
+                        binding.contactAddressesHolder.removeView(structuredAddressHolder.root)
                     }
                 }
             }
@@ -1131,19 +1168,7 @@ class EditContactActivity : ContactActivity() {
         }
 
         if (contact!!.addresses.isEmpty()) {
-            //binding.contactAddressesHolder.removeAllViews()
-            val addressHolder = ItemEditAddressBinding.bind(binding.contactAddressesHolder.getChildAt(0))
-            addressHolder.contactAddressType.apply {
-                setTextColor(getProperPrimaryColor)
-                setupAddressTypePicker(this, DEFAULT_ADDRESS_TYPE, "")
-            }
-            addressHolder.dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
-            addressHolder.dividerContactAddress.setBackgroundColor(getProperTextColor)
-
-            if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
-                binding.contactAddressesHolder.setBackgroundColor(white)
-                binding.contactAddressesAddNewHolder.setBackgroundColor(white)
-            }
+            addNewAddressField()
         }
 
         if (contact!!.IMs.isEmpty()) {
@@ -1305,62 +1330,62 @@ class EditContactActivity : ContactActivity() {
     private fun showRelationTypePicker(relationTypeField: TextView) {
         val items = arrayListOf(
             RadioItem(Relation.TYPE_CUSTOM, getString(com.goodwy.commons.R.string.custom)),
-            RadioItem(Relation.TYPE_FRIEND, getString(com.goodwy.commons.R.string.relation_friend_g)), // 6
-            RadioItem(Relation.TYPE_SPOUSE, getString(com.goodwy.commons.R.string.relation_spouse_g)), // 14
-            RadioItem(ContactRelation.TYPE_HUSBAND, getString(com.goodwy.commons.R.string.relation_husband_g)), // 103
-            RadioItem(ContactRelation.TYPE_WIFE, getString(com.goodwy.commons.R.string.relation_wife_g)), // 104
-            RadioItem(Relation.TYPE_DOMESTIC_PARTNER, getString(com.goodwy.commons.R.string.relation_domestic_partner_g)), // 4
-            RadioItem(Relation.TYPE_PARTNER, getString(com.goodwy.commons.R.string.relation_partner_g)), // 10
-            RadioItem(ContactRelation.TYPE_CO_RESIDENT, getString(com.goodwy.commons.R.string.relation_co_resident_g)), // 56
-            RadioItem(ContactRelation.TYPE_NEIGHBOR, getString(com.goodwy.commons.R.string.relation_neighbor_g)), // 57
-            RadioItem(Relation.TYPE_PARENT, getString(com.goodwy.commons.R.string.relation_parent_g)), // 9
-            RadioItem(Relation.TYPE_FATHER, getString(com.goodwy.commons.R.string.relation_father_g)), // 5
-            RadioItem(Relation.TYPE_MOTHER, getString(com.goodwy.commons.R.string.relation_mother_g)), // 8
-            RadioItem(Relation.TYPE_CHILD, getString(com.goodwy.commons.R.string.relation_child_g)), // 3
-            RadioItem(ContactRelation.TYPE_SON, getString(com.goodwy.commons.R.string.relation_son_g)), // 105
-            RadioItem(ContactRelation.TYPE_DAUGHTER, getString(com.goodwy.commons.R.string.relation_daughter_g)), // 106
-            RadioItem(ContactRelation.TYPE_SIBLING, getString(com.goodwy.commons.R.string.relation_sibling_g)), // 58
-            RadioItem(Relation.TYPE_BROTHER, getString(com.goodwy.commons.R.string.relation_brother_g)), // 2
-            RadioItem(Relation.TYPE_SISTER, getString(com.goodwy.commons.R.string.relation_sister_g)), // 13
-            RadioItem(ContactRelation.TYPE_GRANDPARENT, getString(com.goodwy.commons.R.string.relation_grandparent_g)), // 107
-            RadioItem(ContactRelation.TYPE_GRANDFATHER, getString(com.goodwy.commons.R.string.relation_grandfather_g)), // 108
-            RadioItem(ContactRelation.TYPE_GRANDMOTHER, getString(com.goodwy.commons.R.string.relation_grandmother_g)), // 109
-            RadioItem(ContactRelation.TYPE_GRANDCHILD, getString(com.goodwy.commons.R.string.relation_grandchild_g)), // 110
-            RadioItem(ContactRelation.TYPE_GRANDSON, getString(com.goodwy.commons.R.string.relation_grandson_g)), // 111
-            RadioItem(ContactRelation.TYPE_GRANDDAUGHTER, getString(com.goodwy.commons.R.string.relation_granddaughter_g)), // 112
-            RadioItem(ContactRelation.TYPE_UNCLE, getString(com.goodwy.commons.R.string.relation_uncle_g)), // 113
-            RadioItem(ContactRelation.TYPE_AUNT, getString(com.goodwy.commons.R.string.relation_aunt_g)), // 114
-            RadioItem(ContactRelation.TYPE_NEPHEW, getString(com.goodwy.commons.R.string.relation_nephew_g)), // 115
-            RadioItem(ContactRelation.TYPE_NIECE, getString(com.goodwy.commons.R.string.relation_niece_g)), // 116
-            RadioItem(ContactRelation.TYPE_FATHER_IN_LAW, getString(com.goodwy.commons.R.string.relation_father_in_law_g)), // 117
-            RadioItem(ContactRelation.TYPE_MOTHER_IN_LAW, getString(com.goodwy.commons.R.string.relation_mother_in_law_g)), // 118
-            RadioItem(ContactRelation.TYPE_SON_IN_LAW, getString(com.goodwy.commons.R.string.relation_son_in_law_g)), // 119
-            RadioItem(ContactRelation.TYPE_DAUGHTER_IN_LAW, getString(com.goodwy.commons.R.string.relation_daughter_in_law_g)), // 120
-            RadioItem(ContactRelation.TYPE_BROTHER_IN_LAW, getString(com.goodwy.commons.R.string.relation_brother_in_law_g)), // 121
-            RadioItem(ContactRelation.TYPE_SISTER_IN_LAW, getString(com.goodwy.commons.R.string.relation_sister_in_law_g)), // 122
-            RadioItem(Relation.TYPE_RELATIVE, getString(com.goodwy.commons.R.string.relation_relative_g)), // 12
-            RadioItem(ContactRelation.TYPE_KIN, getString(com.goodwy.commons.R.string.relation_kin_g)), // 59
+            RadioItem(Relation.TYPE_FRIEND, getString(com.goodwy.strings.R.string.relation_friend_g)), // 6
+            RadioItem(Relation.TYPE_SPOUSE, getString(com.goodwy.strings.R.string.relation_spouse_g)), // 14
+            RadioItem(ContactRelation.TYPE_HUSBAND, getString(com.goodwy.strings.R.string.relation_husband_g)), // 103
+            RadioItem(ContactRelation.TYPE_WIFE, getString(com.goodwy.strings.R.string.relation_wife_g)), // 104
+            RadioItem(Relation.TYPE_DOMESTIC_PARTNER, getString(com.goodwy.strings.R.string.relation_domestic_partner_g)), // 4
+            RadioItem(Relation.TYPE_PARTNER, getString(com.goodwy.strings.R.string.relation_partner_g)), // 10
+            RadioItem(ContactRelation.TYPE_CO_RESIDENT, getString(com.goodwy.strings.R.string.relation_co_resident_g)), // 56
+            RadioItem(ContactRelation.TYPE_NEIGHBOR, getString(com.goodwy.strings.R.string.relation_neighbor_g)), // 57
+            RadioItem(Relation.TYPE_PARENT, getString(com.goodwy.strings.R.string.relation_parent_g)), // 9
+            RadioItem(Relation.TYPE_FATHER, getString(com.goodwy.strings.R.string.relation_father_g)), // 5
+            RadioItem(Relation.TYPE_MOTHER, getString(com.goodwy.strings.R.string.relation_mother_g)), // 8
+            RadioItem(Relation.TYPE_CHILD, getString(com.goodwy.strings.R.string.relation_child_g)), // 3
+            RadioItem(ContactRelation.TYPE_SON, getString(com.goodwy.strings.R.string.relation_son_g)), // 105
+            RadioItem(ContactRelation.TYPE_DAUGHTER, getString(com.goodwy.strings.R.string.relation_daughter_g)), // 106
+            RadioItem(ContactRelation.TYPE_SIBLING, getString(com.goodwy.strings.R.string.relation_sibling_g)), // 58
+            RadioItem(Relation.TYPE_BROTHER, getString(com.goodwy.strings.R.string.relation_brother_g)), // 2
+            RadioItem(Relation.TYPE_SISTER, getString(com.goodwy.strings.R.string.relation_sister_g)), // 13
+            RadioItem(ContactRelation.TYPE_GRANDPARENT, getString(com.goodwy.strings.R.string.relation_grandparent_g)), // 107
+            RadioItem(ContactRelation.TYPE_GRANDFATHER, getString(com.goodwy.strings.R.string.relation_grandfather_g)), // 108
+            RadioItem(ContactRelation.TYPE_GRANDMOTHER, getString(com.goodwy.strings.R.string.relation_grandmother_g)), // 109
+            RadioItem(ContactRelation.TYPE_GRANDCHILD, getString(com.goodwy.strings.R.string.relation_grandchild_g)), // 110
+            RadioItem(ContactRelation.TYPE_GRANDSON, getString(com.goodwy.strings.R.string.relation_grandson_g)), // 111
+            RadioItem(ContactRelation.TYPE_GRANDDAUGHTER, getString(com.goodwy.strings.R.string.relation_granddaughter_g)), // 112
+            RadioItem(ContactRelation.TYPE_UNCLE, getString(com.goodwy.strings.R.string.relation_uncle_g)), // 113
+            RadioItem(ContactRelation.TYPE_AUNT, getString(com.goodwy.strings.R.string.relation_aunt_g)), // 114
+            RadioItem(ContactRelation.TYPE_NEPHEW, getString(com.goodwy.strings.R.string.relation_nephew_g)), // 115
+            RadioItem(ContactRelation.TYPE_NIECE, getString(com.goodwy.strings.R.string.relation_niece_g)), // 116
+            RadioItem(ContactRelation.TYPE_FATHER_IN_LAW, getString(com.goodwy.strings.R.string.relation_father_in_law_g)), // 117
+            RadioItem(ContactRelation.TYPE_MOTHER_IN_LAW, getString(com.goodwy.strings.R.string.relation_mother_in_law_g)), // 118
+            RadioItem(ContactRelation.TYPE_SON_IN_LAW, getString(com.goodwy.strings.R.string.relation_son_in_law_g)), // 119
+            RadioItem(ContactRelation.TYPE_DAUGHTER_IN_LAW, getString(com.goodwy.strings.R.string.relation_daughter_in_law_g)), // 120
+            RadioItem(ContactRelation.TYPE_BROTHER_IN_LAW, getString(com.goodwy.strings.R.string.relation_brother_in_law_g)), // 121
+            RadioItem(ContactRelation.TYPE_SISTER_IN_LAW, getString(com.goodwy.strings.R.string.relation_sister_in_law_g)), // 122
+            RadioItem(Relation.TYPE_RELATIVE, getString(com.goodwy.strings.R.string.relation_relative_g)), // 12
+            RadioItem(ContactRelation.TYPE_KIN, getString(com.goodwy.strings.R.string.relation_kin_g)), // 59
 
-            RadioItem(ContactRelation.TYPE_MUSE, getString(com.goodwy.commons.R.string.relation_muse_g)), // 60
-            RadioItem(ContactRelation.TYPE_CRUSH, getString(com.goodwy.commons.R.string.relation_crush_g)), // 61
-            RadioItem(ContactRelation.TYPE_DATE, getString(com.goodwy.commons.R.string.relation_date_g)), // 62
-            RadioItem(ContactRelation.TYPE_SWEETHEART, getString(com.goodwy.commons.R.string.relation_sweetheart_g)), // 63
+            RadioItem(ContactRelation.TYPE_MUSE, getString(com.goodwy.strings.R.string.relation_muse_g)), // 60
+            RadioItem(ContactRelation.TYPE_CRUSH, getString(com.goodwy.strings.R.string.relation_crush_g)), // 61
+            RadioItem(ContactRelation.TYPE_DATE, getString(com.goodwy.strings.R.string.relation_date_g)), // 62
+            RadioItem(ContactRelation.TYPE_SWEETHEART, getString(com.goodwy.strings.R.string.relation_sweetheart_g)), // 63
 
-            RadioItem(ContactRelation.TYPE_CONTACT, getString(com.goodwy.commons.R.string.relation_contact_g)), // 51
-            RadioItem(ContactRelation.TYPE_ACQUAINTANCE, getString(com.goodwy.commons.R.string.relation_acquaintance_g)), // 52
-            RadioItem(ContactRelation.TYPE_MET, getString(com.goodwy.commons.R.string.relation_met_g)), // 53
-            RadioItem(Relation.TYPE_REFERRED_BY, getString(com.goodwy.commons.R.string.relation_referred_by_g)), // 11
-            RadioItem(ContactRelation.TYPE_AGENT, getString(com.goodwy.commons.R.string.relation_agent_g)), // 64
+            RadioItem(ContactRelation.TYPE_CONTACT, getString(com.goodwy.strings.R.string.relation_contact_g)), // 51
+            RadioItem(ContactRelation.TYPE_ACQUAINTANCE, getString(com.goodwy.strings.R.string.relation_acquaintance_g)), // 52
+            RadioItem(ContactRelation.TYPE_MET, getString(com.goodwy.strings.R.string.relation_met_g)), // 53
+            RadioItem(Relation.TYPE_REFERRED_BY, getString(com.goodwy.strings.R.string.relation_referred_by_g)), // 11
+            RadioItem(ContactRelation.TYPE_AGENT, getString(com.goodwy.strings.R.string.relation_agent_g)), // 64
 
-            RadioItem(ContactRelation.TYPE_COLLEAGUE, getString(com.goodwy.commons.R.string.relation_colleague_g)), // 55
-            RadioItem(ContactRelation.TYPE_CO_WORKER, getString(com.goodwy.commons.R.string.relation_co_worker_g)), // 54
-            RadioItem(ContactRelation.TYPE_SUPERIOR, getString(com.goodwy.commons.R.string.relation_superior_g)), // 101
-            RadioItem(ContactRelation.TYPE_SUBORDINATE, getString(com.goodwy.commons.R.string.relation_subordinate_g)), // 102
-            RadioItem(Relation.TYPE_MANAGER, getString(com.goodwy.commons.R.string.relation_manager_g)), // 7
-            RadioItem(Relation.TYPE_ASSISTANT, getString(com.goodwy.commons.R.string.relation_assistant_g)), // 1
+            RadioItem(ContactRelation.TYPE_COLLEAGUE, getString(com.goodwy.strings.R.string.relation_colleague_g)), // 55
+            RadioItem(ContactRelation.TYPE_CO_WORKER, getString(com.goodwy.strings.R.string.relation_co_worker_g)), // 54
+            RadioItem(ContactRelation.TYPE_SUPERIOR, getString(com.goodwy.strings.R.string.relation_superior_g)), // 101
+            RadioItem(ContactRelation.TYPE_SUBORDINATE, getString(com.goodwy.strings.R.string.relation_subordinate_g)), // 102
+            RadioItem(Relation.TYPE_MANAGER, getString(com.goodwy.strings.R.string.relation_manager_g)), // 7
+            RadioItem(Relation.TYPE_ASSISTANT, getString(com.goodwy.strings.R.string.relation_assistant_g)), // 1
 
-            RadioItem(ContactRelation.TYPE_ME, getString(com.goodwy.commons.R.string.relation_me_g)), // 66
-            RadioItem(ContactRelation.TYPE_EMERGENCY, getString(com.goodwy.commons.R.string.relation_emergency_g)) // 65
+            RadioItem(ContactRelation.TYPE_ME, getString(com.goodwy.strings.R.string.relation_me_g)), // 66
+            RadioItem(ContactRelation.TYPE_EMERGENCY, getString(com.goodwy.strings.R.string.relation_emergency_g)) // 65
         )
         val currentRelationTypeId = getRelationTypeId(relationTypeField.value)
         RadioGroupDialog(this, items, currentRelationTypeId) {
@@ -1647,13 +1672,30 @@ class EditContactActivity : ContactActivity() {
         val addresses = ArrayList<Address>()
         val addressesCount = binding.contactAddressesHolder.childCount
         for (i in 0 until addressesCount) {
-            val addressHolder = ItemEditAddressBinding.bind(binding.contactAddressesHolder.getChildAt(i))
-            val address = addressHolder.contactAddress.value
-            val addressType = getAddressTypeId(addressHolder.contactAddressType.value)
-            val addressLabel = if (addressType == StructuredPostal.TYPE_CUSTOM) addressHolder.contactAddressType.value else ""
+            val structuredAddressHolder = ItemEditStructuredAddressBinding.bind(binding.contactAddressesHolder.getChildAt(i))
+            val street = structuredAddressHolder.contactStreet.value
+            val neighborhood = structuredAddressHolder.contactNeighborhood.value
+            val city = structuredAddressHolder.contactCity.value
+            val postcode = structuredAddressHolder.contactPostcode.value
+            val pobox = structuredAddressHolder.contactPobox.value
+            val region = structuredAddressHolder.contactRegion.value
+            val country = structuredAddressHolder.contactCountry.value
+
+            /* from DAVdroid */
+            val lineStreet = arrayOf(street, pobox, neighborhood).filterNot { it.isEmpty() }.joinToString(" ")
+            val lineLocality = arrayOf(postcode, city).filterNot { it.isEmpty() }.joinToString(" ")
+            val lines = LinkedList<String>()
+            if (lineStreet.isNotEmpty()) lines += lineStreet
+            if (lineLocality.isNotEmpty()) lines += lineLocality
+            if (region.isNotEmpty()) lines += region
+            if (country.isNotEmpty()) lines += country.uppercase(Locale.getDefault())
+            val address  = lines.joinToString("\n")
+            val addressType = getAddressTypeId(structuredAddressHolder.contactStructuredAddressType.value)
+            val addressLabel = if (addressType == StructuredPostal.TYPE_CUSTOM) structuredAddressHolder.contactStructuredAddressType.value else ""
 
             if (address.isNotEmpty()) {
-                addresses.add(Address(address, addressType, addressLabel))
+                addresses.add(Address(address, addressType, addressLabel, country, region, city, postcode, pobox,
+                    street, neighborhood))
             }
         }
         return addresses
@@ -1880,27 +1922,26 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun addNewAddressField() {
-        val addressHolder = ItemEditAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false)
-        updateTextColors(addressHolder.root)
-        setupAddressTypePicker(addressHolder.contactAddressType, DEFAULT_ADDRESS_TYPE, "")
-        binding.contactAddressesHolder.addView(addressHolder.root)
-        binding.contactAddressesHolder.onGlobalLayout {
-            addressHolder.contactAddress.requestFocus()
-            showKeyboard(addressHolder.contactAddress)
-        }
-
-        addressHolder.apply {
-            val getProperTextColor = getProperTextColor()
-            dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
-            dividerContactAddress.setBackgroundColor(getProperTextColor)
-            contactAddressType.setTextColor(getProperPrimaryColor())
-            contactAddressRemove.apply {
-                beVisible()
-                setOnClickListener {
-                    binding.contactAddressesHolder.removeView(addressHolder.root)
-                    hideKeyboard()
+        val structutedAddressHolder = ItemEditStructuredAddressBinding.inflate(layoutInflater, binding.contactAddressesHolder, false)
+        updateTextColors(structutedAddressHolder.root)
+        setupAddressTypePicker(structutedAddressHolder.contactStructuredAddressType, DEFAULT_ADDRESS_TYPE, "")
+        binding.contactAddressesHolder.addView(structutedAddressHolder.root)
+        structutedAddressHolder.apply {
+                val getProperTextColor = getProperTextColor()
+                dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
+                dividerContactAddress.setBackgroundColor(getProperTextColor)
+                contactStructuredAddressType.setTextColor(getProperPrimaryColor())
+                contactAddressRemove.apply {
+                    beVisible()
+                    setOnClickListener {
+                        binding.contactAddressesHolder.removeView(structutedAddressHolder.root)
+                        hideKeyboard()
+                    }
                 }
-            }
+        }
+        if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+            binding.contactAddressesHolder.setBackgroundColor(white)
+            binding.contactAddressesAddNewHolder.setBackgroundColor(white)
         }
     }
 
@@ -2013,7 +2054,7 @@ class EditContactActivity : ContactActivity() {
         val simpleGallery = "com.goodwy.gallery"
         val simpleGalleryDebug = "com.goodwy.gallery.debug"
         if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleGallery) && !isPackageInstalled(simpleGalleryDebug))) {
-            NewAppDialog(this, simpleGallery, getString(com.goodwy.commons.R.string.recommendation_dialog_gallery_g), getString(com.goodwy.commons.R.string.right_gallery),
+            NewAppDialog(this, simpleGallery, getString(com.goodwy.strings.R.string.recommendation_dialog_gallery_g), getString(com.goodwy.commons.R.string.right_gallery),
                 AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_gallery)) {
                 trySetPhoto()
             }
@@ -2069,7 +2110,14 @@ class EditContactActivity : ContactActivity() {
         val type = contentValues.getAsInteger(StructuredPostal.DATA2) ?: DEFAULT_ADDRESS_TYPE
         val addressValue = contentValues.getAsString(StructuredPostal.DATA4)
             ?: contentValues.getAsString(StructuredPostal.DATA1) ?: return
-        val address = Address(addressValue, type, "")
+        val country = contentValues.getAsString(StructuredPostal.COUNTRY)
+        val region = contentValues.getAsString(StructuredPostal.REGION)
+        val city = contentValues.getAsString(StructuredPostal.CITY)
+        val postcode = contentValues.getAsString(StructuredPostal.POSTCODE)
+        val pobox = contentValues.getAsString(StructuredPostal.POBOX)
+        val street = contentValues.getAsString(StructuredPostal.STREET)
+        val neighborhood = contentValues.getAsString(StructuredPostal.NEIGHBORHOOD)
+        val address = Address(addressValue, type, "", country, region, city, postcode, pobox, street, neighborhood)
         contact!!.addresses.add(address)
     }
 
@@ -2178,65 +2226,65 @@ class EditContactActivity : ContactActivity() {
     }
 
     private fun getRelationTypeId(value: String) = when (value) {
-        getString(com.goodwy.commons.R.string.relation_assistant_g) -> Relation.TYPE_ASSISTANT
-        getString(com.goodwy.commons.R.string.relation_brother_g) -> Relation.TYPE_BROTHER
-        getString(com.goodwy.commons.R.string.relation_child_g) -> Relation.TYPE_CHILD
-        getString(com.goodwy.commons.R.string.relation_domestic_partner_g) -> Relation.TYPE_DOMESTIC_PARTNER
-        getString(com.goodwy.commons.R.string.relation_father_g) -> Relation.TYPE_FATHER
-        getString(com.goodwy.commons.R.string.relation_friend_g) -> Relation.TYPE_FRIEND
-        getString(com.goodwy.commons.R.string.relation_manager_g) -> Relation.TYPE_MANAGER
-        getString(com.goodwy.commons.R.string.relation_mother_g) -> Relation.TYPE_MOTHER
-        getString(com.goodwy.commons.R.string.relation_parent_g) -> Relation.TYPE_PARENT
-        getString(com.goodwy.commons.R.string.relation_partner_g) -> Relation.TYPE_PARTNER
-        getString(com.goodwy.commons.R.string.relation_referred_by_g) -> Relation.TYPE_REFERRED_BY
-        getString(com.goodwy.commons.R.string.relation_relative_g) -> Relation.TYPE_RELATIVE
-        getString(com.goodwy.commons.R.string.relation_sister_g) -> Relation.TYPE_SISTER
-        getString(com.goodwy.commons.R.string.relation_spouse_g) -> Relation.TYPE_SPOUSE
+        getString(com.goodwy.strings.R.string.relation_assistant_g) -> Relation.TYPE_ASSISTANT
+        getString(com.goodwy.strings.R.string.relation_brother_g) -> Relation.TYPE_BROTHER
+        getString(com.goodwy.strings.R.string.relation_child_g) -> Relation.TYPE_CHILD
+        getString(com.goodwy.strings.R.string.relation_domestic_partner_g) -> Relation.TYPE_DOMESTIC_PARTNER
+        getString(com.goodwy.strings.R.string.relation_father_g) -> Relation.TYPE_FATHER
+        getString(com.goodwy.strings.R.string.relation_friend_g) -> Relation.TYPE_FRIEND
+        getString(com.goodwy.strings.R.string.relation_manager_g) -> Relation.TYPE_MANAGER
+        getString(com.goodwy.strings.R.string.relation_mother_g) -> Relation.TYPE_MOTHER
+        getString(com.goodwy.strings.R.string.relation_parent_g) -> Relation.TYPE_PARENT
+        getString(com.goodwy.strings.R.string.relation_partner_g) -> Relation.TYPE_PARTNER
+        getString(com.goodwy.strings.R.string.relation_referred_by_g) -> Relation.TYPE_REFERRED_BY
+        getString(com.goodwy.strings.R.string.relation_relative_g) -> Relation.TYPE_RELATIVE
+        getString(com.goodwy.strings.R.string.relation_sister_g) -> Relation.TYPE_SISTER
+        getString(com.goodwy.strings.R.string.relation_spouse_g) -> Relation.TYPE_SPOUSE
 
         // Relation types defined in vCard 4.0
-        getString(com.goodwy.commons.R.string.relation_contact_g) -> ContactRelation.TYPE_CONTACT
-        getString(com.goodwy.commons.R.string.relation_acquaintance_g) -> ContactRelation.TYPE_ACQUAINTANCE
-        // getString(com.goodwy.commons.R.string.relation_friend) -> ContactRelation.TYPE_FRIEND
-        getString(com.goodwy.commons.R.string.relation_met_g) -> ContactRelation.TYPE_MET
-        getString(com.goodwy.commons.R.string.relation_co_worker_g) -> ContactRelation.TYPE_CO_WORKER
-        getString(com.goodwy.commons.R.string.relation_colleague_g) -> ContactRelation.TYPE_COLLEAGUE
-        getString(com.goodwy.commons.R.string.relation_co_resident_g) -> ContactRelation.TYPE_CO_RESIDENT
-        getString(com.goodwy.commons.R.string.relation_neighbor_g) -> ContactRelation.TYPE_NEIGHBOR
-        // getString(com.goodwy.commons.R.string.relation_child) -> ContactRelation.TYPE_CHILD
-        // getString(com.goodwy.commons.R.string.relation_parent) -> ContactRelation.TYPE_PARENT
-        getString(com.goodwy.commons.R.string.relation_sibling_g) -> ContactRelation.TYPE_SIBLING
-        // getString(com.goodwy.commons.R.string.relation_spouse) -> ContactRelation.TYPE_SPOUSE
-        getString(com.goodwy.commons.R.string.relation_kin_g) -> ContactRelation.TYPE_KIN
-        getString(com.goodwy.commons.R.string.relation_muse_g) -> ContactRelation.TYPE_MUSE
-        getString(com.goodwy.commons.R.string.relation_crush_g) -> ContactRelation.TYPE_CRUSH
-        getString(com.goodwy.commons.R.string.relation_date_g) -> ContactRelation.TYPE_DATE
-        getString(com.goodwy.commons.R.string.relation_sweetheart_g) -> ContactRelation.TYPE_SWEETHEART
-        getString(com.goodwy.commons.R.string.relation_me_g) -> ContactRelation.TYPE_ME
-        getString(com.goodwy.commons.R.string.relation_agent_g) -> ContactRelation.TYPE_AGENT
-        getString(com.goodwy.commons.R.string.relation_emergency_g) -> ContactRelation.TYPE_EMERGENCY
+        getString(com.goodwy.strings.R.string.relation_contact_g) -> ContactRelation.TYPE_CONTACT
+        getString(com.goodwy.strings.R.string.relation_acquaintance_g) -> ContactRelation.TYPE_ACQUAINTANCE
+        // getString(com.goodwy.strings.R.string.relation_friend) -> ContactRelation.TYPE_FRIEND
+        getString(com.goodwy.strings.R.string.relation_met_g) -> ContactRelation.TYPE_MET
+        getString(com.goodwy.strings.R.string.relation_co_worker_g) -> ContactRelation.TYPE_CO_WORKER
+        getString(com.goodwy.strings.R.string.relation_colleague_g) -> ContactRelation.TYPE_COLLEAGUE
+        getString(com.goodwy.strings.R.string.relation_co_resident_g) -> ContactRelation.TYPE_CO_RESIDENT
+        getString(com.goodwy.strings.R.string.relation_neighbor_g) -> ContactRelation.TYPE_NEIGHBOR
+        // getString(com.goodwy.strings.R.string.relation_child) -> ContactRelation.TYPE_CHILD
+        // getString(com.goodwy.strings.R.string.relation_parent) -> ContactRelation.TYPE_PARENT
+        getString(com.goodwy.strings.R.string.relation_sibling_g) -> ContactRelation.TYPE_SIBLING
+        // getString(com.goodwy.strings.R.string.relation_spouse) -> ContactRelation.TYPE_SPOUSE
+        getString(com.goodwy.strings.R.string.relation_kin_g) -> ContactRelation.TYPE_KIN
+        getString(com.goodwy.strings.R.string.relation_muse_g) -> ContactRelation.TYPE_MUSE
+        getString(com.goodwy.strings.R.string.relation_crush_g) -> ContactRelation.TYPE_CRUSH
+        getString(com.goodwy.strings.R.string.relation_date_g) -> ContactRelation.TYPE_DATE
+        getString(com.goodwy.strings.R.string.relation_sweetheart_g) -> ContactRelation.TYPE_SWEETHEART
+        getString(com.goodwy.strings.R.string.relation_me_g) -> ContactRelation.TYPE_ME
+        getString(com.goodwy.strings.R.string.relation_agent_g) -> ContactRelation.TYPE_AGENT
+        getString(com.goodwy.strings.R.string.relation_emergency_g) -> ContactRelation.TYPE_EMERGENCY
 
-        getString(com.goodwy.commons.R.string.relation_superior_g) -> ContactRelation.TYPE_SUPERIOR
-        getString(com.goodwy.commons.R.string.relation_subordinate_g) -> ContactRelation.TYPE_SUBORDINATE
-        getString(com.goodwy.commons.R.string.relation_husband_g) -> ContactRelation.TYPE_HUSBAND
-        getString(com.goodwy.commons.R.string.relation_wife_g) -> ContactRelation.TYPE_WIFE
-        getString(com.goodwy.commons.R.string.relation_son_g) -> ContactRelation.TYPE_SON
-        getString(com.goodwy.commons.R.string.relation_daughter_g) -> ContactRelation.TYPE_DAUGHTER
-        getString(com.goodwy.commons.R.string.relation_grandparent_g) -> ContactRelation.TYPE_GRANDPARENT
-        getString(com.goodwy.commons.R.string.relation_grandfather_g) -> ContactRelation.TYPE_GRANDFATHER
-        getString(com.goodwy.commons.R.string.relation_grandmother_g) -> ContactRelation.TYPE_GRANDMOTHER
-        getString(com.goodwy.commons.R.string.relation_grandchild_g) -> ContactRelation.TYPE_GRANDCHILD
-        getString(com.goodwy.commons.R.string.relation_grandson_g) -> ContactRelation.TYPE_GRANDSON
-        getString(com.goodwy.commons.R.string.relation_granddaughter_g) -> ContactRelation.TYPE_GRANDDAUGHTER
-        getString(com.goodwy.commons.R.string.relation_uncle_g) -> ContactRelation.TYPE_UNCLE
-        getString(com.goodwy.commons.R.string.relation_aunt_g) -> ContactRelation.TYPE_AUNT
-        getString(com.goodwy.commons.R.string.relation_nephew_g) -> ContactRelation.TYPE_NEPHEW
-        getString(com.goodwy.commons.R.string.relation_niece_g) -> ContactRelation.TYPE_NIECE
-        getString(com.goodwy.commons.R.string.relation_father_in_law_g) -> ContactRelation.TYPE_FATHER_IN_LAW
-        getString(com.goodwy.commons.R.string.relation_mother_in_law_g) -> ContactRelation.TYPE_MOTHER_IN_LAW
-        getString(com.goodwy.commons.R.string.relation_son_in_law_g) -> ContactRelation.TYPE_SON_IN_LAW
-        getString(com.goodwy.commons.R.string.relation_daughter_in_law_g) -> ContactRelation.TYPE_DAUGHTER_IN_LAW
-        getString(com.goodwy.commons.R.string.relation_brother_in_law_g) -> ContactRelation.TYPE_BROTHER_IN_LAW
-        getString(com.goodwy.commons.R.string.relation_sister_in_law_g) -> ContactRelation.TYPE_SISTER_IN_LAW
+        getString(com.goodwy.strings.R.string.relation_superior_g) -> ContactRelation.TYPE_SUPERIOR
+        getString(com.goodwy.strings.R.string.relation_subordinate_g) -> ContactRelation.TYPE_SUBORDINATE
+        getString(com.goodwy.strings.R.string.relation_husband_g) -> ContactRelation.TYPE_HUSBAND
+        getString(com.goodwy.strings.R.string.relation_wife_g) -> ContactRelation.TYPE_WIFE
+        getString(com.goodwy.strings.R.string.relation_son_g) -> ContactRelation.TYPE_SON
+        getString(com.goodwy.strings.R.string.relation_daughter_g) -> ContactRelation.TYPE_DAUGHTER
+        getString(com.goodwy.strings.R.string.relation_grandparent_g) -> ContactRelation.TYPE_GRANDPARENT
+        getString(com.goodwy.strings.R.string.relation_grandfather_g) -> ContactRelation.TYPE_GRANDFATHER
+        getString(com.goodwy.strings.R.string.relation_grandmother_g) -> ContactRelation.TYPE_GRANDMOTHER
+        getString(com.goodwy.strings.R.string.relation_grandchild_g) -> ContactRelation.TYPE_GRANDCHILD
+        getString(com.goodwy.strings.R.string.relation_grandson_g) -> ContactRelation.TYPE_GRANDSON
+        getString(com.goodwy.strings.R.string.relation_granddaughter_g) -> ContactRelation.TYPE_GRANDDAUGHTER
+        getString(com.goodwy.strings.R.string.relation_uncle_g) -> ContactRelation.TYPE_UNCLE
+        getString(com.goodwy.strings.R.string.relation_aunt_g) -> ContactRelation.TYPE_AUNT
+        getString(com.goodwy.strings.R.string.relation_nephew_g) -> ContactRelation.TYPE_NEPHEW
+        getString(com.goodwy.strings.R.string.relation_niece_g) -> ContactRelation.TYPE_NIECE
+        getString(com.goodwy.strings.R.string.relation_father_in_law_g) -> ContactRelation.TYPE_FATHER_IN_LAW
+        getString(com.goodwy.strings.R.string.relation_mother_in_law_g) -> ContactRelation.TYPE_MOTHER_IN_LAW
+        getString(com.goodwy.strings.R.string.relation_son_in_law_g) -> ContactRelation.TYPE_SON_IN_LAW
+        getString(com.goodwy.strings.R.string.relation_daughter_in_law_g) -> ContactRelation.TYPE_DAUGHTER_IN_LAW
+        getString(com.goodwy.strings.R.string.relation_brother_in_law_g) -> ContactRelation.TYPE_BROTHER_IN_LAW
+        getString(com.goodwy.strings.R.string.relation_sister_in_law_g) -> ContactRelation.TYPE_SISTER_IN_LAW
 
         else -> Relation.TYPE_CUSTOM
     }

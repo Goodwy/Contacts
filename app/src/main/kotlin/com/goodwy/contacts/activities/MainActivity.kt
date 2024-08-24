@@ -23,12 +23,10 @@ import androidx.viewpager.widget.ViewPager
 import com.behaviorule.arturdumchev.library.pixels
 import com.goodwy.commons.databases.ContactsDatabase
 import com.goodwy.commons.databinding.BottomTablayoutItemBinding
-import com.goodwy.commons.dialogs.ChangeViewTypeDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
-import com.goodwy.commons.models.FAQItem
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.Release
 import com.goodwy.commons.models.contacts.Contact
@@ -462,9 +460,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 tabUnselectedAction = {
                     it.icon?.applyColorFilter(getProperTextColor())
                     it.icon?.alpha = 220 // max 255
+                    closeSearch()
                 },
                 tabSelectedAction = {
-                    closeSearch()
                     binding.viewPager.currentItem = it.position
                     it.icon?.applyColorFilter(getProperPrimaryColor())
                     it.icon?.alpha = 220 // max 255
@@ -646,9 +644,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                         BottomTablayoutItemBinding.bind(it)
                     }?.apply {
                         tabItemIcon.setImageDrawable(getTabIcon(index))
-                        tabItemIcon.alpha = 0.86f
                         tabItemLabel.text = getTabLabel(index)
-                        tabItemLabel.alpha = 0.86f
                         tabItemLabel.beGoneIf(config.useIconTabs)
                         AutofitHelper.create(tabItemLabel)
                         binding.mainTabsHolder.addTab(this@tab)
@@ -696,7 +692,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         val simpleDialerDebug = "com.goodwy.dialer.debug"
         if ((0..config.appRecommendationDialogCount).random() == 2 && (!isPackageInstalled(simpleDialer) && !isPackageInstalled(simpleDialerDebug))) {
             runOnUiThread {
-                NewAppDialog(this, simpleDialer, getString(com.goodwy.commons.R.string.recommendation_dialog_dialer_g), getString(com.goodwy.commons.R.string.right_dialer),
+                NewAppDialog(this, simpleDialer, getString(com.goodwy.strings.R.string.recommendation_dialog_dialer_g), getString(com.goodwy.commons.R.string.right_dialer),
                     AppCompatResources.getDrawable(this, R.drawable.ic_launcher_dialer)) {}
             }
         } else {
@@ -816,6 +812,8 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         arrayListOf<Release>().apply {
             add(Release(414, R.string.release_414))
             add(Release(500, R.string.release_500))
+            add(Release(510, R.string.release_510))
+            add(Release(520, R.string.release_520))
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }

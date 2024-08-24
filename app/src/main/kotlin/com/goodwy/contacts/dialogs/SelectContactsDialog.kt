@@ -97,8 +97,9 @@ class SelectContactsDialog(
         binding.letterFastscroller.setupWithRecyclerView(binding.selectContactList, { position ->
             try {
                 val name = allContacts[position].getNameToDisplay()
-                val character = if (name.isNotEmpty()) name.substring(0, 1) else ""
-                FastScrollItemIndicator.Text(character.normalizeString().toUpperCase(Locale.getDefault()))
+                val emoji = name.take(2)
+                val character = if (emoji.isEmoji()) emoji else if (name.isNotEmpty()) name.substring(0, 1) else ""
+                FastScrollItemIndicator.Text(character.normalizeString().uppercase(Locale.getDefault()))
             } catch (e: Exception) {
                 FastScrollItemIndicator.Text("")
             }

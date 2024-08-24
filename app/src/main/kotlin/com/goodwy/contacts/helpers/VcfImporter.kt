@@ -28,6 +28,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.URLDecoder
 import java.util.Date
+import java.util.Locale
 
 class VcfImporter(val activity: SimpleActivity) {
     enum class ImportResult {
@@ -94,6 +95,13 @@ class VcfImporter(val activity: SimpleActivity) {
                     } else {
                         ""
                     }
+                    val country = it.country ?: ""
+                    val region = it.region ?: ""
+                    val city = it.locality ?: ""
+                    val postcode = it.postalCode ?: ""
+                    val pobox = it.poBox ?: ""
+                    val street = it.streetAddress ?: ""
+                    val neighborhood = it.extendedAddress ?: ""
 
                     if (it.locality?.isNotEmpty() == true) {
                         address += " ${it.locality} "
@@ -117,7 +125,7 @@ class VcfImporter(val activity: SimpleActivity) {
                     address = address.trim()
 
                     if (address.isNotEmpty()) {
-                        addresses.add(Address(address, type, label))
+                        addresses.add(Address(address, type, label, country, region, city, postcode, pobox, street, neighborhood))
                     }
                 }
 
@@ -262,10 +270,10 @@ class VcfImporter(val activity: SimpleActivity) {
         return groups
     }
 
-    private fun getPhoneNumberTypeId(type: String, subtype: String?) = when (type.toUpperCase()) {
+    private fun getPhoneNumberTypeId(type: String, subtype: String?) = when (type.uppercase(Locale.getDefault())) {
         CELL -> Phone.TYPE_MOBILE
         HOME -> {
-            if (subtype?.toUpperCase() == FAX) {
+            if (subtype?.uppercase(Locale.getDefault()) == FAX) {
                 Phone.TYPE_FAX_HOME
             } else {
                 Phone.TYPE_HOME
@@ -273,7 +281,7 @@ class VcfImporter(val activity: SimpleActivity) {
         }
 
         WORK -> {
-            if (subtype?.toUpperCase() == FAX) {
+            if (subtype?.uppercase(Locale.getDefault()) == FAX) {
                 Phone.TYPE_FAX_WORK
             } else {
                 Phone.TYPE_WORK
@@ -289,7 +297,7 @@ class VcfImporter(val activity: SimpleActivity) {
         else -> Phone.TYPE_CUSTOM
     }
 
-    private fun getEmailTypeId(type: String) = when (type.toUpperCase()) {
+    private fun getEmailTypeId(type: String) = when (type.uppercase(Locale.getDefault())) {
         HOME -> CommonDataKinds.Email.TYPE_HOME
         WORK -> CommonDataKinds.Email.TYPE_WORK
         MOBILE -> CommonDataKinds.Email.TYPE_MOBILE
@@ -297,7 +305,7 @@ class VcfImporter(val activity: SimpleActivity) {
         else -> CommonDataKinds.Email.TYPE_CUSTOM
     }
 
-    private fun getAddressTypeId(type: String): Int = when (type.toUpperCase()) {
+    private fun getAddressTypeId(type: String) = when (type.uppercase(Locale.getDefault())) {
         HOME -> StructuredPostal.TYPE_HOME
         WORK -> StructuredPostal.TYPE_WORK
         OTHER -> StructuredPostal.TYPE_OTHER

@@ -1,5 +1,6 @@
 package com.goodwy.contacts.helpers
 
+import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract.CommonDataKinds.Email
 import android.provider.ContactsContract.CommonDataKinds.Event
@@ -7,7 +8,6 @@ import android.provider.ContactsContract.CommonDataKinds.Im
 import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
 import android.provider.MediaStore
-import com.goodwy.commons.activities.BaseSimpleActivity
 import com.goodwy.commons.extensions.getByteArray
 import com.goodwy.commons.extensions.getDateTimeFromDateString
 import com.goodwy.commons.extensions.showErrorToast
@@ -33,7 +33,7 @@ class VcfExporter {
     private var contactsFailed = 0
 
     fun exportContacts(
-        activity: BaseSimpleActivity,
+        context: Context,
         outputStream: OutputStream?,
         contacts: ArrayList<Contact>,
         showExportingToast: Boolean,
@@ -47,7 +47,7 @@ class VcfExporter {
             }
 
             if (showExportingToast) {
-                activity.toast(com.goodwy.commons.R.string.exporting)
+                context.toast(com.goodwy.commons.R.string.exporting)
             }
 
             val cards = ArrayList<VCard>()
@@ -111,7 +111,19 @@ class VcfExporter {
 
                 contact.addresses.forEach {
                     val address = Address()
-                    address.streetAddress = it.value
+                    if (it.country.isNotEmpty() || it.region.isNotEmpty() || it.city.isNotEmpty() || it.postcode.isNotEmpty() ||
+                        it.pobox.isNotEmpty() || it.street.isNotEmpty() || it.neighborhood.isNotEmpty()
+                    ) {
+                        address.country = it.country
+                        address.region = it.region
+                        address.locality = it.city
+                        address.postalCode = it.postcode
+                        address.poBox = it.pobox
+                        address.streetAddress = it.street
+                        address.extendedAddress = it.neighborhood
+                    } else {
+                        address.streetAddress = it.value
+                    }
                     address.parameters.addType(getAddressTypeLabel(it.type, it.label))
                     card.addAddress(address)
                 }
@@ -221,7 +233,7 @@ class VcfExporter {
 
 
                 if (contact.thumbnailUri.isNotEmpty()) {
-                    val photoByteArray = MediaStore.Images.Media.getBitmap(activity.contentResolver, Uri.parse(contact.thumbnailUri)).getByteArray()
+                    val photoByteArray = MediaStore.Images.Media.getBitmap(context.contentResolver, Uri.parse(contact.thumbnailUri)).getByteArray()
                     val photo = Photo(photoByteArray, ImageType.JPEG)
                     card.addPhoto(photo)
                 }
@@ -241,7 +253,7 @@ class VcfExporter {
 
             Ezvcard.write(cards).version(version).go(outputStream)
         } catch (e: Exception) {
-            activity.showErrorToast(e)
+            context.showErrorToast(e)
         }
 
         callback(

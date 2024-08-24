@@ -21,6 +21,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.behaviorule.arturdumchev.library.pixels
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
@@ -36,7 +37,7 @@ import com.goodwy.commons.interfaces.ItemMoveCallback
 import com.goodwy.commons.interfaces.ItemTouchHelperContract
 import com.goodwy.commons.interfaces.StartReorderDragListener
 import com.goodwy.commons.models.RadioItem
-import com.goodwy.commons.models.contacts.*
+import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.views.MyRecyclerView
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
@@ -49,7 +50,7 @@ import com.goodwy.contacts.interfaces.RemoveFromGroupListener
 import me.thanel.swipeactionview.SwipeActionView
 import me.thanel.swipeactionview.SwipeDirection
 import me.thanel.swipeactionview.SwipeGestureListener
-import java.util.*
+import java.util.Collections
 
 class ContactsAdapter(
     activity: SimpleActivity,
@@ -175,6 +176,7 @@ class ContactsAdapter(
                 }
             }
         }
+
         return createViewHolder(layout, parent)
     }
 
@@ -464,7 +466,13 @@ class ContactsAdapter(
                     contact.phoneNumbers.firstOrNull { it.value.contains(textToHighlight) } ?: contact.phoneNumbers.firstOrNull()
                 }
 
-                val numberText = phoneNumberToUse?.value ?: ""
+                val phoneNumberToFormat = phoneNumberToUse?.value ?: ""
+                val numberText = if (config.formatPhoneNumbers) {
+                    phoneNumberToFormat.formatPhoneNumber()
+                } else {
+                    phoneNumberToUse?.value ?: ""
+                }
+
                 findViewById<TextView>(com.goodwy.commons.R.id.item_contact_number).apply {
                     text = if (textToHighlight.isEmpty()) numberText else numberText.highlightTextPart(textToHighlight, properPrimaryColor, false, true)
                     setTextColor(textColor)
@@ -496,6 +504,11 @@ class ContactsAdapter(
                         .apply(options)
                         .apply(RequestOptions.circleCropTransform())
                         .into(findViewById(com.goodwy.commons.R.id.item_contact_image))
+                }
+
+                if (viewType != VIEW_TYPE_GRID) {
+                    val size = (context.pixels(com.goodwy.commons.R.dimen.normal_icon_size) * contactThumbnailsSize).toInt()
+                    findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).setHeightAndWidth(size)
                 }
             }
 

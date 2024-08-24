@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/contact_address_holder"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/contactStructuredAddressType"
+        android:layout_width="@dimen/contact_edit_type_width"
+        android:layout_height="0dp"
+        android:layout_alignTop="@+id/contactStructuredAddressHolder"
+        android:layout_alignBottom="@+id/contactStructuredAddressHolder"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical|end"
+        android:maxLines="5"
+        android:ellipsize="end"
+        android:minWidth="70dp"
+        android:paddingStart="@dimen/contact_padding_left"
+        android:paddingEnd="@dimen/medium_margin"
+        android:textSize="@dimen/normal_text_size"
+        tools:text="@string/home" />
+
+    <ImageView
+        android:id="@+id/dividerVerticalContactAddress"
+        android:layout_width="1px"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/contactStructuredAddressHolder"
+        android:layout_alignBottom="@+id/contactStructuredAddressHolder"
+        android:layout_toEndOf="@+id/contactStructuredAddressType"
+        android:layout_centerVertical="true"
+        android:layout_marginVertical="@dimen/medium_margin"
+        android:alpha="0.2"
+        android:background="@drawable/divider_settings"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:id="@+id/contactStructuredAddressHolder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/contactAddressRemove"
+        android:layout_toEndOf="@+id/contactStructuredAddressType"
+        android:orientation="vertical">
+
+        <com.goodwy.commons.views.MyEditText
+            android:id="@+id/contactStreet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:hint="@string/street"
+            android:inputType="textCapWords"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:paddingStart="@dimen/medium_margin"
+            android:paddingEnd="@dimen/medium_margin"
+            android:paddingTop="@dimen/smaller_margin"
+            android:paddingBottom="@dimen/smaller_margin"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size"/>
+
+        <com.goodwy.commons.views.MyEditText
+            android:id="@+id/contact_neighborhood"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="@string/neighborhood"
+            android:inputType="textCapWords"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:paddingStart="@dimen/medium_margin"
+            android:paddingEnd="@dimen/medium_margin"
+            android:paddingTop="@dimen/smaller_margin"
+            android:paddingBottom="@dimen/smaller_margin"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size"/>
+
+        <com.goodwy.commons.views.MyEditText
+            android:id="@+id/contact_pobox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="@string/pobox"
+            android:inputType="textCapWords"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:paddingStart="@dimen/medium_margin"
+            android:paddingEnd="@dimen/medium_margin"
+            android:paddingTop="@dimen/smaller_margin"
+            android:paddingBottom="@dimen/smaller_margin"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size"/>
+
+        <com.goodwy.commons.views.MyEditText
+            android:id="@+id/contact_postcode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="@string/postcode"
+            android:inputType="textCapWords"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:paddingStart="@dimen/medium_margin"
+            android:paddingEnd="@dimen/medium_margin"
+            android:paddingTop="@dimen/smaller_margin"
+            android:paddingBottom="@dimen/smaller_margin"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size"/>
+
+        <com.goodwy.commons.views.MyEditText
+            android:id="@+id/contact_city"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="@string/city"
+            android:inputType="textCapWords"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:paddingStart="@dimen/medium_margin"
+            android:paddingEnd="@dimen/medium_margin"
+            android:paddingTop="@dimen/smaller_margin"
+            android:paddingBottom="@dimen/smaller_margin"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size"/>
+
+        <com.goodwy.commons.views.MyEditText
+            android:id="@+id/contact_region"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:hint="@string/region"
+            android:inputType="textCapWords"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:paddingStart="@dimen/medium_margin"
+            android:paddingEnd="@dimen/medium_margin"
+            android:paddingTop="@dimen/smaller_margin"
+            android:paddingBottom="@dimen/smaller_margin"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size"/>
+
+        <com.goodwy.commons.views.MyEditText
+            android:id="@+id/contact_country"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:hint="@string/country"
+            android:inputType="textCapWords"
+            android:lines="1"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:paddingStart="@dimen/medium_margin"
+            android:paddingEnd="@dimen/medium_margin"
+            android:paddingTop="@dimen/smaller_margin"
+            android:paddingBottom="@dimen/smaller_margin"
+            android:textCursorDrawable="@null"
+            android:textSize="@dimen/bigger_text_size"/>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/contactAddressRemove"
+        android:layout_width="@dimen/edit_contact_add_icon"
+        android:layout_height="@dimen/edit_contact_add_icon"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="@dimen/normal_margin"
+        android:layout_marginTop="@dimen/medium_margin"
+        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:layout_marginBottom="@dimen/medium_margin"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="@color/red_missed"
+        android:foreground="@drawable/button_round_pressed"
+        android:padding="@dimen/medium_margin"
+        android:src="@drawable/ic_minus_vector"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/dividerContactAddress"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="@dimen/contact_padding_left"
+        android:layout_marginEnd="@dimen/contact_padding_left"
+        android:alpha="0.2"
+        android:background="@drawable/divider_settings" />
+
+</RelativeLayout>

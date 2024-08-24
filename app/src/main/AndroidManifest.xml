@@ -11,7 +11,6 @@
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.android.vending.BILLING" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <uses-permission
@@ -43,7 +42,7 @@
         android:required="false" />
 
     <application
-        android:name=".App"
+        android:name="com.goodwy.contacts.App"
         android:allowBackup="true"
         android:appCategory="social"
         android:icon="@mipmap/ic_launcher"

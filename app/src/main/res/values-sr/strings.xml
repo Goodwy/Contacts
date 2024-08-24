@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- TODO Change -->
-    <string name="app_name">Simple Contacts</string>
     <string name="app_launcher_name">Контакти</string>
     <string name="address">Адреса</string>
     <string name="inserting">Уметање…</string>
@@ -16,14 +15,12 @@
     <string name="send_email_to_group">Пошаљи е-пошту групи</string>
     <string name="fields_empty">Најмање 1 поље мора бити попуњено</string>
     <string name="must_be_at_edit">Морате бити на екрану за уређивање да бисте изменили контакт</string>
-    <!-- Placeholders -->
     <string name="no_contacts_with_emails">Нису пронађени контакти са е-поштом</string>
     <string name="no_contacts_with_phone_numbers">Нису пронађени контакти са бројевима телефона</string>
     <string name="new_contact">Нови контакт</string>
     <string name="edit_contact">Уреди контакт</string>
     <string name="select_contact">Изаберите контакт</string>
     <string name="nickname">Надимак</string>
-    <!-- Groups -->
     <string name="no_groups">Нема група</string>
     <string name="create_new_group">Креирај нову групу</string>
     <string name="remove_from_group">Уклони из групе</string>
@@ -33,10 +30,8 @@
     <string name="create_group">Креирај групу</string>
     <string name="add_to_group">Додај у групу</string>
     <string name="create_group_under_account">Креирај групу под налогом</string>
-    <!-- Photo -->
     <string name="remove_photo">Уклони фотографију</string>
     <string name="change_photo">Промени фотографију</string>
-    <!-- Settings -->
     <string name="show_phone_numbers">Прикажи бројеве телефона</string>
     <string name="show_contact_thumbnails">Прикажи сличице контаката</string>
     <string name="show_dialpad_button">Прикажи дугме тастатуре на главном екрану</string>
@@ -48,14 +43,11 @@
     <string name="show_only_contacts_with_numbers">Прикажи само контакте са бројевима телефона</string>
     <string name="show_private_contacts">Прикажи приватне контакте у Simple Dialer, Simple SMS Messenger и Simple Calendar Pro</string>
     <string name="merge_duplicate_contacts">Обједини дупле контакте</string>
-    <!-- Favorites -->
     <string name="no_favorites">Изгледа да још увек нисте додали ниједан омиљени контакт.</string>
     <string name="toggle_favorite">Укључи/искључи омиљене</string>
-    <!-- Search -->
     <string name="search_contacts">Претражи контакте</string>
     <string name="search_favorites">Претражи омиљене</string>
     <string name="search_groups">Претражи групе</string>
-    <!-- Export / Import -->
     <string name="import_contacts">Увоз контаката</string>
     <string name="export_contacts">Извоз контаката</string>
     <string name="import_contacts_from_vcf">Увоз контаката из .vcf датотеке</string>
@@ -64,10 +56,8 @@
     <string name="target_contact_source">Циљни извор контаката</string>
     <string name="include_contact_sources">Укључи изворе контаката</string>
     <string name="filename_without_vcf">Име датотеке (без .vcf)</string>
-    <!-- Dialpad -->
     <string name="dialpad">Тастатура</string>
     <string name="add_number_to_contact">Додај број контакту</string>
-    <!-- Visible fields -->
     <string name="prefix">Префикс</string>
     <string name="suffix">Суфикс</string>
     <string name="phone_numbers">Бројеви телефона</string>
@@ -80,14 +70,12 @@
     <string name="contact_source">Извор контакта</string>
     <string name="instant_messaging">Размена тренутних порука (IM)</string>
     <string name="ringtone">Мелодија звона</string>
-    <!-- Confirmation dialog -->
     <string name="delete_from_all_sources">Контакт ће бити уклоњен из свих извора контаката.</string>
     <plurals name="delete_groups">
         <item quantity="one">%d групу</item>
         <item quantity="few">%d групе</item>
         <item quantity="other">%d група</item>
     </plurals>
-    <!-- FAQ -->
     <string name="faq_1_title">Желим да променим која су поља видљива у контактима. Могу ли ја то урадити\?</string>
     <string name="faq_1_text">Да, све што треба да урадите је да одете у Подешавања -&gt; Видљивост поља контакта. Тамо можете изабрати која поља треба да буду видљива. Нека од њих су чак и подразумевано онемогућена, тако да ћете можда тамо пронаћи неке нове.</string>
 </resources>

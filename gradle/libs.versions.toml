@@ -1,8 +1,8 @@
 [versions]
 #jetbrains
-kotlin = "1.9.0"
+kotlin = "1.9.10"
 #KSP
-ksp = "1.9.0-1.0.12"
+ksp = "1.9.10-1.0.13"
 #AndroidX
 androidx-swiperefreshlayout = "1.1.0"
 #AutoFitTextView
@@ -10,21 +10,19 @@ autofittextview = "0.2.1"
 #EzVCard
 ezvcard = "0.11.3"
 #IndicatorFastScroll
-indicatorfastscroll = "4524cd0b61"
+indicatorfastscroll = "e37b5b2ad6"
 #Room
-room = "2.6.0-alpha02"
-#Simple tools
-#simple-commons = "4ee907fc5e"
+room = "2.6.1"
 #Gradle
-gradlePlugins-agp = "8.1.1"
+gradlePlugins-agp = "8.2.1"
 #Goodwy
-right-commons = "37cb4a0bda"
-rustore = "3.1.0"
+right-commons = "4e078ff296"
+rustore = "5.1.1"
 behavioRule = "1.0.1"
 rxAnimation = "2.1.1"
 rxJava3 = "3.1.5"
-androidx-lifecycle = "2.6.1"
-swipeToActionLayout = "035dfba3fb"
+androidx-lifecycle = "2.7.0"
+swipeToActionLayout = "2f8803b6c4"
 #build
 app-build-compileSDKVersion = "34"
 app-build-targetSDK = "34"
@@ -33,8 +31,8 @@ app-build-javaVersion = "VERSION_17"
 app-build-kotlinJVMTarget = "17"
 #versioning
 app-version-appId = "com.goodwy.contacts"
-app-version-versionCode = "510"
-app-version-versionName = "5.1.0"
+app-version-versionCode = "520"
+app-version-versionName = "5.2.0"
 [libraries]
 #AndroidX
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "androidx-swiperefreshlayout" }
@@ -43,7 +41,6 @@ autofittextview = { module = "me.grantland:autofittextview", version.ref = "auto
 #EzVcard
 ezvcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "ezvcard" }
 #IndicatorFastScroll
-#indicatorfastscroll = { module = "com.github.tibbi:IndicatorFastScroll", version.ref = "indicatorfastscroll" }
 indicatorfastscroll = { module = "com.github.goodwy:IndicatorFastScroll", version.ref = "indicatorfastscroll" }
 #Room
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }

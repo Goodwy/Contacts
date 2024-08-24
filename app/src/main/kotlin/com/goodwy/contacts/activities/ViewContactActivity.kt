@@ -141,7 +141,11 @@ class ViewContactActivity : ContactActivity() {
             window.decorView.setBackgroundColor(colorToWhite)
             window.statusBarColor = colorToWhite
             //window.navigationBarColor = colorToWhite
-        } else window.decorView.setBackgroundColor(properBackgroundColor)
+            binding.contactAppbar.setBackgroundColor(colorToWhite)
+        } else {
+            window.decorView.setBackgroundColor(properBackgroundColor)
+            binding.contactAppbar.setBackgroundColor(properBackgroundColor)
+        }
 
         binding.apply {
             arrayOf(
@@ -493,7 +497,11 @@ class ViewContactActivity : ContactActivity() {
                 ItemViewPhoneNumberBinding.inflate(layoutInflater, binding.contactNumbersHolder, false).apply {
 
                     binding.contactNumbersHolder.addView(root)
-                    contactNumber.text = phoneNumber.value
+                    if (config.formatPhoneNumbers) {
+                        contactNumber.text = phoneNumber.value.formatPhoneNumber()
+                    } else {
+                        contactNumber.text = phoneNumber.value
+                    }
                     contactNumberType.text = getPhoneNumberTypeText(phoneNumber.type, phoneNumber.label)
                     root.copyOnLongClick(phoneNumber.value)
 
@@ -845,7 +853,7 @@ class ViewContactActivity : ContactActivity() {
 
         binding.contactSendSms.setOnLongClickListener { toast(com.goodwy.commons.R.string.send_sms); true; }
         binding.contactStartCall.setOnLongClickListener { toast(R.string.call_contact); true; }
-        binding.contactVideoCall.setOnLongClickListener { toast(com.goodwy.commons.R.string.video_call); true; }
+        binding.contactVideoCall.setOnLongClickListener { toast(com.goodwy.strings.R.string.video_call); true; }
         binding.contactSendEmail.setOnLongClickListener { toast(com.goodwy.commons.R.string.send_email); true; }
     }
 

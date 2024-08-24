@@ -4,6 +4,8 @@ import android.util.TypedValue
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import com.behaviorule.arturdumchev.library.pixels
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.goodwy.commons.adapters.MyRecyclerViewAdapter
 import com.goodwy.commons.dialogs.ConfirmationDialog
@@ -22,6 +24,7 @@ import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.databinding.ItemGroupBinding
 import com.goodwy.contacts.dialogs.RenameGroupDialog
 import com.goodwy.contacts.extensions.config
+import com.goodwy.contacts.extensions.setHeightAndWidth
 import com.goodwy.contacts.interfaces.RefreshContactsListener
 
 class GroupsAdapter(
@@ -173,6 +176,8 @@ class GroupsAdapter(
             groupTmb.beVisibleIf(showContactThumbnails)
             if (showContactThumbnails) {
                 groupTmb.setImageDrawable(SimpleContactsHelper(activity).getColoredGroupIcon(group.title))
+                val size = (root.context.pixels(com.goodwy.commons.R.dimen.normal_icon_size) * contactThumbnailsSize).toInt()
+                groupTmb.setHeightAndWidth(size)
             }
 
             divider.setBackgroundColor(textColor)

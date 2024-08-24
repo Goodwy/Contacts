@@ -18,14 +18,6 @@
         android:scaleType="fitCenter"
         android:visibility="gone" />
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/top_shadow_height"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/gradient_background_flipped"
-        android:contentDescription="@null"
-        android:visibility="gone"/>
-
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/contact_appbar"
         android:layout_width="match_parent"

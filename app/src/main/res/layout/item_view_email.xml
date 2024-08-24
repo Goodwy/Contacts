@@ -5,7 +5,7 @@
     android:id="@+id/contact_email_holder"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/ripple_all_corners">
+    android:background="@drawable/ripple_all_corners_10dp">
 
     <RelativeLayout
         android:id="@+id/contact_holder"

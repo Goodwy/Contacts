@@ -488,7 +488,7 @@
                 android:background="@color/activated_item_foreground"
                 android:orientation="vertical">
 
-                <include layout="@layout/item_edit_address" />
+                <include layout="@layout/item_edit_structured_address" />
 
             </LinearLayout>
 

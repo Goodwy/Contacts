@@ -66,7 +66,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
         setupTabs()
 
         //val phoneNumber = getPhoneNumberFromIntent(intent) ?: ""
-        binding.insertEditMenu.updateTitle(getString(com.goodwy.commons.R.string.add_number))
+        binding.insertEditMenu.updateTitle(getString(com.goodwy.strings.R.string.add_number))
 
         // we do not really care about the permission request result. Even if it was denied, load private contacts
         handlePermission(PERMISSION_READ_CONTACTS) {

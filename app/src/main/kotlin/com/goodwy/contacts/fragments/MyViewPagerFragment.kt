@@ -219,7 +219,8 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
                 }
             }
 
-            storedGroups = storedGroups.asSequence().sortedWith(compareBy { it.title.toLowerCase().normalizeString() }).toMutableList() as ArrayList<Group>
+            storedGroups = storedGroups.asSequence().sortedWith(compareBy { it.title.lowercase(Locale.getDefault()).normalizeString() })
+                .toMutableList() as ArrayList<Group>
 
             innerBinding.fragmentPlaceholder2.beVisibleIf(storedGroups.isEmpty())
             innerBinding.fragmentPlaceholder.beVisibleIf(storedGroups.isEmpty())
@@ -270,20 +271,17 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
         innerBinding.letterFastscroller?.setupWithRecyclerView(innerBinding.fragmentList, { position ->
             try {
                 val contact = contacts[position]
-                var name = when {
+                val name = when {
                     contact.isABusinessContact() -> contact.getFullCompany()
                     sorting and SORT_BY_SURNAME != 0 && contact.surname.isNotEmpty() -> contact.surname
                     sorting and SORT_BY_MIDDLE_NAME != 0 && contact.middleName.isNotEmpty() -> contact.middleName
                     sorting and SORT_BY_FIRST_NAME != 0 && contact.firstName.isNotEmpty() -> contact.firstName
                     context.config.startNameWithSurname -> contact.surname
-                    else -> contact.firstName
+                    else -> contact.getNameToDisplay()
                 }
 
-                if (name.isEmpty()) {
-                    name = contact.getNameToDisplay()
-                }
-
-                val character = if (name.isNotEmpty()) name.substring(0, 1) else ""
+                val emoji = name.take(2)
+                val character = if (emoji.isEmoji()) emoji else if (name.isNotEmpty()) name.substring(0, 1) else ""
                 FastScrollItemIndicator.Text(character.normalizeString().toUpperCase(Locale.getDefault()))
             } catch (e: Exception) {
                 FastScrollItemIndicator.Text("")
@@ -300,6 +298,7 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
         } else {
             (innerBinding.fragmentList.adapter as? ContactsAdapter)?.apply {
                 fontSize = activity.getTextSize()
+                fontSizeSmall = activity.getTextSizeSmall()
                 notifyDataSetChanged()
             }
         }
@@ -311,28 +310,28 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
 
     fun onSearchQueryChanged(text: String) {
         val adapter = innerBinding.fragmentList.adapter
+        val fixedText = text.trim().replace("\\s+".toRegex(), " ")
         if (adapter is ContactsAdapter) {
-            val shouldNormalize = text.normalizeString() == text
+            val shouldNormalize = fixedText.normalizeString() == fixedText
             val filtered = contactsIgnoringSearch.filter {
-                getProperText(it.getNameToDisplay(), shouldNormalize).contains(text, true) ||
-                    getProperText(it.nickname, shouldNormalize).contains(text, true) ||
-                    it.phoneNumbers.any {
-                        text.normalizePhoneNumber().isNotEmpty() && (it.normalizedNumber
-                            ?: it.value).contains(text.normalizePhoneNumber(), true)
-                    } ||
-                    it.emails.any { it.value.contains(text, true) } ||
-                    it.relations.any { it.name.contains(text, true) } ||
-                    it.addresses.any { getProperText(it.value, shouldNormalize).contains(text, true) } ||
-                    it.IMs.any { it.value.contains(text, true) } ||
-                    getProperText(it.notes, shouldNormalize).contains(text, true) ||
-                    getProperText(it.organization.company, shouldNormalize).contains(text, true) ||
-                    getProperText(it.organization.jobPosition, shouldNormalize).contains(text, true) ||
-                    it.websites.any { it.contains(text, true) }
+                getProperText(it.getNameToDisplay(), shouldNormalize).contains(fixedText, true) ||
+                    getProperText(it.nickname, shouldNormalize).contains(fixedText, true) ||
+                    (fixedText.toIntOrNull() != null && it.phoneNumbers.any {
+                        fixedText.normalizePhoneNumber().isNotEmpty() && it.normalizedNumber.contains(fixedText.normalizePhoneNumber(), true)
+                    }) ||
+                    it.emails.any { it.value.contains(fixedText, true) } ||
+                    it.relations.any { it.name.contains(fixedText, true) } ||
+                    it.addresses.any { getProperText(it.value, shouldNormalize).contains(fixedText, true) } ||
+                    it.IMs.any { it.value.contains(fixedText, true) } ||
+                    getProperText(it.notes, shouldNormalize).contains(fixedText, true) ||
+                    getProperText(it.organization.company, shouldNormalize).contains(fixedText, true) ||
+                    getProperText(it.organization.jobPosition, shouldNormalize).contains(fixedText, true) ||
+                    it.websites.any { it.contains(fixedText, true) }
             } as ArrayList
 
             filtered.sortBy {
                 val nameToDisplay = it.getNameToDisplay()
-                !getProperText(nameToDisplay, shouldNormalize).startsWith(text, true) && !nameToDisplay.contains(text, true)
+                !getProperText(nameToDisplay, shouldNormalize).startsWith(fixedText, true) && !nameToDisplay.contains(fixedText, true)
             }
 
             if (filtered.isEmpty() && this@MyViewPagerFragment is FavoritesFragment) {
@@ -342,11 +341,11 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
             }
 
             innerBinding.fragmentPlaceholder.beVisibleIf(filtered.isEmpty())
-            (adapter as? ContactsAdapter)?.updateItems(filtered, text.normalizeString())
+            (adapter as? ContactsAdapter)?.updateItems(filtered, fixedText.normalizeString())
             setupLetterFastscroller(filtered)
         } else if (adapter is GroupsAdapter) {
             val filtered = groupsIgnoringSearch.filter {
-                it.title.contains(text, true)
+                it.title.contains(fixedText, true)
             } as ArrayList
 
             if (filtered.isEmpty()) {
@@ -354,7 +353,7 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
             }
 
             innerBinding.fragmentPlaceholder.beVisibleIf(filtered.isEmpty())
-            (adapter as? GroupsAdapter)?.updateItems(filtered, text)
+            (adapter as? GroupsAdapter)?.updateItems(filtered, fixedText)
         }
     }
 

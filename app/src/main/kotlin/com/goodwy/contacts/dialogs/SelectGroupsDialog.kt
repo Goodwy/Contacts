@@ -40,7 +40,7 @@ class SelectGroupsDialog(val activity: SimpleActivity, val selectedGroups: Array
             .setPositiveButton(com.goodwy.commons.R.string.ok) { dialog, which -> dialogConfirmed() }
             .setNegativeButton(com.goodwy.commons.R.string.cancel, null)
             .apply {
-                activity.setupDialogStuff(binding.root, this, com.goodwy.commons.R.string.add_group) { alertDialog ->
+                activity.setupDialogStuff(binding.root, this, com.goodwy.strings.R.string.add_group) { alertDialog ->
                     dialog = alertDialog
                 }
             }

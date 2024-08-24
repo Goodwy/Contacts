@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:background="@drawable/ripple_all_corners"
+        android:background="@drawable/ripple_all_corners_10dp"
         android:ellipsize="end"
         android:lines="1"
         android:maxLines="1"

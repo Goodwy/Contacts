@@ -4,6 +4,14 @@
 
     <!-- Visible fields -->
     <string name="messengers_actions_g">Messengers actions</string>
+    <string name="structured_addresses">Structured Addresses (edit mode)</string>
+    <string name="street">Street</string>
+    <string name="neighborhood">Apartment or suite number</string>
+    <string name="city">City</string>
+    <string name="postcode">Postal code</string>
+    <string name="pobox">Post office box</string>
+    <string name="region">State</string>
+    <string name="country">Country</string>
 
     <!-- Settings -->
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>

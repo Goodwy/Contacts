@@ -57,7 +57,7 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
         }
 
         val properPrimaryColor = getProperPrimaryColor()
-        binding.groupContactsFastscroller?.updateColors(properPrimaryColor)
+        binding.groupContactsFastscroller.updateColors(properPrimaryColor)
         binding.groupContactsPlaceholder2.underlineText()
         binding.groupContactsPlaceholder2.setTextColor(properPrimaryColor)
     }

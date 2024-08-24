@@ -1,7 +1,6 @@
 package com.goodwy.contacts.helpers
 
 import android.content.Context
-import android.content.res.Resources
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -71,7 +70,7 @@ class ViewContactsTopBehavior(
                     interpolator = ReverseInterpolator(LinearInterpolator())
                 ),
                 BRuleYOffset(
-                    min = -pixels(com.goodwy.commons.R.dimen.section_margin), max = pixels(R.dimen.zero),
+                    min = -pixels(R.dimen.company_top_margin), max = pixels(R.dimen.zero),
                     interpolator = LinearInterpolator()
                 ),
                 BRuleScale(min = 0.8f, max = 1f),

@@ -8,7 +8,7 @@
     android:paddingBottom="@dimen/contact_padding_top"
     android:paddingLeft="@dimen/activity_margin"
     android:paddingRight="@dimen/activity_margin"
-    android:background="@drawable/ripple_all_corners">
+    android:background="@drawable/ripple_all_corners_10dp">
 
     <com.goodwy.commons.views.MyTextView
         android:id="@+id/contact_note"

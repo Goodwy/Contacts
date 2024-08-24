@@ -13,9 +13,11 @@ import androidx.core.app.AlarmManagerCompat
 import androidx.core.content.FileProvider
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
+import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
 import com.goodwy.contacts.helpers.*
+import com.goodwy.contacts.helpers.VcfExporter
 import com.goodwy.contacts.receivers.AutomaticBackupReceiver
 import org.joda.time.DateTime
 import java.io.File
@@ -132,25 +134,19 @@ fun Context.backupContacts(callback: (success: Boolean) -> Unit) {
                 return@getContactsToExport
             }
 
-            val exportResult = try {
-                ContactsHelper(this).exportContacts(contactsToBackup, outputStream)
-            } catch (e: Exception) {
-                showErrorToast(e)
+            VcfExporter().exportContacts(
+                context = this,
+                outputStream = outputStream,
+                contacts = contactsToBackup.toMutableList() as ArrayList<Contact>,
+                showExportingToast = false
+            ) { exportResult ->
+                if (exportResult == VcfExporter.ExportResult.EXPORT_FAIL) {
+                    toast(com.goodwy.commons.R.string.exporting_failed)
+                }
             }
 
             config.lastAutoBackupTime = DateTime.now().millis
             scheduleNextAutomaticBackup()
-
-            when (exportResult) {
-                ExportResult.EXPORT_OK -> {
-                    toast(com.goodwy.commons.R.string.exporting_successful)
-                    callback(true)
-                }
-                else -> {
-                    toast(com.goodwy.commons.R.string.exporting_failed)
-                    callback(false)
-                }
-            }
         }
     }
 }
