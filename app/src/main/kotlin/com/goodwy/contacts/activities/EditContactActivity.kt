@@ -1112,6 +1112,7 @@ class EditContactActivity : ContactActivity() {
         }
     }
 
+    // Creates blank lines when opening an edit
     private fun setupTypePickers() {
         val getProperTextColor = getProperTextColor()
         val getProperPrimaryColor = getProperPrimaryColor()
@@ -1168,7 +1169,19 @@ class EditContactActivity : ContactActivity() {
         }
 
         if (contact!!.addresses.isEmpty()) {
-            addNewAddressField()
+            //binding.contactAddressesHolder.removeAllViews()
+            val structutedAddressHolder = ItemEditStructuredAddressBinding.bind(binding.contactAddressesHolder.getChildAt(0))
+            structutedAddressHolder.contactStructuredAddressType.apply {
+                setTextColor(getProperPrimaryColor)
+                setupAddressTypePicker(this, DEFAULT_ADDRESS_TYPE, "")
+            }
+            structutedAddressHolder.dividerVerticalContactAddress.setBackgroundColor(getProperTextColor)
+            structutedAddressHolder.dividerContactAddress.setBackgroundColor(getProperTextColor)
+
+            if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
+                binding.contactAddressesHolder.setBackgroundColor(white)
+                binding.contactAddressesAddNewHolder.setBackgroundColor(white)
+            }
         }
 
         if (contact!!.IMs.isEmpty()) {
@@ -2110,13 +2123,13 @@ class EditContactActivity : ContactActivity() {
         val type = contentValues.getAsInteger(StructuredPostal.DATA2) ?: DEFAULT_ADDRESS_TYPE
         val addressValue = contentValues.getAsString(StructuredPostal.DATA4)
             ?: contentValues.getAsString(StructuredPostal.DATA1) ?: return
-        val country = contentValues.getAsString(StructuredPostal.COUNTRY)
-        val region = contentValues.getAsString(StructuredPostal.REGION)
-        val city = contentValues.getAsString(StructuredPostal.CITY)
-        val postcode = contentValues.getAsString(StructuredPostal.POSTCODE)
-        val pobox = contentValues.getAsString(StructuredPostal.POBOX)
-        val street = contentValues.getAsString(StructuredPostal.STREET)
-        val neighborhood = contentValues.getAsString(StructuredPostal.NEIGHBORHOOD)
+        val country = contentValues.getAsString(StructuredPostal.COUNTRY) ?: ""
+        val region = contentValues.getAsString(StructuredPostal.REGION) ?: ""
+        val city = contentValues.getAsString(StructuredPostal.CITY) ?: ""
+        val postcode = contentValues.getAsString(StructuredPostal.POSTCODE) ?: ""
+        val pobox = contentValues.getAsString(StructuredPostal.POBOX) ?: ""
+        val street = contentValues.getAsString(StructuredPostal.STREET) ?: ""
+        val neighborhood = contentValues.getAsString(StructuredPostal.NEIGHBORHOOD) ?: ""
         val address = Address(addressValue, type, "", country, region, city, postcode, pobox, street, neighborhood)
         contact!!.addresses.add(address)
     }

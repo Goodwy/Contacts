@@ -13,6 +13,7 @@
         android:layout_alignBottom="@+id/contactStructuredAddressHolder"
         android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical|end"
+        android:layout_centerVertical="true"
         android:maxLines="5"
         android:ellipsize="end"
         android:minWidth="70dp"

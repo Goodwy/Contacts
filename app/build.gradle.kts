@@ -27,7 +27,7 @@ android {
         versionName = project.libs.versions.app.version.versionName.get()
         versionCode = project.libs.versions.app.version.versionCode.get().toInt()
         setProperty("archivesBaseName", "contacts-$versionCode")
-        buildConfigField("String", "GOOGLE_PLAY_LICENSING_KEY", "\"${properties["GOOGLE_PLAY_LICENSE_KEY"]}\"")
+        buildConfigField("String", "RIGHT_APP_KEY", "\"${properties["RIGHT_APP_KEY"]}\"")
         buildConfigField("String", "PRODUCT_ID_X1", "\"${properties["PRODUCT_ID_X1"]}\"")
         buildConfigField("String", "PRODUCT_ID_X2", "\"${properties["PRODUCT_ID_X2"]}\"")
         buildConfigField("String", "PRODUCT_ID_X3", "\"${properties["PRODUCT_ID_X3"]}\"")

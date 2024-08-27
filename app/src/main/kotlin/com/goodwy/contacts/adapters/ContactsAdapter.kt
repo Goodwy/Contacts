@@ -39,6 +39,7 @@ import com.goodwy.commons.interfaces.StartReorderDragListener
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.views.MyRecyclerView
+import com.goodwy.contacts.BuildConfig
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.activities.ViewContactActivity
@@ -334,12 +335,12 @@ class ContactsAdapter(
         if (activity.config.showCallConfirmation) {
             CallConfirmationDialog(activity as SimpleActivity, contact.getNameToDisplay()) {
                 activity.apply {
-                    initiateCall(contact) { launchCallIntent(it) }
+                    initiateCall(contact) { launchCallIntent(it, key = BuildConfig.RIGHT_APP_KEY) }
                 }
             }
         } else {
             activity.apply {
-                initiateCall(contact) { launchCallIntent(it) }
+                initiateCall(contact) { launchCallIntent(it, key = BuildConfig.RIGHT_APP_KEY) }
             }
         }
     }
@@ -662,12 +663,12 @@ class ContactsAdapter(
         if (activity.config.showCallConfirmation) {
             CallConfirmationDialog(activity as SimpleActivity, contact.getNameToDisplay()) {
                 activity.apply {
-                    initiateCall(contact) { launchCallIntent(it) }
+                    initiateCall(contact) { launchCallIntent(it, key = BuildConfig.RIGHT_APP_KEY) }
                 }
             }
         } else {
             activity.apply {
-                initiateCall(contact) { launchCallIntent(it) }
+                initiateCall(contact) { launchCallIntent(it, key = BuildConfig.RIGHT_APP_KEY) }
             }
         }
     }
