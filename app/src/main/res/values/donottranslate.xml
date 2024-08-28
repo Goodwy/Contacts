@@ -16,6 +16,10 @@
     <string name="viber" translatable="false">Viber</string>
 
     <!-- Release notes -->
+    <string name="release_522">
+        Changed haptic feedback behavior when swiping\n
+        Fixed bugs, improved stability
+    </string>
     <string name="release_521">
         Changed the depth of swipes\n
         Fixed bugs, improved stability

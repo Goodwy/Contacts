@@ -555,18 +555,17 @@ class ContactsAdapter(
                 findViewById<SwipeActionView>(R.id.itemContactSwipe).apply {
                     setRippleColor(SwipeDirection.Left, swipeActionColor(swipeLeftAction))
                     setRippleColor(SwipeDirection.Right, swipeActionColor(swipeRightAction))
+                    useHapticFeedback = activity.config.swipeVibration
                     swipeGestureListener = object : SwipeGestureListener {
                         override fun onSwipedLeft(swipeActionView: SwipeActionView): Boolean {
                             val swipeLeftOrRightAction = if (activity.isRTLLayout) activity.config.swipeRightAction else activity.config.swipeLeftAction
                             swipeAction(swipeLeftOrRightAction, contact)
-                            if (activity.config.swipeVibration) this@apply.performHapticFeedback()
                             return true
                         }
 
                         override fun onSwipedRight(swipeActionView: SwipeActionView): Boolean {
                             val swipeRightOrLeftAction = if (activity.isRTLLayout) activity.config.swipeLeftAction else activity.config.swipeRightAction
                             swipeAction(swipeRightOrLeftAction, contact)
-                            if (activity.config.swipeVibration) this@apply.performHapticFeedback()
                             return true
                         }
                     }

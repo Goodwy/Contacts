@@ -4,7 +4,6 @@
 
     <!-- Visible fields -->
     <string name="messengers_actions_g">Messengers actions</string>
-    <string name="structured_addresses">Structured Addresses (edit mode)</string>
     <string name="street">Street</string>
     <string name="neighborhood">Apartment or suite number</string>
     <string name="city">City</string>

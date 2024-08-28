@@ -4,6 +4,13 @@
 
     <!-- Visible fields -->
     <string name="messengers_actions_g">Дії у месенджерах</string>
+    <string name="street">Вулиця</string>
+    <string name="neighborhood">Номер квартири</string>
+    <string name="city">Місто</string>
+    <string name="postcode">Індекс</string>
+    <string name="pobox">Поштова скринька</string>
+    <string name="region">Регіон</string>
+    <string name="country">Країна</string>
 
     <!-- Settings -->
     <string name="show_private_contacts_g">Показувати особисті контакти в Right Dialer і Right Messages</string>
