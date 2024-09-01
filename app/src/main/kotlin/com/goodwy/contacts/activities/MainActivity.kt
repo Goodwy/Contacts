@@ -604,9 +604,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         this.scrollingView = scrollingView
         this.mySearchMenu = searchMenu
         if (scrollingView is RecyclerView) {
-            scrollingView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+            scrollingView.setOnScrollChangeListener { _, _, _, _, _ ->
                 val newScrollY = scrollingView.computeVerticalScrollOffset()
-                scrollingChanged(newScrollY)
+                if (newScrollY == 0 || currentOldScrollY == 0) scrollingChanged(newScrollY)
                 currentScrollY = newScrollY
                 currentOldScrollY = currentScrollY
             }
@@ -816,6 +816,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             add(Release(520, R.string.release_520))
             add(Release(521, R.string.release_521))
             add(Release(522, R.string.release_522))
+            add(Release(523, R.string.release_523))
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }
