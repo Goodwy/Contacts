@@ -377,12 +377,14 @@ class SettingsActivity : SimpleActivity() {
             settingsShowContactThumbnailsHolder.setOnClickListener {
                 settingsShowContactThumbnails.toggle()
                 config.showContactThumbnails = settingsShowContactThumbnails.isChecked
+                settingsContactThumbnailsSizeHolder.beVisibleIf(config.showContactThumbnails)
             }
         }
     }
 
     private fun setupContactThumbnailsSize() = binding.apply {
         val pro = isPro()
+        settingsContactThumbnailsSizeHolder.beVisibleIf(config.showContactThumbnails)
         settingsContactThumbnailsSizeHolder.alpha = if (pro) 1f else 0.4f
         settingsContactThumbnailsSizeLabel.text = addLockedLabelIfNeeded(com.goodwy.strings.R.string.contact_thumbnails_size, pro)
         settingsContactThumbnailsSize.text = getContactThumbnailsSizeText()

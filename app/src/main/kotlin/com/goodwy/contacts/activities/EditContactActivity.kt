@@ -353,7 +353,7 @@ class EditContactActivity : ContactActivity() {
             updateMenuItemColors(this)
             findItem(R.id.favorite).setOnMenuItemClickListener {
                 toggleFavorite()
-                val newIsStarred = if (contact!!.starred == 1) 0 else 1
+                val newIsStarred = if ((contact?.starred ?: 0) == 1) 0 else 1
 //                ensureBackgroundThread {
 //                    val contacts = arrayListOf(contact!!)
 //                    if (newIsStarred == 1) {
@@ -2209,7 +2209,7 @@ class EditContactActivity : ContactActivity() {
     override fun systemRingtoneSelected(uri: Uri?) {
         contact!!.ringtone = uri?.toString() ?: ""
         val contactRingtone = RingtoneManager.getRingtone(this, uri)
-        binding.contactRingtone.text = contactRingtone.getTitle(this)
+        binding.contactRingtone.text = contactRingtone.getTitle(this) ?: "?"
     }
 
     private fun getPhoneNumberTypeId(value: String) = when (value) {

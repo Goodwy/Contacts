@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="contact_padding_left">72dp</dimen>
-
     <dimen name="contact_edit_type_width">198dp</dimen>
 
     <!--collapsing toolbar-->

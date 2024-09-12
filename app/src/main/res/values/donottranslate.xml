@@ -16,6 +16,11 @@
     <string name="viber" translatable="false">Viber</string>
 
     <!-- Release notes -->
+    <string name="release_524">
+        Changed swipe behaviour and added animation\n
+        Reduced the contact icon when viewing call details\n
+        Fixed bugs
+    </string>
     <string name="release_523">
         Fixed bugs
     </string>

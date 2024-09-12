@@ -560,13 +560,29 @@ class ContactsAdapter(
                         override fun onSwipedLeft(swipeActionView: SwipeActionView): Boolean {
                             val swipeLeftOrRightAction = if (activity.isRTLLayout) activity.config.swipeRightAction else activity.config.swipeLeftAction
                             swipeAction(swipeLeftOrRightAction, contact)
+                            slideLeftReturn(findViewById<ImageView>(R.id.swipeLeftIcon), findViewById<RelativeLayout>(R.id.swipeLeftIconHolder))
                             return true
                         }
 
                         override fun onSwipedRight(swipeActionView: SwipeActionView): Boolean {
                             val swipeRightOrLeftAction = if (activity.isRTLLayout) activity.config.swipeLeftAction else activity.config.swipeRightAction
                             swipeAction(swipeRightOrLeftAction, contact)
+                            slideRightReturn(findViewById<ImageView>(R.id.swipeRightIcon), findViewById<RelativeLayout>(R.id.swipeRightIconHolder))
                             return true
+                        }
+
+                        override fun onSwipedActivated(swipedRight: Boolean) {
+                            if (viewType != VIEW_TYPE_GRID) {
+                                if (swipedRight) slideRight(findViewById<ImageView>(R.id.swipeRightIcon), findViewById<RelativeLayout>(R.id.swipeRightIconHolder))
+                                else slideLeft(findViewById<ImageView>(R.id.swipeLeftIcon))
+                            }
+                        }
+
+                        override fun onSwipedDeactivated(swipedRight: Boolean) {
+                            if (viewType != VIEW_TYPE_GRID) {
+                                if (swipedRight) slideRightReturn(findViewById<ImageView>(R.id.swipeRightIcon), findViewById<RelativeLayout>(R.id.swipeRightIconHolder))
+                                else slideLeftReturn(findViewById<ImageView>(R.id.swipeLeftIcon), findViewById<RelativeLayout>(R.id.swipeLeftIconHolder))
+                            }
                         }
                     }
                 }
@@ -580,6 +596,26 @@ class ContactsAdapter(
                 }
             }
         }
+    }
+
+    private fun slideRight(view: View, parent: View) {
+        view.animate()
+            .x(parent.right - activity.resources.getDimension(com.goodwy.commons.R.dimen.big_margin) - view.width)
+    }
+
+    private fun slideLeft(view: View) {
+        view.animate()
+            .x(activity.resources.getDimension(com.goodwy.commons.R.dimen.big_margin))
+    }
+
+    private fun slideRightReturn(view: View, parent: View) {
+        view.animate()
+            .x(parent.left + activity.resources.getDimension(com.goodwy.commons.R.dimen.big_margin))
+    }
+
+    private fun slideLeftReturn(view: View, parent: View) {
+        view.animate()
+            .x(parent.width - activity.resources.getDimension(com.goodwy.commons.R.dimen.big_margin) - view.width)
     }
 
     override fun onChange(position: Int) = contactItems.getOrNull(position)?.getBubbleText() ?: ""

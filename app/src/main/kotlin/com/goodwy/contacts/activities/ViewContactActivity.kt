@@ -174,7 +174,7 @@ class ViewContactActivity : ContactActivity() {
         binding.contactToolbar.menu.apply {
             updateMenuItemColors(this)
             findItem(R.id.favorite).setOnMenuItemClickListener {
-                val newIsStarred = if (contact!!.starred == 1) 0 else 1
+                val newIsStarred = if ((contact?.starred ?: 0) == 1) 0 else 1
                 ensureBackgroundThread {
                     val contacts = arrayListOf(contact!!)
                     if (newIsStarred == 1) {
