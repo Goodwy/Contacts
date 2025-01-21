@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Negara</string>
     <string name="show_private_contacts_g">Tampilkan kontak privat ke Right Dialer dan Right Messages</string>
+    <string name="street">Jalan</string>
+    <string name="neighborhood">Nomor apartemen atau suite</string>
+    <string name="city">Kota</string>
+    <string name="postcode">Kode Pos</string>
+    <string name="pobox">Kotak pos</string>
+    <string name="region">Wilayah</string>
 
 </resources>

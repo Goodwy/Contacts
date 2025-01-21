@@ -6,13 +6,18 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.drawable.Icon
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuItemCompat
@@ -23,8 +28,8 @@ import androidx.viewpager.widget.ViewPager
 import com.behaviorule.arturdumchev.library.pixels
 import com.goodwy.commons.databases.ContactsDatabase
 import com.goodwy.commons.databinding.BottomTablayoutItemBinding
-import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.dialogs.NewAppDialog
+import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.RadioItem
@@ -51,6 +56,7 @@ import com.goodwy.contacts.interfaces.RefreshContactsListener
 import me.grantland.widget.AutofitHelper
 import java.util.*
 
+
 class MainActivity : SimpleActivity(), RefreshContactsListener {
     private var isSearchOpen = false
     private var mSearchMenuItem: MenuItem? = null
@@ -64,6 +70,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     private var storedStartNameWithSurname = false
     private var storedFontSize = 0
     private var storedShowTabs = 0
+    private var storedBackgroundColor = 0
     private var currentOldScrollY = 0
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
@@ -113,13 +120,13 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         super.onResume()
         refreshMenuItems()
 
-        if (storedShowPhoneNumbers != config.showPhoneNumbers) {
-            finish()
-            startActivity(intent)
+        if (storedShowTabs != config.showTabs ||storedShowPhoneNumbers != config.showPhoneNumbers) {
+            System.exit(0)
             return
         }
 
-        if (storedShowTabs != config.showTabs || config.tabsChanged) {
+        @SuppressLint("UnsafeIntentLaunch")
+        if (config.tabsChanged || storedBackgroundColor != getProperBackgroundColor()) {
             config.lastUsedViewPagerPage = 0
             finish()
             startActivity(intent)
@@ -226,18 +233,21 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     private fun setupOptionsMenu() {
         binding.mainMenu.getToolbar().inflateMenu(R.menu.menu)
         binding.mainMenu.toggleHideOnScroll(false)
-        binding.mainMenu.setupMenu()
 
-        binding.mainMenu.onSearchClosedListener = {
-            getAllFragments().forEach {
-                it?.onSearchClosed()
+        if (config.bottomNavigationBar) {
+            binding.mainMenu.setupMenu()
+            binding.mainMenu.onSearchClosedListener = {
+                getAllFragments().forEach {
+                    it?.onSearchQueryChanged("")
+//                it?.onSearchClosed()
+                }
             }
-        }
 
-        binding.mainMenu.onSearchTextChangedListener = { text ->
-            getCurrentFragment()?.onSearchQueryChanged(text)
-            binding.mainMenu.clearSearch()
-        }
+            binding.mainMenu.onSearchTextChangedListener = { text ->
+                getCurrentFragment()?.onSearchQueryChanged(text)
+                binding.mainMenu.clearSearch()
+            }
+        } else setupSearch(binding.mainMenu.getToolbar().menu)
 
         binding.mainMenu.getToolbar().setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -252,7 +262,6 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             }
             return@setOnMenuItemClickListener true
         }
-        setupSearch(binding.mainMenu.getToolbar().menu)
     }
 
     private fun changeViewType() {
@@ -290,15 +299,32 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             storedFontSize = fontSize
             tabsChanged = false
         }
+        storedBackgroundColor = getProperBackgroundColor()
     }
 
     private fun setupSearch(menu: Menu) {
         val searchManager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
         mSearchMenuItem = menu.findItem(R.id.search)
         (mSearchMenuItem!!.actionView as SearchView).apply {
+            val textColor = getProperTextColor()
+            findViewById<TextView>(androidx.appcompat.R.id.search_src_text).apply {
+                setTextColor(textColor)
+                setHintTextColor(textColor)
+            }
+            findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn).apply {
+                setColorFilter(textColor)
+            }
+            findViewById<View>(androidx.appcompat.R.id.search_plate)?.apply { // search underline
+                background.setColorFilter(Color.TRANSPARENT, PorterDuff.Mode.MULTIPLY)
+            }
+            setIconifiedByDefault(false)
+            findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon).apply {
+                setColorFilter(textColor)
+            }
+
             setSearchableInfo(searchManager.getSearchableInfo(componentName))
             isSubmitButtonEnabled = false
-            queryHint = getString(getSearchString())
+            queryHint = getString(com.goodwy.commons.R.string.search) //getString(getSearchString())
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String) = false
 
@@ -312,9 +338,10 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             })
         }
 
+        @Suppress("DEPRECATION")
         MenuItemCompat.setOnActionExpandListener(mSearchMenuItem, object : MenuItemCompat.OnActionExpandListener {
             override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
-                getCurrentFragment()?.onSearchOpened()
+                //getCurrentFragment()?.onSearchOpened()
                 isSearchOpen = true
                 binding.mainDialpadButton.beGone()
                 binding.mainAddButton.beGone()
@@ -322,7 +349,10 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             }
 
             override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
-                getCurrentFragment()?.onSearchClosed()
+                if (isSearchOpen) {
+                    getCurrentFragment()?.onSearchClosed()
+                }
+
                 isSearchOpen = false
                 binding.mainDialpadButton.beVisibleIf(config.showDialpadButton)
                 binding.mainAddButton.beVisible()
@@ -331,33 +361,33 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         })
     }
 
-    private fun getSearchString(): Int {
-        return when (getCurrentFragment()) {
-            findViewById<FavoritesFragment>(R.id.favorites_fragment) -> R.string.search_favorites
-            findViewById<ContactsFragment>(R.id.contacts_fragment) -> R.string.search_contacts
-            else -> R.string.search_groups
-        }
-    }
+//    private fun getSearchString(): Int {
+//        return when (getCurrentFragment()) {
+//            findViewById<FavoritesFragment>(R.id.favorites_fragment) -> R.string.search_favorites
+//            findViewById<ContactsFragment>(R.id.contacts_fragment) -> R.string.search_contacts
+//            else -> R.string.search_groups
+//        }
+//    }
 
     @SuppressLint("NewApi")
     private fun checkShortcuts() {
-        val appIconColor = config.appIconColor
-        if (isNougatMR1Plus() && config.lastHandledShortcutColor != appIconColor) {
-            val createNewContact = getCreateNewContactShortcut(appIconColor)
+        val iconColor = getProperPrimaryColor()
+        if (isNougatMR1Plus() && config.lastHandledShortcutColor != iconColor) {
+            val createNewContact = getCreateNewContactShortcut(iconColor)
 
             try {
                 shortcutManager.dynamicShortcuts = Arrays.asList(createNewContact)
-                config.lastHandledShortcutColor = appIconColor
+                config.lastHandledShortcutColor = iconColor
             } catch (ignored: Exception) {
             }
         }
     }
 
     @SuppressLint("NewApi")
-    private fun getCreateNewContactShortcut(appIconColor: Int): ShortcutInfo {
+    private fun getCreateNewContactShortcut(iconColor: Int): ShortcutInfo {
         val newEvent = getString(com.goodwy.commons.R.string.create_new_contact)
-        val drawable = resources.getDrawable(com.goodwy.commons.R.drawable.shortcut_plus)
-        (drawable as LayerDrawable).findDrawableByLayerId(com.goodwy.commons.R.id.shortcut_plus_background).applyColorFilter(appIconColor)
+        val drawable = resources.getDrawable(R.drawable.shortcut_plus)
+        (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_plus_background).applyColorFilter(iconColor)
         val bmp = drawable.convertToBitmap()
 
         val intent = Intent(this, EditContactActivity::class.java)
@@ -460,12 +490,20 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 tabUnselectedAction = {
                     it.icon?.applyColorFilter(getProperTextColor())
                     it.icon?.alpha = 220 // max 255
-                    closeSearch()
                 },
                 tabSelectedAction = {
+                    if (config.closeSearch) {
+                        closeSearch()
+                    } else {
+                        //On tab switch, the search string is not deleted
+                        //It should not start on the first startup
+                        if (isSearchOpen) getCurrentFragment()?.onSearchQueryChanged(searchQuery)
+                    }
+
                     binding.viewPager.currentItem = it.position
                     it.icon?.applyColorFilter(getProperPrimaryColor())
                     it.icon?.alpha = 220 // max 255
+
                     if (config.openSearch) {
                         if (getCurrentFragment() is ContactsFragment) {
                             mSearchMenuItem!!.expandActionView()
@@ -491,7 +529,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
 
         if (showTabs and TAB_GROUPS != 0) {
-            icons.add(com.goodwy.commons.R.drawable.ic_people_rounded)
+            icons.add(R.drawable.ic_people_rounded)
         }
 
         return icons
@@ -526,7 +564,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             override fun onPageSelected(position: Int) {
                 if (config.bottomNavigationBar) {
                     binding.mainTabsHolder.getTabAt(position)?.select()
-                    scrollChange()
+                    if (config.changeColourTopBar) scrollChange()
                 } else binding.mainTopTabsHolder.getTabAt(position)?.select()
 
                 getAllFragments().forEach {
@@ -539,7 +577,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         binding.viewPager.onGlobalLayout {
             refreshContacts(ALL_TABS_MASK)
             refreshMenuItems()
-            if (config.bottomNavigationBar) scrollChange()
+            if (config.bottomNavigationBar && config.changeColourTopBar) scrollChange()
         }
 
         if (intent?.action == Intent.ACTION_VIEW && intent.data != null) {
@@ -658,7 +696,14 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 updateBottomTabItemColors(it.customView, false, getDeselectedTabDrawableIds()[it.position])
             },
             tabSelectedAction = {
-                binding.mainMenu.closeSearch()
+                if (config.closeSearch) {
+                    binding.mainMenu.closeSearch()
+                } else {
+                    //On tab switch, the search string is not deleted
+                    //It should not start on the first startup
+                    if (binding.mainMenu.isSearchOpen) getCurrentFragment()?.onSearchQueryChanged(binding.mainMenu.getCurrentQuery())
+                }
+
                 binding.viewPager.currentItem = it.position
                 updateBottomTabItemColors(it.customView, true, getSelectedTabDrawableIds()[it.position])
 
@@ -709,6 +754,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     }
 
     private fun launchSettings() {
+        binding.mainMenu.closeSearch()
         closeSearch()
         hideKeyboard()
         startActivity(Intent(applicationContext, SettingsActivity::class.java))
@@ -818,6 +864,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             add(Release(522, R.string.release_522))
             add(Release(523, R.string.release_523))
             add(Release(524, R.string.release_524))
+            add(Release(610, R.string.release_610))
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }

@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Maa</string>
     <string name="show_private_contacts_g">Näytä yksityiset yhteystiedot sovelluksissa Right Dialer ja Right Messages</string>
+    <string name="street">Katu</string>
+    <string name="neighborhood">Huoneiston tai sviitin numero</string>
+    <string name="city">Kaupunki</string>
+    <string name="postcode">Postinumero</string>
+    <string name="pobox">Postilokero</string>
+    <string name="region">Alue</string>
 
 </resources>

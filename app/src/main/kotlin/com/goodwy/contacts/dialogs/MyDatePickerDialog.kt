@@ -5,7 +5,6 @@ import com.goodwy.commons.activities.BaseSimpleActivity
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.isSPlus
 import com.goodwy.contacts.databinding.DialogDatePickerBinding
-import com.goodwy.contacts.extensions.config
 import org.joda.time.DateTime
 import java.util.Calendar
 
@@ -38,7 +37,7 @@ class MyDatePickerDialog(val activity: BaseSimpleActivity, val defaultDate: Stri
                         }
                     }
 
-                    if (activity.config.isUsingSystemTheme && isSPlus()) {
+                    if (activity.isDynamicTheme() && isSPlus()) {
                         val dialogBackgroundColor = activity.getColor(com.goodwy.commons.R.color.you_dialog_background_color)
                         binding.dialogHolder.setBackgroundColor(dialogBackgroundColor)
                         binding.datePicker.setBackgroundColor(dialogBackgroundColor)

@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">מדינה</string>
     <string name="show_private_contacts_g">הצג אנשי קשר פרטיים ל-Right Dialer ו-Right Messages</string>
+    <string name="street">רחוב</string>
+    <string name="neighborhood">מספר דירה או סוויטה</string>
+    <string name="city">עיר</string>
+    <string name="postcode">מיקוד</string>
+    <string name="pobox">תיבת דואר</string>
+    <string name="region">אזור</string>
 
 </resources>

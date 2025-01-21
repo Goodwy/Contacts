@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Riik</string>
     <string name="show_private_contacts_g">Näita privaatseks märgitud kontakte Right Dialer ja Right Messages</string>
+    <string name="street">Tänav</string>
+    <string name="neighborhood">Korteri või sviidi number</string>
+    <string name="city">Linn</string>
+    <string name="postcode">Sihtnumber</string>
+    <string name="pobox">Postkontori postkast</string>
+    <string name="region">Piirkond</string>
 
 </resources>

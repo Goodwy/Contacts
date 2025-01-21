@@ -135,7 +135,7 @@
                         android:id="@+id/settings_show_dialpad_button_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_show_dialpad_button"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/show_dialpad_button"
@@ -146,7 +146,7 @@
                         android:id="@+id/settings_material_design_3_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_material_design_3"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/material_design_3"
@@ -183,7 +183,7 @@
                         android:id="@+id/settings_colored_contacts_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_colored_contacts"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/colored_contacts"
@@ -261,7 +261,7 @@
                         android:id="@+id/settings_merge_duplicate_contacts_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_merge_duplicate_contacts"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/merge_duplicate_contacts"
@@ -273,7 +273,7 @@
                         android:id="@+id/settings_show_call_confirmation_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_show_call_confirmation"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/show_call_confirmation_dialog"
@@ -306,7 +306,7 @@
                             android:src="@drawable/ic_question_round"
                             android:contentDescription="@string/frequently_asked_questions" />
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_show_private_contacts"
                             style="@style/SettingsSwitchStyle"
                             android:layout_width="wrap_content"
@@ -342,12 +342,23 @@
                         android:id="@+id/settings_show_only_contacts_with_numbers_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_show_only_contacts_with_numbers"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/show_only_contacts_with_numbers"
                             app:switchPadding="@dimen/bigger_margin" />
 
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/settingsFormatPhoneNumbersHolder"
+                        style="@style/SettingsHolderSwitchStyle">
+
+                        <com.goodwy.commons.views.MyMaterialSwitch
+                            android:id="@+id/settingsFormatPhoneNumbers"
+                            style="@style/SettingsSwitchStyle"
+                            android:text="@string/format_phone_numbers"
+                            app:switchPadding="@dimen/bigger_margin"/>
                     </RelativeLayout>
 
                     <RelativeLayout
@@ -375,7 +386,7 @@
                         android:id="@+id/settings_use_english_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_use_english"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/use_english_language"
@@ -490,7 +501,7 @@
                         android:id="@+id/settings_use_icon_tabs_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_use_icon_tabs"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/use_icon_tabs"
@@ -523,12 +534,23 @@
                         android:id="@+id/settings_open_search_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_open_search"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/open_search_when_open_contacts"
                             app:switchPadding="@dimen/bigger_margin" />
 
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/settingsEndSearchHolder"
+                        style="@style/SettingsHolderSwitchStyle">
+
+                        <com.goodwy.commons.views.MyMaterialSwitch
+                            android:id="@+id/settingsEndSearch"
+                            style="@style/SettingsSwitchStyle"
+                            android:text="@string/end_search_when_changing_tab"
+                            app:switchPadding="@dimen/bigger_margin"/>
                     </RelativeLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -572,7 +594,7 @@
                             android:clickable="false"
                             android:text="@string/use_swipe_gestures_summary"/>
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settingsUseSwipeToAction"
                             style="@style/SettingsSwitchStyle"
                             android:layout_width="wrap_content"
@@ -586,10 +608,21 @@
                         android:id="@+id/settingsSwipeVibrationHolder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settingsSwipeVibration"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/vibrate_g"
+                            app:switchPadding="@dimen/bigger_margin" />
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/settingsSwipeRippleHolder"
+                        style="@style/SettingsHolderSwitchStyle">
+
+                        <com.goodwy.commons.views.MyMaterialSwitch
+                            android:id="@+id/settingsSwipeRipple"
+                            style="@style/SettingsSwitchStyle"
+                            android:text="@string/ripple_g"
                             app:switchPadding="@dimen/bigger_margin" />
                     </RelativeLayout>
 
@@ -637,7 +670,7 @@
                         android:id="@+id/settingsSkipDeleteConfirmationHolder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settingsSkipDeleteConfirmation"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/skip_delete_confirmation"
@@ -668,7 +701,7 @@
                         android:id="@+id/settings_show_dividers_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_show_dividers"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/show_dividers"
@@ -680,7 +713,7 @@
                         android:id="@+id/settings_show_contact_thumbnails_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_show_contact_thumbnails"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/show_contact_thumbnails_g"
@@ -711,7 +744,7 @@
                         android:id="@+id/settings_show_phone_numbers_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_show_phone_numbers"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/show_phone_numbers_g"
@@ -719,26 +752,25 @@
                     </RelativeLayout>
 
                     <RelativeLayout
-                        android:id="@+id/settingsFormatPhoneNumbersHolder"
-                        style="@style/SettingsHolderSwitchStyle">
-
-                        <com.goodwy.commons.views.MySwitchCompat
-                            android:id="@+id/settingsFormatPhoneNumbers"
-                            style="@style/SettingsSwitchStyle"
-                            android:text="@string/format_phone_numbers"
-                            app:switchPadding="@dimen/bigger_margin"/>
-                    </RelativeLayout>
-
-                    <RelativeLayout
                         android:id="@+id/settings_start_name_with_surname_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_start_name_with_surname"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/start_name_with_surname"
                             app:switchPadding="@dimen/bigger_margin" />
+                    </RelativeLayout>
 
+                    <RelativeLayout
+                        android:id="@+id/settingsChangeColourTopBarHolder"
+                        style="@style/SettingsHolderSwitchStyle">
+
+                        <com.goodwy.commons.views.MyMaterialSwitch
+                            android:id="@+id/settingsChangeColourTopBar"
+                            style="@style/SettingsSwitchStyle"
+                            android:text="@string/change_top_bar_colour_when_scrolling"
+                            app:switchPadding="@dimen/bigger_margin" />
                     </RelativeLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -807,7 +839,7 @@
                         android:id="@+id/settings_enable_automatic_backups_holder"
                         style="@style/SettingsHolderSwitchStyle">
 
-                        <com.goodwy.commons.views.MySwitchCompat
+                        <com.goodwy.commons.views.MyMaterialSwitch
                             android:id="@+id/settings_enable_automatic_backups"
                             style="@style/SettingsSwitchStyle"
                             android:text="@string/enable_automatic_backups"

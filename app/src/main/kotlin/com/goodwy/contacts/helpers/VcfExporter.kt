@@ -2,13 +2,13 @@ package com.goodwy.contacts.helpers
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.provider.ContactsContract.CommonDataKinds.Email
 import android.provider.ContactsContract.CommonDataKinds.Event
 import android.provider.ContactsContract.CommonDataKinds.Im
 import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
-import android.provider.MediaStore
-import com.goodwy.commons.extensions.getByteArray
+import androidx.annotation.RequiresApi
 import com.goodwy.commons.extensions.getDateTimeFromDateString
 import com.goodwy.commons.extensions.showErrorToast
 import com.goodwy.commons.extensions.toast
@@ -32,6 +32,7 @@ class VcfExporter {
     private var contactsExported = 0
     private var contactsFailed = 0
 
+    @RequiresApi(Build.VERSION_CODES.P)
     fun exportContacts(
         context: Context,
         outputStream: OutputStream?,
@@ -232,10 +233,17 @@ class VcfExporter {
                 }
 
 
-                if (contact.thumbnailUri.isNotEmpty()) {
-                    val photoByteArray = MediaStore.Images.Media.getBitmap(context.contentResolver, Uri.parse(contact.thumbnailUri)).getByteArray()
-                    val photo = Photo(photoByteArray, ImageType.JPEG)
-                    card.addPhoto(photo)
+                try {
+                    val inputStream = context.contentResolver.openInputStream(Uri.parse(contact.photoUri))
+
+                    if (inputStream != null) {
+                        val photoByteArray = inputStream.readBytes()
+                        val photo = Photo(photoByteArray, ImageType.JPEG)
+                        card.addPhoto(photo)
+                        inputStream.close()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
 
                 if (contact.groups.isNotEmpty()) {

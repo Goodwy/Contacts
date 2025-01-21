@@ -68,7 +68,7 @@ class ManageAutoBackupsDialog(private val activity: SimpleActivity, onSuccess: (
 
             updateTime(config.autoBackupTime)
             backupContactsTimeHolder.setOnClickListener {
-                if (config.isUsingSystemTheme) {
+                if (activity.isDynamicTheme()) {
                     val timeFormat = if (DateFormat.is24HourFormat(activity)) {
                         TimeFormat.CLOCK_24H
                     } else {

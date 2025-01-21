@@ -1,14 +1,13 @@
 package com.goodwy.contacts
 
-import android.app.Application
-import com.goodwy.commons.extensions.checkUseEnglish
+import com.goodwy.commons.RightApp
+import com.goodwy.commons.extensions.isRuStoreInstalled
 import com.goodwy.commons.helpers.rustore.RuStoreModule
 
-class App : Application() {
+class App : RightApp() {
 
     override fun onCreate() {
         super.onCreate()
-        checkUseEnglish()
-        RuStoreModule.install(this, "685363647") //TODO rustore
+        if (isRuStoreInstalled()) RuStoreModule.install(this, "685363647") //TODO rustore
     }
 }

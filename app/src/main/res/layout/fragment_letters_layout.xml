@@ -41,7 +41,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:layoutAnimation="@anim/layout_animation"
-            android:paddingBottom="64dp"
+            android:paddingBottom="@dimen/secondary_fab_bottom_margin"
             android:scrollbars="none"
             app:layoutManager="com.goodwy.commons.views.MyLinearLayoutManager" />
 

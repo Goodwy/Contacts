@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Kraštas</string>
     <string name="show_private_contacts_g">Rodyti privačius kontaktus \"Right Dialer\" ir \"Right Messages\"</string>
+    <string name="street">Gatvė</string>
+    <string name="neighborhood">Buto arba liukso numeris</string>
+    <string name="city">Miestas</string>
+    <string name="postcode">Pašto kodas</string>
+    <string name="pobox">Pašto dėžutė</string>
+    <string name="region">Regionas</string>
 
 </resources>

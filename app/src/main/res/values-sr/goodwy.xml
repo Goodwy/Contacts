@@ -6,5 +6,12 @@
     <string name="messengers_actions_g">Радње са месинџерима</string>
 
     <!-- Settings -->
+    <string name="country">Држава</string>
     <string name="show_private_contacts_g">Прикажи приватне контакте у апликацијама Right Dialer и Right Messages</string>
+    <string name="street">Улица</string>
+    <string name="neighborhood">Број стана или апартмана</string>
+    <string name="city">Цити</string>
+    <string name="postcode">Поштански број</string>
+    <string name="pobox">Поштански сандучић</string>
+    <string name="region">Регион</string>
 </resources>

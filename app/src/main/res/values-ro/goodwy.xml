@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Țară</string>
     <string name="show_private_contacts_g">Afișați contactele private în Right Dialer și Right Messages</string>
+    <string name="street">Stradă</string>
+    <string name="neighborhood">Numărul apartamentului sau apartamentului</string>
+    <string name="city">Oraș</string>
+    <string name="postcode">Cod poștal</string>
+    <string name="pobox">Căsuță poștală</string>
+    <string name="region">Regiune</string>
 
 </resources>

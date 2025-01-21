@@ -4,15 +4,11 @@ import android.util.TypedValue
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import com.behaviorule.arturdumchev.library.pixels
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.goodwy.commons.adapters.MyRecyclerViewAdapter
 import com.goodwy.commons.dialogs.ConfirmationDialog
-import com.goodwy.commons.extensions.beVisibleIf
-import com.goodwy.commons.extensions.getTextSize
-import com.goodwy.commons.extensions.groupsDB
-import com.goodwy.commons.extensions.highlightTextPart
+import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.SimpleContactsHelper
 import com.goodwy.commons.helpers.TAB_GROUPS
@@ -24,7 +20,6 @@ import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.databinding.ItemGroupBinding
 import com.goodwy.contacts.dialogs.RenameGroupDialog
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.extensions.setHeightAndWidth
 import com.goodwy.contacts.interfaces.RefreshContactsListener
 
 class GroupsAdapter(

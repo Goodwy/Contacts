@@ -1,6 +1,7 @@
 package com.goodwy.contacts.adapters
 
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.LayerDrawable
 import android.util.SparseArray
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
@@ -19,10 +21,12 @@ import com.goodwy.commons.helpers.SimpleContactsHelper
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.views.MyAppCompatCheckbox
 import com.goodwy.commons.views.MyRecyclerView
+import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.databinding.ItemAddFavoriteWithNumberBinding
 import com.goodwy.contacts.databinding.ItemAddFavoriteWithoutNumberBinding
 import com.goodwy.contacts.extensions.config
+import kotlin.math.abs
 
 class SelectContactsAdapter(
     val activity: SimpleActivity, var contacts: ArrayList<Contact>, private val selectedContacts: ArrayList<Contact>, private val allowPickMultiple: Boolean,
@@ -140,7 +144,18 @@ class SelectContactsAdapter(
                         else -> contact.firstName
                     }
 
-                    val placeholderImage = BitmapDrawable(root.resources, SimpleContactsHelper(root.context).getContactLetterIcon(avatarName))
+                    val placeholderImage =
+                        if (contact.isABusinessContact()) {
+                            val drawablePlaceholder = ResourcesCompat.getDrawable(root.resources, R.drawable.placeholder_company, root.context.theme)
+                            if (config.useColoredContacts) {
+                                val letterBackgroundColors = root.context.getLetterBackgroundColors()
+                                val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
+                                (drawablePlaceholder as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
+                            }
+                            drawablePlaceholder
+                        } else {
+                            BitmapDrawable(root.resources, SimpleContactsHelper(root.context).getContactLetterIcon(avatarName))
+                        }
 
                     if (contact.photoUri.isEmpty() && contact.photo == null) {
                         contactTmb.setImageDrawable(placeholderImage)

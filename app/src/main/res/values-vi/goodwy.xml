@@ -6,5 +6,12 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Quốc gia</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">Lộ</string>
+    <string name="neighborhood">Số căn hộ hoặc dãy phòng</string>
+    <string name="city">Thành phố</string>
+    <string name="postcode">Mã bưu chính</string>
+    <string name="pobox">Hộp thư bưu điện</string>
+    <string name="region">Vùng</string>
 </resources>

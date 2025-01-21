@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.util.AttributeSet
+import androidx.recyclerview.widget.RecyclerView
 import com.goodwy.commons.extensions.areSystemAnimationsEnabled
 import com.goodwy.commons.extensions.beVisibleIf
 import com.goodwy.commons.extensions.hideKeyboard
@@ -51,6 +52,12 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
         val currAdapter = innerBinding.fragmentList.adapter
         val showFastscroller = contacts.size > 10
         innerBinding.letterFastscroller.beVisibleIf(showFastscroller)
+        innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                activity?.hideKeyboard()
+            }
+        })
 
         if (showFastscroller) {
             try {

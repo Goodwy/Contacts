@@ -6,5 +6,12 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Valsts</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">Iela</string>
+    <string name="neighborhood">Dzīvokļa vai apartamenta numurs</string>
+    <string name="city">Pilsēta</string>
+    <string name="postcode">Pasta indekss</string>
+    <string name="pobox">Pasta kastīte</string>
+    <string name="region">Reģions</string>
 </resources>

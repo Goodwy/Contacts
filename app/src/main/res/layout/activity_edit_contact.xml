@@ -302,14 +302,16 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_organization_job_position"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
-                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left"
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_numbers_icon"
                     android:alpha="0.8"
                     android:text="@string/phone_numbers"
                     android:textSize="@dimen/normal_text_size" />
@@ -319,7 +321,10 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
                     android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_phone_vector" />
 
             </RelativeLayout>
@@ -380,14 +385,16 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_numbers_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
-                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left"
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_emails_icon"
                     android:alpha="0.8"
                     android:text="@string/emails"
                     android:textSize="@dimen/normal_text_size" />
@@ -397,7 +404,10 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
                     android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_mail_vector" />
 
             </RelativeLayout>
@@ -458,14 +468,16 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_emails_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
-                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left"
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_addresses_icon"
                     android:alpha="0.8"
                     android:text="@string/addresses"
                     android:textSize="@dimen/normal_text_size" />
@@ -475,7 +487,10 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
                     android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_place_vector" />
 
             </RelativeLayout>
@@ -536,16 +551,18 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_addresses_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
-                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left"
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_ims_icon"
                     android:alpha="0.8"
-                    android:text="@string/im"
+                    android:text="@string/instant_messaging"
                     android:textSize="@dimen/normal_text_size" />
 
                 <ImageView
@@ -553,7 +570,10 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
                     android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_im" />
 
             </RelativeLayout>
@@ -613,14 +633,16 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_ims_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
-                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left"
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_events_icon"
                     android:alpha="0.8"
                     android:text="@string/events"
                     android:textSize="@dimen/normal_text_size" />
@@ -630,7 +652,10 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
                     android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_event_vector" />
             </RelativeLayout>
 
@@ -690,14 +715,16 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_events_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
-                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left"
                 android:paddingBottom="2dp">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_relations_icon"
                     android:alpha="0.8"
                     android:text="@string/relations_g"
                     android:textSize="@dimen/normal_text_size" />
@@ -707,7 +734,10 @@
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
                     android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_group_work_vector" />
             </RelativeLayout>
 
@@ -768,12 +798,14 @@
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
-                android:paddingLeft="@dimen/contact_padding_left"
-                android:paddingRight="@dimen/contact_padding_left">
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_notes_icon"
                     android:textSize="@dimen/normal_text_size"
                     android:alpha="0.8"
                     android:text="@string/notes" />
@@ -782,8 +814,11 @@
                     android:id="@+id/contact_notes_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:alpha="0.8"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_article_vector" />
             </RelativeLayout>
 
@@ -797,9 +832,9 @@
                 android:hint="@string/add_notes"
                 android:inputType="textCapSentences|textMultiLine"
                 android:minHeight="48dp"
-                android:paddingLeft="@dimen/contact_padding_left"
+                android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/notes_padding_top"
-                android:paddingRight="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left"
                 android:paddingBottom="@dimen/notes_padding_top"
                 android:textCursorDrawable="@null"
                 android:textSize="@dimen/normal_text_size"
@@ -813,12 +848,14 @@
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
-                android:paddingLeft="@dimen/contact_padding_left"
-                android:paddingRight="@dimen/contact_padding_left">
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_ringtone_icon"
                     android:textSize="@dimen/normal_text_size"
                     android:alpha="0.8"
                     android:text="@string/ringtone" />
@@ -827,8 +864,11 @@
                     android:id="@+id/contact_ringtone_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:alpha="0.8"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_bell_vector" />
 
             </RelativeLayout>
@@ -848,8 +888,8 @@
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:minHeight="@dimen/contact_icons_size"
-                    android:paddingLeft="@dimen/contact_padding_left"
-                    android:paddingRight="@dimen/contact_padding_left"
+                    android:paddingStart="@dimen/contact_padding_left"
+                    android:paddingEnd="@dimen/contact_padding_left"
                     android:textSize="@dimen/bigger_text_size"
                     tools:text="Disco" />
 
@@ -873,12 +913,14 @@
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
-                android:paddingLeft="@dimen/contact_padding_left"
-                android:paddingRight="@dimen/contact_padding_left">
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_websites_icon"
                     android:textSize="@dimen/normal_text_size"
                     android:alpha="0.8"
                     android:text="@string/websites" />
@@ -887,8 +929,11 @@
                     android:id="@+id/contact_websites_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:alpha="0.8"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_link_vector" />
             </RelativeLayout>
 
@@ -949,12 +994,14 @@
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
-                android:paddingLeft="@dimen/contact_padding_left"
-                android:paddingRight="@dimen/contact_padding_left">
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_groups_title_icon"
                     android:textSize="@dimen/normal_text_size"
                     android:alpha="0.8"
                     android:text="@string/groups" />
@@ -963,8 +1010,11 @@
                     android:id="@+id/contact_groups_title_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:alpha="0.8"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_people_rounded" />
 
             </RelativeLayout>
@@ -1027,12 +1077,14 @@
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
-                android:paddingLeft="@dimen/contact_padding_left"
-                android:paddingRight="@dimen/contact_padding_left">
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingEnd="@dimen/contact_padding_left">
 
                 <com.goodwy.commons.views.MyTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_source_title_icon"
                     android:textSize="@dimen/normal_text_size"
                     android:alpha="0.8"
                     android:text="@string/contact_source" />
@@ -1041,8 +1093,11 @@
                     android:id="@+id/contact_source_title_icon"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:alpha="0.8"
                     android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_source_vector" />
 
             </RelativeLayout>

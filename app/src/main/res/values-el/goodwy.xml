@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Χώρα</string>
     <string name="show_private_contacts_g">Εμφάνιση ιδιωτικών επαφών σε Right Dialer και Right Messages</string>
+    <string name="street">Οδός</string>
+    <string name="neighborhood">Αριθμός διαμερίσματος ή σουίτας</string>
+    <string name="city">Πόλη</string>
+    <string name="postcode">Ταχυδρομικός κώδικας</string>
+    <string name="pobox">Ταχυδρομική θυρίδα</string>
+    <string name="region">Περιοχή</string>
 
 </resources>

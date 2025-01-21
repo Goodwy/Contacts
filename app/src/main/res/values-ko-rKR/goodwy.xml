@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">나라</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">거리</string>
+    <string name="neighborhood">아파트 또는 스위트룸 번호</string>
+    <string name="city">도시</string>
+    <string name="postcode">우편번호</string>
+    <string name="pobox">우체국 상자</string>
+    <string name="region">부위</string>
 
 </resources>

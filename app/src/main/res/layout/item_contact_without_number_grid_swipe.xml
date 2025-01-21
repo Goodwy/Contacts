@@ -25,7 +25,8 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:layout_centerInParent='true'
-            android:src="@drawable/ic_messages"/>
+            android:src="@drawable/ic_messages"
+            android:contentDescription="@null"/>
     </RelativeLayout>
 
     <RelativeLayout
@@ -41,7 +42,8 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:layout_centerInParent='true'
-            android:src="@drawable/ic_delete_outline"/>
+            android:src="@drawable/ic_delete_outline"
+            android:contentDescription="@null"/>
     </RelativeLayout>
 
     <FrameLayout
@@ -87,7 +89,7 @@
                 android:layout_width="@dimen/normal_icon_size"
                 android:layout_height="@dimen/normal_icon_size"
                 android:layout_alignParentTop="true"
-                android:contentDescription="@null"
+                android:contentDescription="@string/handleimage"
                 android:paddingHorizontal="@dimen/normal_margin"
                 android:src="@drawable/ic_drag_handle_vector"
                 android:visibility="visible"

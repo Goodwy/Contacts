@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.recyclerview.widget.RecyclerView
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
 import com.reddit.indicatorfastscroll.FastScrollItemIndicator
 import com.reddit.indicatorfastscroll.FastScrollerThumbView
@@ -225,6 +226,13 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
             innerBinding.fragmentPlaceholder2.beVisibleIf(storedGroups.isEmpty())
             innerBinding.fragmentPlaceholder.beVisibleIf(storedGroups.isEmpty())
             innerBinding.letterFastscroller?.beVisibleIf(storedGroups.isNotEmpty())
+
+            innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    super.onScrollStateChanged(recyclerView, newState)
+                    activity?.hideKeyboard()
+                }
+            })
 
             val currAdapter = innerBinding.fragmentList.adapter
             if (currAdapter == null) {

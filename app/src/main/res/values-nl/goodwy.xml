@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Land</string>
     <string name="show_private_contacts_g">Privécontacten tonen aan Right Dialer en Right Messages</string>
+    <string name="street">Straat</string>
+    <string name="neighborhood">Appartement of suite nummer</string>
+    <string name="city">Stad</string>
+    <string name="postcode">Postcode</string>
+    <string name="pobox">Postbus</string>
+    <string name="region">Regio</string>
 
 </resources>

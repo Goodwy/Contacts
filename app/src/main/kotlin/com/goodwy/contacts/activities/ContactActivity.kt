@@ -9,12 +9,14 @@ import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.media.RingtoneManager
 import android.net.Uri
 import android.provider.ContactsContract.CommonDataKinds.*
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.res.ResourcesCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -36,6 +38,7 @@ import com.goodwy.commons.models.contacts.ContactRelation
 import com.goodwy.contacts.R
 import com.goodwy.contacts.extensions.shareContacts
 import com.goodwy.contacts.extensions.config
+import kotlin.math.abs
 
 abstract class ContactActivity : SimpleActivity() {
     protected val PICK_RINGTONE_INTENT_ID = 1500
@@ -68,7 +71,19 @@ abstract class ContactActivity : SimpleActivity() {
 
     fun showPhotoPlaceholder(photoView: ImageView) {
         //val placeholder = BitmapDrawable(resources, getBigLetterPlaceholder(contact?.getNameToDisplay() ?: "A"))
-        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(contact?.getNameToDisplay() ?: "A"))
+        val fullName = contact?.getNameToDisplay() ?: "A"
+        val placeholderImage =
+            if (contact!!.isABusinessContact()) {
+                val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, theme)
+                if (baseConfig.useColoredContacts) {
+                    val letterBackgroundColors = getLetterBackgroundColors()
+                    val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
+                    (drawable as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
+                }
+                drawable
+            } else {
+                BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(fullName))
+            }
         photoView.setImageDrawable(placeholderImage)
         currentContactPhotoPath = ""
         contact?.photo = null

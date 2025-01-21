@@ -27,7 +27,8 @@
         android:layout_toEndOf="@+id/contact_email_type"
         android:layout_centerVertical="true"
         android:alpha="0.2"
-        android:background="@drawable/divider_settings" />
+        android:background="@drawable/divider_settings"
+        android:contentDescription="@null" />
 
     <com.goodwy.commons.views.MyEditText
         android:id="@+id/contact_email"
@@ -60,6 +61,7 @@
         android:background="@drawable/circle_background"
         android:backgroundTint="@color/red_missed"
         android:foreground="@drawable/button_round_pressed"
+        android:contentDescription="@string/remove"
         android:padding="@dimen/medium_margin"
         android:src="@drawable/ic_minus_vector"
         android:visibility="gone"
@@ -73,6 +75,7 @@
         android:layout_marginStart="@dimen/contact_padding_left"
         android:layout_marginEnd="@dimen/contact_padding_left"
         android:alpha="0.2"
-        android:background="@drawable/divider_settings" />
+        android:background="@drawable/divider_settings"
+        android:contentDescription="@null" />
 
 </RelativeLayout>

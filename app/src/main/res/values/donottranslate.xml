@@ -16,6 +16,14 @@
     <string name="viber" translatable="false">Viber</string>
 
     <!-- Release notes -->
+    <string name="release_610">
+        Changed theme logic\n
+        Added ‘App icon color’ option\n
+        Adapted for small screen devices\n
+        Changed default icon for organizations\n
+        Improved scrolling performance and interface\n
+        Improved performance, bug fixes
+    </string>
     <string name="release_524">
         Changed swipe behaviour and added animation\n
         Reduced the contact icon when viewing call details\n

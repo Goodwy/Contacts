@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">بلد</string>
     <string name="show_private_contacts_g">إظهار جهات الاتصال الخاصة إلى Right Dialer و Right Messages</string>
+    <string name="street">شارع</string>
+    <string name="neighborhood">رقم الشقة أو الجناح</string>
+    <string name="city">مدينة</string>
+    <string name="postcode">الرمز البريدي</string>
+    <string name="pobox">صندوق البريد</string>
+    <string name="region">قطر</string>
 
 </resources>

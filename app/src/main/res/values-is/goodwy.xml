@@ -6,5 +6,12 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Land</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">Stræti</string>
+    <string name="neighborhood">Íbúð eða svítunúmer</string>
+    <string name="city">Borg</string>
+    <string name="postcode">Póstnúmer</string>
+    <string name="pobox">Pósthólf</string>
+    <string name="region">Svæði</string>
 </resources>

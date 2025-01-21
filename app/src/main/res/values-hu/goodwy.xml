@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Ország</string>
     <string name="show_private_contacts_g">Privát névjegyek megjelenítése a Right Dialer és a Right Messages</string>
+    <string name="street">Utca</string>
+    <string name="neighborhood">Apartman vagy lakosztály száma</string>
+    <string name="city">Város</string>
+    <string name="postcode">Irányítószám</string>
+    <string name="pobox">Postafiók</string>
+    <string name="region">Régió</string>
 
 </resources>

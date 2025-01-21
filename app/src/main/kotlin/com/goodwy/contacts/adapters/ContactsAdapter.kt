@@ -19,6 +19,7 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.behaviorule.arturdumchev.library.pixels
@@ -52,6 +53,7 @@ import me.thanel.swipeactionview.SwipeActionView
 import me.thanel.swipeactionview.SwipeDirection
 import me.thanel.swipeactionview.SwipeGestureListener
 import java.util.Collections
+import kotlin.math.abs
 
 class ContactsAdapter(
     activity: SimpleActivity,
@@ -102,7 +104,7 @@ class ContactsAdapter(
         menu.apply {
             findItem(R.id.cab_edit).isVisible = isOneItemSelected()
             findItem(R.id.cab_remove).isVisible = location == LOCATION_FAVORITES_TAB || location == LOCATION_GROUP_CONTACTS
-            findItem(R.id.cab_add_to_favorites).isVisible = location == LOCATION_CONTACTS_TAB && getSelectedItems().all {it.starred != 1}
+            findItem(R.id.cab_add_to_favorites).isVisible = (location == LOCATION_CONTACTS_TAB || location == LOCATION_GROUP_CONTACTS) && getSelectedItems().all {it.starred != 1}
             findItem(R.id.cab_add_to_group).isVisible = location == LOCATION_CONTACTS_TAB || location == LOCATION_FAVORITES_TAB
             findItem(R.id.cab_call).isVisible = isOneItemSelected()
             findItem(R.id.cab_send_sms_to_contacts).isVisible =
@@ -242,13 +244,11 @@ class ContactsAdapter(
 
         ContactsHelper(activity).getContacts(true) { allContacts ->
             ensureBackgroundThread {
-                contactsToRemove.forEach {
-                    val contactToRemove = it
-                    val duplicates = allContacts.filter { it.id != contactToRemove.id && it.getHashToCompare() == contactToRemove.getHashToCompare() }
-                        .toMutableList() as ArrayList<Contact>
-                    duplicates.add(contactToRemove)
-                    ContactsHelper(activity).deleteContacts(duplicates)
-                }
+                ContactsHelper(activity).deleteContacts(contactsToRemove
+                    .flatMap { contactToRemove -> allContacts.filter {
+                        (config.mergeDuplicateContacts || it.id == contactToRemove.id) && (it.getHashToCompare() == contactToRemove.getHashToCompare())
+                    } }
+                    .toMutableList() as ArrayList<Contact>)
 
                 activity.runOnUiThread {
                     if (contactItems.isEmpty()) {
@@ -388,9 +388,20 @@ class ContactsAdapter(
     }
 
     private fun getShortcutImage(contact: Contact, drawable: Drawable, callback: () -> Unit) {
-        val appIconColor = baseConfig.appIconColor
-        (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_contact_background).applyColorFilter(appIconColor)
-        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(activity).getContactLetterIcon(contact.getNameToDisplay()))
+        val fullName = contact.getNameToDisplay()
+        val letterBackgroundColors = activity.getLetterBackgroundColors()
+        val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
+        (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_contact_background).applyColorFilter(color)
+        val placeholderImage =
+            if (contact.isABusinessContact()) {
+                val drawablePlaceholder = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, activity.theme)
+                if (baseConfig.useColoredContacts) {
+                    (drawablePlaceholder as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
+                }
+                drawablePlaceholder
+            } else {
+                BitmapDrawable(resources, SimpleContactsHelper(activity).getContactLetterIcon(fullName))
+            }
         if (contact.photoUri.isEmpty() && contact.photo == null) {
             drawable.setDrawableByLayerId(R.id.shortcut_contact_image, placeholderImage)
             callback()
@@ -486,7 +497,17 @@ class ContactsAdapter(
             if (showContactThumbnails) {
                 val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(context).getContactLetterIcon(fullName))
                 if (contact.photoUri.isEmpty() && contact.photo == null) {
-                    findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).setImageDrawable(placeholderImage)
+                    if (contact.isABusinessContact()) {
+                        val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, activity.theme)
+                        if (baseConfig.useColoredContacts) {
+                            val letterBackgroundColors = activity.getLetterBackgroundColors()
+                            val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
+                            (drawable as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
+                        }
+                        findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).setImageDrawable(drawable)
+                    } else {
+                        findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).setImageDrawable(placeholderImage)
+                    }
                 } else {
                     val options = RequestOptions()
                         .signature(ObjectKey(contact.getSignatureKey()))
@@ -514,6 +535,7 @@ class ContactsAdapter(
             }
 
             val dragIcon = findViewById<ImageView>(com.goodwy.commons.R.id.drag_handle_icon)
+            @SuppressLint("ClickableViewAccessibility")
             if (enableDrag && textToHighlight.isEmpty()) {
                 dragIcon.apply {
                     beVisibleIf(selectedKeys.isNotEmpty())
@@ -553,8 +575,10 @@ class ContactsAdapter(
                 findViewById<RelativeLayout>(R.id.swipeRightIconHolder).setBackgroundColor(swipeActionColor(swipeRightAction))
 
                 findViewById<SwipeActionView>(R.id.itemContactSwipe).apply {
-                    setRippleColor(SwipeDirection.Left, swipeActionColor(swipeLeftAction))
-                    setRippleColor(SwipeDirection.Right, swipeActionColor(swipeRightAction))
+                    if (activity.config.swipeRipple) {
+                        setRippleColor(SwipeDirection.Left, swipeActionColor(swipeLeftAction))
+                        setRippleColor(SwipeDirection.Right, swipeActionColor(swipeRightAction))
+                    }
                     useHapticFeedback = activity.config.swipeVibration
                     swipeGestureListener = object : SwipeGestureListener {
                         override fun onSwipedLeft(swipeActionView: SwipeActionView): Boolean {
@@ -645,7 +669,7 @@ class ContactsAdapter(
     private fun swipeActionImageResource(swipeAction: Int): Int {
         return when (swipeAction) {
             SWIPE_ACTION_DELETE -> com.goodwy.commons.R.drawable.ic_delete_outline
-            SWIPE_ACTION_MESSAGE -> com.goodwy.commons.R.drawable.ic_messages
+            SWIPE_ACTION_MESSAGE -> R.drawable.ic_messages
             SWIPE_ACTION_EDIT -> com.goodwy.commons.R.drawable.ic_edit_vector
             else -> com.goodwy.commons.R.drawable.ic_phone_vector
         }

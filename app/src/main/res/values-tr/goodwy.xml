@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Ülke</string>
     <string name="show_private_contacts_g">Özel kişileri Right Dialer ve Right Messages gösterme</string>
+    <string name="street">Sokak</string>
+    <string name="neighborhood">Daire veya süit numarası</string>
+    <string name="city">Şehir</string>
+    <string name="postcode">Posta kodu</string>
+    <string name="pobox">Posta kutusu</string>
+    <string name="region">Bölge</string>
 
 </resources>

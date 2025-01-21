@@ -6,5 +6,12 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">کشور</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">خیابان</string>
+    <string name="neighborhood">شماره آپارتمان یا سوئیت</string>
+    <string name="city">شهر</string>
+    <string name="postcode">کد پستی</string>
+    <string name="pobox">صندوق</string>
+    <string name="region">منطقه</string>
 </resources>

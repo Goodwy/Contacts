@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">国家</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">街</string>
+    <string name="neighborhood">公寓或套房编号</string>
+    <string name="city">城市</string>
+    <string name="postcode">邮政编码</string>
+    <string name="pobox">邮政信箱</string>
+    <string name="region">地区</string>
 
 </resources>

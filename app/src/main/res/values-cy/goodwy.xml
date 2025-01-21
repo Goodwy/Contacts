@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Gwlad</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">Stryd</string>
+    <string name="neighborhood">Nifer y fflatiau neu gyfres</string>
+    <string name="city">Dinas</string>
+    <string name="postcode">Cod post</string>
+    <string name="pobox">Blwch Swyddfa\'r Post</string>
+    <string name="region">Bro</string>
 
 </resources>

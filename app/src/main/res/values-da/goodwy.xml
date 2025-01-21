@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Land</string>
     <string name="show_private_contacts_g">Vis private kontakter til Right Dialer og Right Messages</string>
+    <string name="street">Gade</string>
+    <string name="neighborhood">Lejligheds- eller suitenummer</string>
+    <string name="city">By</string>
+    <string name="postcode">Postnummer</string>
+    <string name="pobox">Postboks</string>
+    <string name="region">Region</string>
 
 </resources>

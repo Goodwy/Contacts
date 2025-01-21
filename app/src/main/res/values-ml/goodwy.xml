@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">രാജ്യം</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">തെരുവ്</string>
+    <string name="neighborhood">അപ്പാർട്ട്മെന്റ് അല്ലെങ്കിൽ സ്യൂട്ട് നമ്പർ</string>
+    <string name="city">നഗരം</string>
+    <string name="postcode">തപാൽ കോഡ്</string>
+    <string name="pobox">പോസ്റ്റ് ഓഫീസ് ബോക്സ്</string>
+    <string name="region">പ്രദേശം</string>
 
 </resources>

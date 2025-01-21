@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.behaviorule.arturdumchev.library.pixels
 import com.goodwy.commons.activities.FAQActivity
 import com.goodwy.commons.dialogs.*
 import com.goodwy.commons.extensions.*
@@ -46,7 +47,7 @@ class SettingsActivity : SimpleActivity() {
 
     private val binding by viewBinding(ActivitySettingsBinding::inflate)
     private val purchaseHelper = PurchaseHelper(this)
-    private val ruStoreHelper = RuStoreHelper(this)
+    private var ruStoreHelper: RuStoreHelper? = null
     private val productIdX1 = BuildConfig.PRODUCT_ID_X1
     private val productIdX2 = BuildConfig.PRODUCT_ID_X2
     private val productIdX3 = BuildConfig.PRODUCT_ID_X3
@@ -107,10 +108,11 @@ class SettingsActivity : SimpleActivity() {
         }
         if (isRuStoreInstalled()) {
             //RuStore
-            ruStoreHelper.checkPurchasesAvailability()
+            ruStoreHelper = RuStoreHelper()
+            ruStoreHelper!!.checkPurchasesAvailability(this@SettingsActivity)
 
             lifecycleScope.launch {
-                ruStoreHelper.eventStart
+                ruStoreHelper!!.eventStart
                     .flowWithLifecycle(lifecycle)
                     .collect { event ->
                         handleEventStart(event)
@@ -118,7 +120,7 @@ class SettingsActivity : SimpleActivity() {
             }
 
             lifecycleScope.launch {
-                ruStoreHelper.statePurchased
+                ruStoreHelper!!.statePurchased
                     .flowWithLifecycle(lifecycle)
                     .collect { state ->
                         //update of purchased
@@ -150,6 +152,7 @@ class SettingsActivity : SimpleActivity() {
         setupShowPrivateContacts()
         setupOnContactClick()
         setupShowContactsWithNumbers()
+        setupFormatPhoneNumbers()
         setupFontSize()
         setupUseEnglish()
         setupLanguage()
@@ -160,9 +163,11 @@ class SettingsActivity : SimpleActivity() {
         setupUseIconTabs()
         setupScreenSlideAnimation()
         setupOpenSearch()
+        setupEndSearch()
 
         setupUseSwipeToAction()
         setupSwipeVibration()
+        setupSwipeRipple()
         setupSwipeRightAction()
         setupSwipeLeftAction()
         setupDeleteConfirmation()
@@ -171,8 +176,8 @@ class SettingsActivity : SimpleActivity() {
         setupShowContactThumbnails()
         setupContactThumbnailsSize()
         setupShowPhoneNumbers()
-        setupFormatPhoneNumbers()
         setupStartNameWithSurname()
+        setupChangeColourTopBar()
 
         setupExportContacts()
         setupImportContacts()
@@ -250,7 +255,8 @@ class SettingsActivity : SimpleActivity() {
                 subscriptionYearIdList = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
                 subscriptionYearIdListRu = arrayListOf(subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3),
                 playStoreInstalled = isPlayStoreInstalled(),
-                ruStoreInstalled = isRuStoreInstalled()
+                ruStoreInstalled = isRuStoreInstalled(),
+                showAppIconColor = true
             )
         }
     }
@@ -294,6 +300,16 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    private fun setupEndSearch() {
+        binding.apply {
+            settingsEndSearch.isChecked = config.closeSearch
+            settingsEndSearchHolder.setOnClickListener {
+                settingsEndSearch.toggle()
+                config.closeSearch = settingsEndSearch.isChecked
+            }
+        }
+    }
+
     private fun setupDefaultTab() {
         binding.settingsDefaultTab.text = getDefaultTabText()
         binding.settingsDefaultTabHolder.setOnClickListener {
@@ -301,7 +317,7 @@ class SettingsActivity : SimpleActivity() {
                 RadioItem(TAB_LAST_USED, getString(com.goodwy.commons.R.string.last_used_tab)),
                 RadioItem(TAB_FAVORITES, getString(com.goodwy.commons.R.string.favorites_tab), icon = R.drawable.ic_star_vector_scaled),
                 RadioItem(TAB_CONTACTS, getString(com.goodwy.commons.R.string.contacts_tab), icon = R.drawable.ic_person_rounded_scaled),
-                RadioItem(TAB_GROUPS, getString(com.goodwy.commons.R.string.groups_tab), icon = com.goodwy.commons.R.drawable.ic_people_rounded))
+                RadioItem(TAB_GROUPS, getString(com.goodwy.commons.R.string.groups_tab), icon = R.drawable.ic_people_rounded))
 
             RadioGroupIconDialog(this@SettingsActivity, items, config.defaultTab, com.goodwy.strings.R.string.default_tab) {
                 config.defaultTab = it as Int
@@ -332,6 +348,7 @@ class SettingsActivity : SimpleActivity() {
                 config.bottomNavigationBar = it == 1
                 config.tabsChanged = true
                 binding.settingsNavigationBarStyle.text = getNavigationBarStyleText()
+                binding.settingsChangeColourTopBarHolder.beVisibleIf(config.bottomNavigationBar)
             }
         }
     }
@@ -456,6 +473,18 @@ class SettingsActivity : SimpleActivity() {
             settingsStartNameWithSurnameHolder.setOnClickListener {
                 settingsStartNameWithSurname.toggle()
                 config.startNameWithSurname = settingsStartNameWithSurname.isChecked
+            }
+        }
+    }
+
+    private fun setupChangeColourTopBar() {
+        binding.apply {
+            settingsChangeColourTopBarHolder.beVisibleIf(config.bottomNavigationBar)
+            settingsChangeColourTopBar.isChecked = config.changeColourTopBar
+            settingsChangeColourTopBarHolder.setOnClickListener {
+                settingsChangeColourTopBar.toggle()
+                config.changeColourTopBar = settingsChangeColourTopBar.isChecked
+                config.tabsChanged = true
             }
         }
     }
@@ -723,12 +752,33 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
-    private fun setupOverflowIcon() = binding.apply {
-        settingsOverflowIcon.applyColorFilter(getProperTextColor())
-        settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
-        settingsOverflowIconHolder.setOnClickListener {
-            OverflowIconDialog(this@SettingsActivity) {
-                settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
+    private fun setupOverflowIcon() {
+        binding.apply {
+            settingsOverflowIcon.applyColorFilter(getProperTextColor())
+            settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
+            settingsOverflowIconHolder.setOnClickListener {
+                val items = arrayListOf(
+                    com.goodwy.commons.R.drawable.ic_more_horiz,
+                    com.goodwy.commons.R.drawable.ic_three_dots_vector,
+                    com.goodwy.commons.R.drawable.ic_more_horiz_round
+                )
+
+                IconListDialog(
+                    activity = this@SettingsActivity,
+                    items = items,
+                    checkedItemId = baseConfig.overflowIcon + 1,
+                    defaultItemId = OVERFLOW_ICON_HORIZONTAL + 1,
+                    titleId = com.goodwy.strings.R.string.overflow_icon,
+                    size = pixels(com.goodwy.commons.R.dimen.normal_icon_size).toInt(),
+                    color = getProperTextColor()
+                ) { wasPositivePressed, newValue ->
+                    if (wasPositivePressed) {
+                        if (baseConfig.overflowIcon != newValue - 1) {
+                            baseConfig.overflowIcon = newValue - 1
+                            settingsOverflowIcon.setImageResource(getOverflowIcon(baseConfig.overflowIcon))
+                        }
+                    }
+                }
             }
         }
     }
@@ -767,9 +817,27 @@ class SettingsActivity : SimpleActivity() {
         settingsContactColorListHolder.beVisibleIf(config.useColoredContacts)
         settingsContactColorListIcon.setImageResource(getContactsColorListIcon(config.contactColorList))
         settingsContactColorListHolder.setOnClickListener {
-            ColorListDialog(this@SettingsActivity) {
-                config.contactColorList = it as Int
-                settingsContactColorListIcon.setImageResource(getContactsColorListIcon(it))
+            val items = arrayListOf(
+                com.goodwy.commons.R.drawable.ic_color_list,
+                com.goodwy.commons.R.drawable.ic_color_list_android,
+                com.goodwy.commons.R.drawable.ic_color_list_ios,
+                com.goodwy.commons.R.drawable.ic_color_list_arc
+            )
+
+            IconListDialog(
+                activity = this@SettingsActivity,
+                items = items,
+                checkedItemId = config.contactColorList,
+                defaultItemId = LBC_ANDROID,
+                titleId = com.goodwy.strings.R.string.overflow_icon
+            ) { wasPositivePressed, newValue ->
+                if (wasPositivePressed) {
+                    if (config.contactColorList != newValue) {
+                        config.contactColorList = newValue
+                        settingsContactColorListIcon.setImageResource(getContactsColorListIcon(config.contactColorList))
+                        config.tabsChanged = true
+                    }
+                }
             }
         }
     }
@@ -790,6 +858,7 @@ class SettingsActivity : SimpleActivity() {
     private fun updateSwipeToActionVisible() {
         binding.apply {
             settingsSwipeVibrationHolder.beVisibleIf(config.useSwipeToAction)
+            settingsSwipeRippleHolder.beVisibleIf(config.useSwipeToAction)
             settingsSwipeRightActionHolder.beVisibleIf(config.useSwipeToAction)
             settingsSwipeLeftActionHolder.beVisibleIf(config.useSwipeToAction)
             settingsSkipDeleteConfirmationHolder.beVisibleIf(config.useSwipeToAction &&(config.swipeLeftAction == SWIPE_ACTION_DELETE || config.swipeRightAction == SWIPE_ACTION_DELETE))
@@ -807,6 +876,17 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    private fun setupSwipeRipple() {
+        binding.apply {
+            settingsSwipeRipple.isChecked = config.swipeRipple
+            settingsSwipeRippleHolder.setOnClickListener {
+                settingsSwipeRipple.toggle()
+                config.swipeRipple = settingsSwipeRipple.isChecked
+                config.tabsChanged = true
+            }
+        }
+    }
+
     private fun setupSwipeRightAction() = binding.apply {
         if (isRTLLayout) settingsSwipeRightActionLabel.text = getString(com.goodwy.strings.R.string.swipe_left_action)
         settingsSwipeRightAction.text = getSwipeActionText(false)
@@ -815,7 +895,7 @@ class SettingsActivity : SimpleActivity() {
                 RadioItem(SWIPE_ACTION_DELETE, getString(com.goodwy.commons.R.string.delete), icon = com.goodwy.commons.R.drawable.ic_delete_outline),
                 RadioItem(SWIPE_ACTION_EDIT, getString(com.goodwy.commons.R.string.edit), icon = com.goodwy.commons.R.drawable.ic_edit_vector),
                 RadioItem(SWIPE_ACTION_CALL, getString(com.goodwy.commons.R.string.call), icon = com.goodwy.commons.R.drawable.ic_phone_vector),
-                RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = com.goodwy.commons.R.drawable.ic_messages),
+                RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = R.drawable.ic_messages),
             )
 
             val title =
@@ -841,7 +921,7 @@ class SettingsActivity : SimpleActivity() {
                     RadioItem(SWIPE_ACTION_DELETE, getString(com.goodwy.commons.R.string.delete), icon = com.goodwy.commons.R.drawable.ic_delete_outline),
                     RadioItem(SWIPE_ACTION_EDIT, getString(com.goodwy.commons.R.string.edit), icon = com.goodwy.commons.R.drawable.ic_edit_vector),
                     RadioItem(SWIPE_ACTION_CALL, getString(com.goodwy.commons.R.string.call), icon = com.goodwy.commons.R.drawable.ic_phone_vector),
-                    RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = com.goodwy.commons.R.drawable.ic_messages),
+                    RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = R.drawable.ic_messages),
                 )
 
                 val title =
@@ -932,7 +1012,7 @@ class SettingsActivity : SimpleActivity() {
 
     private fun updateProducts() {
         val productList: ArrayList<String> = arrayListOf(productIdX1, productIdX2, productIdX3, subscriptionIdX1, subscriptionIdX2, subscriptionIdX3, subscriptionYearIdX1, subscriptionYearIdX2, subscriptionYearIdX3)
-        ruStoreHelper.getProducts(productList)
+        ruStoreHelper!!.getProducts(productList)
     }
 
     private fun handleEventStart(event: StartPurchasesEvent) {

@@ -15,7 +15,9 @@ import android.os.Handler
 import android.provider.ContactsContract.CommonDataKinds
 import android.provider.ContactsContract.CommonDataKinds.*
 import android.provider.MediaStore
+import android.telephony.PhoneNumberFormattingTextWatcher
 import android.telephony.PhoneNumberUtils
+import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.*
@@ -608,6 +610,8 @@ class EditContactActivity : ContactActivity() {
             }
 
             numberHolder.apply {
+                if (config.formatPhoneNumbers) contactNumber.addTextChangedListener(PhoneNumberFormattingTextWatcher(Locale.getDefault().country))
+                if (isRTLLayout) numberHolder.contactNumber.gravity = Gravity.END or Gravity.CENTER_VERTICAL
                 contactNumber.setText(number.value)
                 contactNumber.tag = number.normalizedNumber
                 setupPhoneNumberTypePicker(contactNumberType, number.type, number.label)
@@ -1145,6 +1149,8 @@ class EditContactActivity : ContactActivity() {
             }
             numberHolder.dividerVerticalContactNumber.setBackgroundColor(getProperTextColor)
             numberHolder.dividerContactNumber.setBackgroundColor(getProperTextColor)
+            if (config.formatPhoneNumbers) numberHolder.contactNumber.addTextChangedListener(PhoneNumberFormattingTextWatcher(Locale.getDefault().country))
+            if (isRTLLayout) numberHolder.contactNumber.gravity = Gravity.END or Gravity.CENTER_VERTICAL
 
             if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
                 binding.contactNumbersHolder.setBackgroundColor(white)
@@ -1891,6 +1897,8 @@ class EditContactActivity : ContactActivity() {
             numberHolder.contactNumber.requestFocus()
             showKeyboard(numberHolder.contactNumber)
         }
+        if (config.formatPhoneNumbers) numberHolder.contactNumber.addTextChangedListener(PhoneNumberFormattingTextWatcher(Locale.getDefault().country))
+        if (isRTLLayout) numberHolder.contactNumber.gravity = Gravity.END or Gravity.CENTER_VERTICAL
 
         numberHolder.apply {
             val getProperTextColor = getProperTextColor()

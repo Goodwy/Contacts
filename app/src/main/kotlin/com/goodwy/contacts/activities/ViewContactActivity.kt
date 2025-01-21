@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
 import android.media.AudioManager
 import android.media.RingtoneManager
 import android.net.Uri
@@ -16,6 +17,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -36,6 +38,7 @@ import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.*
 import java.util.Locale
+import kotlin.math.abs
 
 class ViewContactActivity : ContactActivity() {
     private var isViewIntent = false
@@ -103,7 +106,7 @@ class ViewContactActivity : ContactActivity() {
     private fun initButton() {
         val properPrimaryColor = getProperPrimaryColor()
 
-        var drawableSMS = AppCompatResources.getDrawable(this, com.goodwy.commons.R.drawable.ic_messages)
+        var drawableSMS = AppCompatResources.getDrawable(this, R.drawable.ic_messages)
         drawableSMS = DrawableCompat.wrap(drawableSMS!!)
         DrawableCompat.setTint(drawableSMS, properPrimaryColor)
         DrawableCompat.setTintMode(drawableSMS, PorterDuff.Mode.SRC_IN)
@@ -210,7 +213,7 @@ class ViewContactActivity : ContactActivity() {
             }
 
             findItem(R.id.delete).setOnMenuItemClickListener {
-                deleteContactFromAllSources()
+                deleteContactWithMergeLogic()
                 true
             }
 
@@ -295,28 +298,22 @@ class ViewContactActivity : ContactActivity() {
         binding.contactScrollview.beVisible()
         setupViewContact()
 
-        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(contact?.getNameToDisplay() ?: "A"))
         if (contact!!.photoUri.isEmpty() && contact!!.photo == null) {
+            val fullName = contact?.getNameToDisplay() ?: "A"
+            val placeholderImage =
+                if (contact!!.isABusinessContact()) {
+                    val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, theme)
+                    if (baseConfig.useColoredContacts) {
+                        val letterBackgroundColors = getLetterBackgroundColors()
+                        val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
+                        (drawable as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
+                    }
+                    drawable
+                } else {
+                    BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(fullName))
+                }
             binding.topDetails.contactPhoto.setImageDrawable(placeholderImage)
         } else {
-            /*val options = RequestOptions()
-                .signature(ObjectKey(contact!!.getSignatureKey()))
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                .error(placeholderImage)
-                .centerCrop()
-
-            val itemToLoad: Any? = if (contact!!.photoUri.isNotEmpty()) {
-                contact!!.photoUri
-            } else {
-                contact!!.photo
-            }
-
-            Glide.with(this)
-                .load(itemToLoad)
-                .apply(options)
-                .apply(RequestOptions.circleCropTransform())
-                .into(contact_photo)*/
-
             updateContactPhoto(contact!!.photoUri, binding.topDetails.contactPhoto, binding.contactPhotoBottomShadow, contact!!.photo)
             val optionsBig = RequestOptions()
                 //.transform(FitCenter(), RoundedCorners(resources.getDimension(R.dimen.normal_margin).toInt()))
@@ -1070,7 +1067,7 @@ class ViewContactActivity : ContactActivity() {
             ItemViewHeaderBinding.inflate(layoutInflater, binding.contactWebsitesHolder, false).apply {
                 binding.contactWebsitesHolder.addView(root)
                 contactHeaderType.text = getString(R.string.websites)
-                contactHeaderIcon.setImageResource(com.goodwy.commons.R.drawable.ic_link_vector)
+                contactHeaderIcon.setImageResource(R.drawable.ic_link_vector)
                 contactHeaderIcon.setColorFilter(getProperTextColor())
             }
             websites.forEach {
@@ -1116,7 +1113,7 @@ class ViewContactActivity : ContactActivity() {
             ItemViewHeaderBinding.inflate(layoutInflater, binding.contactGroupsHolder, false).apply {
                 binding.contactGroupsHolder.addView(root)
                 contactHeaderType.text = getString(R.string.groups)
-                contactHeaderIcon.setImageResource(com.goodwy.commons.R.drawable.ic_people_rounded)
+                contactHeaderIcon.setImageResource(R.drawable.ic_people_rounded)
                 contactHeaderIcon.setColorFilter(getProperTextColor())
             }
             groups.forEach {
@@ -1263,7 +1260,7 @@ class ViewContactActivity : ContactActivity() {
         if (showFields and SHOW_RINGTONE_FIELD != 0) {
             binding.contactRingtoneHolder.beVisible()
 
-            binding.contactRingtoneHolder.background .setTint(buttonBg)
+            binding.contactRingtoneHolder.background.setTint(buttonBg)
             binding.contactRingtoneChevron.setColorFilter(getProperTextColor())
             binding.contactRingtone.setTextColor(getProperPrimaryColor())
 
@@ -1519,8 +1516,8 @@ class ViewContactActivity : ContactActivity() {
         }
     }
 
-    private fun deleteContactFromAllSources() {
-        val addition = if (binding.contactSourcesHolder.childCount > 1) {
+    private fun deleteContactWithMergeLogic() {
+        val addition = if (binding.contactSourcesHolder.childCount > 1 && mergeDuplicate) {
             "\n\n${getString(R.string.delete_from_all_sources)}"
         } else {
             ""
@@ -1529,7 +1526,7 @@ class ViewContactActivity : ContactActivity() {
         val message = "${getString(com.goodwy.commons.R.string.proceed_with_deletion)}$addition"
         ConfirmationDialog(this, message) {
             if (contact != null) {
-                ContactsHelper(this).deleteContact(contact!!, true) {
+                ContactsHelper(this).deleteContact(contact!!, mergeDuplicate) {
                     finish()
                 }
             }

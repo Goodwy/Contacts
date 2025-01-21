@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Herrialdea</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="street">Kalea</string>
+    <string name="neighborhood">Apartamentu edo suite zenbakia</string>
+    <string name="city">Hiria</string>
+    <string name="postcode">Posta kodea</string>
+    <string name="pobox">Posta-kutxa</string>
+    <string name="region">Eskualdea</string>
 
 </resources>

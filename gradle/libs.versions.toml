@@ -1,8 +1,10 @@
 [versions]
 #jetbrains
-kotlin = "1.9.10"
+kotlin = "1.9.25"
 #KSP
-ksp = "1.9.10-1.0.13"
+ksp = "1.9.25-1.0.20"
+#Detekt
+detekt = "1.23.3"
 #AndroidX
 androidx-swiperefreshlayout = "1.1.0"
 #AutoFitTextView
@@ -14,25 +16,24 @@ indicatorfastscroll = "e37b5b2ad6"
 #Room
 room = "2.6.1"
 #Gradle
-gradlePlugins-agp = "8.2.1"
+gradlePlugins-agp = "8.7.1"
 #Goodwy
-right-commons = "214aa2cd3f"
-rustore = "5.1.1"
+right-commons = "7bffbc7100"
 behavioRule = "1.0.1"
 rxAnimation = "2.1.1"
 rxJava3 = "3.1.5"
-androidx-lifecycle = "2.7.0"
+androidx-lifecycle = "2.8.6"
 swipeToActionLayout = "bd1eb3c8a3"
 #build
 app-build-compileSDKVersion = "34"
 app-build-targetSDK = "34"
-app-build-minimumSDK = "23"
+app-build-minimumSDK = "26"
 app-build-javaVersion = "VERSION_17"
 app-build-kotlinJVMTarget = "17"
 #versioning
 app-version-appId = "com.goodwy.contacts"
-app-version-versionCode = "524"
-app-version-versionName = "5.2.4"
+app-version-versionCode = "610"
+app-version-versionName = "6.1.0"
 [libraries]
 #AndroidX
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "androidx-swiperefreshlayout" }
@@ -50,7 +51,6 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 #simple-tools-commons = { module = "com.github.SimpleMobileTools:Simple-Commons", version.ref = "simple-commons" }
 #Goodwy
 goodwy-commons = { module = "com.github.Goodwy:Goodwy-Commons", version.ref = "right-commons" }
-rustore-client = { module = "ru.rustore.sdk:billingclient", version.ref = "rustore" }
 behavio-rule = { module = "com.github.Liverm0r:BehavioRule", version.ref = "behavioRule" }
 rx-animation = { module = "com.mikhaellopez:rxanimation", version.ref = "rxAnimation" }
 rx-java = { module = "io.reactivex.rxjava3:rxjava", version.ref = "rxJava3" }
@@ -72,3 +72,4 @@ lifecycle = [
 android = { id = "com.android.application", version.ref = "gradlePlugins-agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

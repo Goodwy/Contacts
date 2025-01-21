@@ -25,7 +25,8 @@
             android:layout_marginLeft='28dp'
             android:layout_alignParentLeft='true'
             android:layout_centerVertical='true'
-            android:src="@drawable/ic_messages"/>
+            android:src="@drawable/ic_messages"
+            android:contentDescription="@null"/>
     </RelativeLayout>
 
     <RelativeLayout
@@ -43,7 +44,8 @@
             android:layout_marginRight='28dp'
             android:layout_alignParentRight='true'
             android:layout_centerVertical='true'
-            android:src="@drawable/ic_delete_outline"/>
+            android:src="@drawable/ic_delete_outline"
+            android:contentDescription="@null"/>
     </RelativeLayout>
 
     <FrameLayout
@@ -94,6 +96,7 @@
                 style="@style/DragHandleIconStyle"
                 android:layout_marginEnd="@dimen/activity_margin"
                 android:layout_marginBottom="@dimen/medium_margin"
+                android:contentDescription="@string/handleimage"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -105,6 +108,7 @@
                 android:layout_height="1px"
                 android:layout_marginEnd="@dimen/activity_margin"
                 android:background="@drawable/divider_settings"
+                android:contentDescription="@null"
                 android:alpha="0.2"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="@+id/item_contact_name"

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.android)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.detekt)
 }
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
@@ -92,6 +93,10 @@ android {
         targetCompatibility = currentJavaVersionFromLibs
     }
 
+    dependenciesInfo {
+        includeInApk = false
+    }
+
     tasks.withType<KotlinCompile> {
         kotlinOptions.jvmTarget = project.libs.versions.app.build.kotlinJVMTarget.get()
     }
@@ -100,8 +105,21 @@ android {
 
     lint {
         checkReleaseBuilds = false
-        abortOnError = false
+        abortOnError = true
+        warningsAsErrors = true
+        baseline = file("lint-baseline.xml")
     }
+
+    bundle {
+        language {
+            @Suppress("UnstableApiUsage")
+            enableSplit = false
+        }
+    }
+}
+
+detekt {
+    baseline = file("detekt-baseline.xml")
 }
 
 dependencies {
@@ -114,7 +132,6 @@ dependencies {
 
     //Goodwy
     implementation(libs.goodwy.commons)
-    implementation(libs.rustore.client)
     implementation(libs.behavio.rule)
     implementation(libs.rx.animation)
     implementation(libs.bundles.lifecycle)

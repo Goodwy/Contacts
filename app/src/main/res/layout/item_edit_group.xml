@@ -32,6 +32,7 @@
         android:background="@drawable/circle_background"
         android:backgroundTint="@color/red_missed"
         android:foreground="@drawable/button_round_pressed"
+        android:contentDescription="@string/remove"
         android:padding="@dimen/medium_margin"
         android:src="@drawable/ic_minus_vector"
         android:visibility="visible" />
@@ -49,6 +50,7 @@
         android:foreground="@drawable/button_round_pressed"
         android:background="@drawable/circle_background"
         android:backgroundTint="@color/green"
+        android:contentDescription="@string/add_group"
         android:padding="@dimen/medium_margin"
         android:src="@drawable/ic_plus_vector"
         android:visibility="gone" />
@@ -61,6 +63,7 @@
         android:layout_marginEnd="@dimen/contact_padding_left"
         android:background="@drawable/divider_settings"
         android:alpha="0.2"
-        android:layout_below="@+id/contactGroup"/>
+        android:layout_below="@+id/contactGroup"
+        android:contentDescription="@null"/>
 
 </RelativeLayout>

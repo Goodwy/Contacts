@@ -96,3 +96,4 @@ const val SWIPE_ACTION_CALL = 5
 const val SWIPE_ACTION_MESSAGE = 6
 const val SWIPE_ACTION_EDIT = 7
 const val SWIPE_VIBRATION = "swipe_vibration"
+const val SWIPE_RIPPLE = "swipe_ripple"

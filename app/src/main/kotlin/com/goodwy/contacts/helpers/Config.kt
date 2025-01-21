@@ -30,4 +30,8 @@ class Config(context: Context) : BaseConfig(context) {
     var swipeVibration: Boolean
         get() = prefs.getBoolean(SWIPE_VIBRATION, true)
         set(swipeVibration) = prefs.edit().putBoolean(SWIPE_VIBRATION, swipeVibration).apply()
+
+    var swipeRipple: Boolean
+        get() = prefs.getBoolean(SWIPE_RIPPLE, false)
+        set(swipeRipple) = prefs.edit().putBoolean(SWIPE_RIPPLE, swipeRipple).apply()
 }

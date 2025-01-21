@@ -6,6 +6,13 @@
     <string name="messengers_actions_g">Messengers actions</string>
 
     <!-- Settings -->
+    <string name="country">Krajina</string>
     <string name="show_private_contacts_g">Zobraziť súkromné kontakty Right Dialer a Right Messages</string>
+    <string name="street">Ulica</string>
+    <string name="neighborhood">Číslo apartmánu alebo apartmánu</string>
+    <string name="city">Mesto</string>
+    <string name="postcode">Psč</string>
+    <string name="pobox">Poštová schránka</string>
+    <string name="region">Región</string>
 
 </resources>
