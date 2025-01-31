@@ -6,4 +6,4 @@ ensuring that your personal information remains confidential and secure. <br><br
 
 [Google Play](https://play.google.com/store/apps/details?id=com.goodwy.contacts)</br></br>
 
-Based on [Simple Contacts](https://github.com/SimpleMobileTools/Simple-Contacts">Simple-Contacts).</br>
+Based on [Simple Contacts](https://github.com/SimpleMobileTools/Simple-Contacts).</br>
