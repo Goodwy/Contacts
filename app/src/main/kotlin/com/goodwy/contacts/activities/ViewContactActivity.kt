@@ -301,7 +301,7 @@ class ViewContactActivity : ContactActivity() {
         if (contact!!.photoUri.isEmpty() && contact!!.photo == null) {
             val fullName = contact?.getNameToDisplay() ?: "A"
             val placeholderImage =
-                if (contact!!.isABusinessContact()) {
+                if (contact?.isABusinessContact() == true) {
                     val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, theme)
                     if (baseConfig.useColoredContacts) {
                         val letterBackgroundColors = getLetterBackgroundColors()
@@ -437,7 +437,7 @@ class ViewContactActivity : ContactActivity() {
         binding.topDetails.contactName.text = displayName
         binding.topDetails.contactName.setTextColor(getProperTextColor())
         binding.topDetails.contactName.copyOnLongClick(displayName)
-        binding.topDetails.contactName.beVisibleIf(displayName.isNotEmpty() && !contact!!.isABusinessContact() && showNameFields)
+        binding.topDetails.contactName.beVisibleIf(displayName.isNotEmpty() && showNameFields)
 
         /*collapsingToolbar.setExpandedTitleColor(getProperTextColor())
         collapsingToolbar.setCollapsedTitleTextColor(getProperTextColor())
@@ -1314,6 +1314,7 @@ class ViewContactActivity : ContactActivity() {
             binding.topDetails.contactOrganizationCompany.text = organization.company
             binding.topDetails.contactOrganizationJobPosition.text = organization.jobPosition
             //binding.topDetails.contactOrganizationImage.beGoneIf(organization.isEmpty())
+            binding.topDetails.contactCompanyHolder.beVisibleIf(contact?.isABusinessContact() != true)
             binding.topDetails.contactOrganizationCompany.beGoneIf(organization.company.isEmpty())
             binding.topDetails.contactOrganizationJobPosition.beGoneIf(organization.jobPosition.isEmpty())
             binding.topDetails.contactOrganizationCompany.copyOnLongClick(binding.topDetails.contactOrganizationCompany.value)
@@ -1326,8 +1327,7 @@ class ViewContactActivity : ContactActivity() {
 //                )
 //            }
         } else {
-            binding.topDetails.contactOrganizationCompany.beGone()
-            binding.topDetails.contactOrganizationJobPosition.beGone()
+            binding.topDetails.contactCompanyHolder.beGone()
         }
     }
 

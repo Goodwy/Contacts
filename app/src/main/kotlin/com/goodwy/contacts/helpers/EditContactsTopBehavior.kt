@@ -43,7 +43,7 @@ class EditContactsTopBehavior(
             RuledView(
                 binding.topDetails.contactPhoto,
                 BRuleXOffset(
-                    min = 0f, max = pixels(R.dimen.image_right_margin),
+                    min = 0f, max = pixels(R.dimen.edit_image_right_margin),
                     interpolator = ReverseInterpolator(LinearInterpolator())
                 ),
                 BRuleYOffset(

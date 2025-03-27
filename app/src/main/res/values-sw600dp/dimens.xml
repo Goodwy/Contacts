@@ -2,8 +2,4 @@
 <resources>
     <dimen name="contact_padding_left">72dp</dimen>
     <dimen name="contact_edit_type_width">198dp</dimen>
-
-    <!--collapsing toolbar-->
-    <dimen name="image_right_margin">22dp</dimen>
-    <dimen name="name_right_margin">68dp</dimen>
 </resources>

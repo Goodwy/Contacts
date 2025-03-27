@@ -1,4 +1,4 @@
 <resources>
     <!--collapsing toolbar-->
-    <dimen name="name_right_margin">68dp</dimen>
+<!--    <dimen name="name_right_margin">68dp</dimen>-->
 </resources>

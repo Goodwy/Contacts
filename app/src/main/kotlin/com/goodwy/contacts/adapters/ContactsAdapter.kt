@@ -582,14 +582,18 @@ class ContactsAdapter(
                     useHapticFeedback = activity.config.swipeVibration
                     swipeGestureListener = object : SwipeGestureListener {
                         override fun onSwipedLeft(swipeActionView: SwipeActionView): Boolean {
-                            val swipeLeftOrRightAction = if (activity.isRTLLayout) activity.config.swipeRightAction else activity.config.swipeLeftAction
+                            finishActMode()
+                            val swipeLeftOrRightAction =
+                                if (activity.isRTLLayout) activity.config.swipeRightAction else activity.config.swipeLeftAction
                             swipeAction(swipeLeftOrRightAction, contact)
                             slideLeftReturn(findViewById<ImageView>(R.id.swipeLeftIcon), findViewById<RelativeLayout>(R.id.swipeLeftIconHolder))
                             return true
                         }
 
                         override fun onSwipedRight(swipeActionView: SwipeActionView): Boolean {
-                            val swipeRightOrLeftAction = if (activity.isRTLLayout) activity.config.swipeLeftAction else activity.config.swipeRightAction
+                            finishActMode()
+                            val swipeRightOrLeftAction =
+                                if (activity.isRTLLayout) activity.config.swipeLeftAction else activity.config.swipeRightAction
                             swipeAction(swipeRightOrLeftAction, contact)
                             slideRightReturn(findViewById<ImageView>(R.id.swipeRightIcon), findViewById<RelativeLayout>(R.id.swipeRightIconHolder))
                             return true

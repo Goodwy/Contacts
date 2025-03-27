@@ -177,6 +177,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
                     }?.apply {
                         tabItemIcon.setImageDrawable(getTabIcon(index))
                         tabItemLabel.text = getTabLabel(index)
+                        tabItemLabel.beGoneIf(config.useIconTabs)
                         binding.insertEditTabsHolder.addTab(this@tab)
                     }
                 }
@@ -199,9 +200,9 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
 
     private fun getCurrentFragment(): MyViewPagerFragment<*>? {
         return if (binding.viewPager.currentItem == 0) {
-            findViewById(R.id.contacts_fragment)
-        } else {
             findViewById(R.id.favorites_fragment)
+        } else {
+            findViewById(R.id.contacts_fragment)
         }
     }
 

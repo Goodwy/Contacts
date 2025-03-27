@@ -10,6 +10,7 @@ import com.goodwy.contacts.databinding.ActivityViewContactBinding
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 
+
 class ViewContactsTopBehavior(
     context: Context?,
     attrs: AttributeSet?
@@ -30,6 +31,13 @@ class ViewContactsTopBehavior(
     override fun View.setUpViews(): List<RuledView> {
         val heightView = calcAppbarHeight(this)
         val height = if (heightView < 5) pixels(R.dimen.toolbar_height) else heightView.toFloat()
+
+        val density = context.resources.displayMetrics.density
+        val screenWidthDp = context.resources.configuration.screenWidthDp * density
+        val factor = if (screenWidthDp < 1200) 0.092 else 0.088
+        val screenWidth =
+            ((screenWidthDp - context.resources.getDimension(com.goodwy.commons.R.dimen.activity_padding_left_right)).toDouble() * factor).toFloat()
+
         return listOf(
             RuledView(
                 binding.topDetails.root,
@@ -54,7 +62,7 @@ class ViewContactsTopBehavior(
             RuledView(
                 binding.topDetails.contactName,
                 BRuleXOffset(
-                    min = 0f, max = pixels(R.dimen.name_right_margin),
+                    min = 0f, max = screenWidth,
                     interpolator = ReverseInterpolator(LinearInterpolator())
                 ),
                 BRuleYOffset(
@@ -66,7 +74,7 @@ class ViewContactsTopBehavior(
             RuledView(
                 binding.topDetails.contactCompanyHolder,
                 BRuleXOffset(
-                    min = 0f, max = pixels(R.dimen.name_right_margin),
+                    min = 0f, max = screenWidth,
                     interpolator = ReverseInterpolator(LinearInterpolator())
                 ),
                 BRuleYOffset(
@@ -90,18 +98,6 @@ class ViewContactsTopBehavior(
             )
         )
     }
-
-//    private fun actionBarSize(context: Context?): Float {
-//        val styledAttributes = context!!.theme?.obtainStyledAttributes(IntArray(1) { android.R.attr.actionBarSize })
-//        val actionBarSize = styledAttributes?.getDimension(0, 0F)
-//        styledAttributes?.recycle()
-//        return actionBarSize ?: context.pixels(R.dimen.toolbar_height)
-//    }
-//
-//    private fun getScreenWidth(): Int {
-//        return Resources.getSystem().displayMetrics.widthPixels
-//    }
-
 
     companion object {
         const val GONE_VIEW_THRESHOLD = 0.4f

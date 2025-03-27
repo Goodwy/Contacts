@@ -312,6 +312,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 setHintTextColor(textColor)
             }
             findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn).apply {
+                setImageResource(com.goodwy.commons.R.drawable.ic_clear_round)
                 setColorFilter(textColor)
             }
             findViewById<View>(androidx.appcompat.R.id.search_plate)?.apply { // search underline
@@ -386,7 +387,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     @SuppressLint("NewApi")
     private fun getCreateNewContactShortcut(iconColor: Int): ShortcutInfo {
         val newEvent = getString(com.goodwy.commons.R.string.create_new_contact)
-        val drawable = resources.getDrawable(R.drawable.shortcut_plus)
+        val drawable = AppCompatResources.getDrawable(this, R.drawable.shortcut_plus)
         (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_plus_background).applyColorFilter(iconColor)
         val bmp = drawable.convertToBitmap()
 
@@ -865,6 +866,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             add(Release(523, R.string.release_523))
             add(Release(524, R.string.release_524))
             add(Release(610, R.string.release_610))
+            add(Release(611, R.string.release_611))
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }

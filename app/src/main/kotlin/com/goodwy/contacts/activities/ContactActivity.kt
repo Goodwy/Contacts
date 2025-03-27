@@ -73,7 +73,7 @@ abstract class ContactActivity : SimpleActivity() {
         //val placeholder = BitmapDrawable(resources, getBigLetterPlaceholder(contact?.getNameToDisplay() ?: "A"))
         val fullName = contact?.getNameToDisplay() ?: "A"
         val placeholderImage =
-            if (contact!!.isABusinessContact()) {
+            if (contact?.isABusinessContact() == true) {
                 val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, theme)
                 if (baseConfig.useColoredContacts) {
                     val letterBackgroundColors = getLetterBackgroundColors()
@@ -157,7 +157,7 @@ abstract class ContactActivity : SimpleActivity() {
         }
     }
 
-    fun trySendSMS() {
+    private fun trySendSMS() {
         val numbers = contact!!.phoneNumbers
         if (numbers.size == 1) {
             launchSendSMSIntent(numbers.first().value)
