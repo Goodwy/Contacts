@@ -5,10 +5,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.util.AttributeSet
 import androidx.recyclerview.widget.RecyclerView
-import com.goodwy.commons.extensions.areSystemAnimationsEnabled
-import com.goodwy.commons.extensions.beVisibleIf
-import com.goodwy.commons.extensions.hideKeyboard
-import com.goodwy.commons.extensions.toast
+import com.goodwy.commons.extensions.*
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.R
 import com.goodwy.contacts.activities.EditContactActivity
@@ -62,7 +59,8 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
         if (showFastscroller) {
             try {
                 //Decrease the font size based on the number of letters in the letter scroller
-                val all = contacts.map { it.getNameToDisplay().substring(0, 1) }
+                val allNotEmpty = contacts.filter { it.getNameToDisplay().isNotEmpty() }
+                val all = allNotEmpty.map { it.getNameToDisplay().substring(0, 1) }
                 val unique: Set<String> = HashSet(all)
                 val sizeUnique = unique.size
                 if (isHighScreenSize()) {
@@ -74,7 +72,8 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
                     else if (sizeUnique > 30) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTiny
                     else innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleSmall
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                activity?.copyToClipboard(e.toString()) }
         }
 
         if (currAdapter == null || forceListRedraw) {

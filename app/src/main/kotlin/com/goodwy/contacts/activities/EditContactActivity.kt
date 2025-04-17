@@ -53,6 +53,8 @@ import com.goodwy.contacts.extensions.showContactSourcePicker
 import com.goodwy.contacts.helpers.*
 import java.util.LinkedList
 import java.util.Locale
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.net.toUri
 
 class EditContactActivity : ContactActivity() {
     companion object {
@@ -139,7 +141,7 @@ class EditContactActivity : ContactActivity() {
         val properBackgroundColor = getProperBackgroundColor()
         if (baseConfig.backgroundColor == white) {
             val colorToWhite = 0xFFf2f2f6.toInt()
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(colorToWhite))
+            supportActionBar?.setBackgroundDrawable(colorToWhite.toDrawable())
             window.decorView.setBackgroundColor(colorToWhite)
             window.statusBarColor = colorToWhite
             window.navigationBarColor = colorToWhite
@@ -857,7 +859,7 @@ class EditContactActivity : ContactActivity() {
             if (ringtone == SILENT) {
                 binding.contactRingtone.text = getString(com.goodwy.commons.R.string.no_sound)
             } else {
-                systemRingtoneSelected(Uri.parse(ringtone))
+                systemRingtoneSelected(ringtone.toUri())
             }
         } else {
             val default = getDefaultAlarmSound(RingtoneManager.TYPE_RINGTONE)
@@ -1511,13 +1513,20 @@ class EditContactActivity : ContactActivity() {
 
     private fun showIMTypePicker(imTypeField: TextView) {
         val items = arrayListOf(
-            RadioItem(Im.PROTOCOL_AIM, getString(R.string.aim)),
-            RadioItem(Im.PROTOCOL_MSN, getString(R.string.windows_live)),
-            RadioItem(Im.PROTOCOL_YAHOO, getString(R.string.yahoo)),
-            RadioItem(Im.PROTOCOL_SKYPE, getString(R.string.skype)),
+            RadioItem(PROTOCOL_TEAMS, getString(R.string.teams)),
+            RadioItem(PROTOCOL_WECOM, getString(R.string.wecom)),
+            RadioItem(PROTOCOL_GOOGLE_CHAT, getString(R.string.google_chat)),
+            RadioItem(PROTOCOL_MATRIX, getString(R.string.matrix)),
+            RadioItem(PROTOCOL_DISCORD, getString(R.string.discord)),
+            RadioItem(PROTOCOL_WECHAT, getString(R.string.wechat)),
+            RadioItem(PROTOCOL_LINE, getString(R.string.line)),
+//            RadioItem(Im.PROTOCOL_AIM, getString(R.string.aim)),
+//            RadioItem(Im.PROTOCOL_MSN, getString(R.string.windows_live)),
+//            RadioItem(Im.PROTOCOL_YAHOO, getString(R.string.yahoo)),
+//            RadioItem(Im.PROTOCOL_SKYPE, getString(R.string.skype)),
             RadioItem(Im.PROTOCOL_QQ, getString(R.string.qq)),
-            RadioItem(Im.PROTOCOL_GOOGLE_TALK, getString(R.string.hangouts)),
-            RadioItem(Im.PROTOCOL_ICQ, getString(R.string.icq)),
+//            RadioItem(Im.PROTOCOL_GOOGLE_TALK, getString(R.string.hangouts)),
+//            RadioItem(Im.PROTOCOL_ICQ, getString(R.string.icq)),
             RadioItem(Im.PROTOCOL_JABBER, getString(R.string.jabber)),
             RadioItem(Im.PROTOCOL_CUSTOM, getString(com.goodwy.commons.R.string.custom))
         )

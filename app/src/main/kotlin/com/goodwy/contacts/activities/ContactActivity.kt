@@ -4,17 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
 import android.media.RingtoneManager
 import android.net.Uri
 import android.provider.ContactsContract.CommonDataKinds.*
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.res.ResourcesCompat
 import com.bumptech.glide.Glide
@@ -31,14 +26,15 @@ import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.SimpleContactsHelper
-import com.goodwy.commons.helpers.letterBackgroundColors
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.contacts.Contact
-import com.goodwy.commons.models.contacts.ContactRelation
 import com.goodwy.contacts.R
 import com.goodwy.contacts.extensions.shareContacts
 import com.goodwy.contacts.extensions.config
+import com.goodwy.contacts.helpers.*
 import kotlin.math.abs
+import androidx.core.net.toUri
+import androidx.core.graphics.drawable.toDrawable
 
 abstract class ContactActivity : SimpleActivity() {
     protected val PICK_RINGTONE_INTENT_ID = 1500
@@ -70,7 +66,6 @@ abstract class ContactActivity : SimpleActivity() {
     abstract fun systemRingtoneSelected(uri: Uri?)
 
     fun showPhotoPlaceholder(photoView: ImageView) {
-        //val placeholder = BitmapDrawable(resources, getBigLetterPlaceholder(contact?.getNameToDisplay() ?: "A"))
         val fullName = contact?.getNameToDisplay() ?: "A"
         val placeholderImage =
             if (contact?.isABusinessContact() == true) {
@@ -82,7 +77,7 @@ abstract class ContactActivity : SimpleActivity() {
                 }
                 drawable
             } else {
-                BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(fullName))
+                SimpleContactsHelper(this).getContactLetterIcon(fullName).toDrawable(resources)
             }
         photoView.setImageDrawable(placeholderImage)
         currentContactPhotoPath = ""
@@ -117,7 +112,7 @@ abstract class ContactActivity : SimpleActivity() {
                     dataSource: DataSource,
                     isFirstResource: Boolean
                 ): Boolean {
-                    photoView.background = ColorDrawable(0)
+                    photoView.background = 0.toDrawable()
                     //bottomShadow.beVisible()
                     return false
                 }
@@ -214,6 +209,13 @@ abstract class ContactActivity : SimpleActivity() {
         } else {
             getString(
                 when (type) {
+                    PROTOCOL_TEAMS -> R.string.teams
+                    PROTOCOL_WECOM -> R.string.wecom
+                    PROTOCOL_GOOGLE_CHAT -> R.string.google_chat
+                    PROTOCOL_MATRIX -> R.string.matrix
+                    PROTOCOL_DISCORD -> R.string.discord
+                    PROTOCOL_WECHAT -> R.string.wechat
+                    PROTOCOL_LINE -> R.string.line
                     Im.PROTOCOL_AIM -> R.string.aim
                     Im.PROTOCOL_MSN -> R.string.windows_live
                     Im.PROTOCOL_YAHOO -> R.string.yahoo
@@ -232,7 +234,7 @@ abstract class ContactActivity : SimpleActivity() {
     protected fun getRingtonePickerIntent(): Intent {
         val defaultRingtoneUri = getDefaultRingtoneUri()
         val currentRingtoneUri = if (contact!!.ringtone != null && contact!!.ringtone!!.isNotEmpty()) {
-            Uri.parse(contact!!.ringtone)
+            contact!!.ringtone!!.toUri()
         } else if (contact!!.ringtone?.isNotEmpty() == false) {
             null
         } else {

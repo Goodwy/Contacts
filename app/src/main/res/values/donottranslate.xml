@@ -14,8 +14,19 @@
     <string name="jabber" translatable="false">Jabber</string>
     <string name="telegram" translatable="false">Telegram</string>
     <string name="viber" translatable="false">Viber</string>
+    <string name="google_chat" translatable="false">Google Chat</string>
+    <string name="teams" translatable="false">Teams</string>
+    <string name="matrix" translatable="false">Matrix</string>
+    <string name="discord" translatable="false">Discord</string>
+    <string name="wechat" translatable="false">WeChat</string>
+    <string name="line" translatable="false">Line</string>
+    <string name="wecom" translatable="false">WeCom</string>
 
     <!-- Release notes -->
+    <string name="release_612">
+        Removed irrelevant messengers, added relevant ones\n
+        Improved performance, bug fixes
+    </string>
     <string name="release_611">
         Improved performance, bug fixes
     </string>

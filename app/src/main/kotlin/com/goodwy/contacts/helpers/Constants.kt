@@ -97,3 +97,12 @@ const val SWIPE_ACTION_MESSAGE = 6
 const val SWIPE_ACTION_EDIT = 7
 const val SWIPE_VIBRATION = "swipe_vibration"
 const val SWIPE_RIPPLE = "swipe_ripple"
+
+// IMs
+const val PROTOCOL_TEAMS = 103
+const val PROTOCOL_WECOM = 104
+const val PROTOCOL_GOOGLE_CHAT = 105
+const val PROTOCOL_MATRIX = 111
+const val PROTOCOL_DISCORD = 112
+const val PROTOCOL_WECHAT = 113
+const val PROTOCOL_LINE = 114

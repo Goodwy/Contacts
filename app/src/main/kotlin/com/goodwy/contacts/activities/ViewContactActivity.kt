@@ -39,6 +39,8 @@ import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.*
 import java.util.Locale
 import kotlin.math.abs
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.net.toUri
 
 class ViewContactActivity : ContactActivity() {
     private var isViewIntent = false
@@ -140,7 +142,7 @@ class ViewContactActivity : ContactActivity() {
 
         if (baseConfig.backgroundColor == white) {
             val colorToWhite = 0xFFf2f2f6.toInt()
-            supportActionBar?.setBackgroundDrawable(ColorDrawable(colorToWhite))
+            supportActionBar?.setBackgroundDrawable(colorToWhite.toDrawable())
             window.decorView.setBackgroundColor(colorToWhite)
             window.statusBarColor = colorToWhite
             //window.navigationBarColor = colorToWhite
@@ -310,7 +312,7 @@ class ViewContactActivity : ContactActivity() {
                     }
                     drawable
                 } else {
-                    BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon(fullName))
+                    SimpleContactsHelper(this).getContactLetterIcon(fullName).toDrawable(resources)
                 }
             binding.topDetails.contactPhoto.setImageDrawable(placeholderImage)
         } else {
@@ -1271,7 +1273,7 @@ class ViewContactActivity : ContactActivity() {
                 if (ringtone == SILENT) {
                     binding.contactRingtone.text = getString(com.goodwy.commons.R.string.no_sound)
                 } else {
-                    systemRingtoneSelected(Uri.parse(ringtone))
+                    systemRingtoneSelected(ringtone.toUri())
                 }
             } else {
                 binding.contactRingtoneHolder.beGone()

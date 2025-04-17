@@ -54,6 +54,7 @@ import me.thanel.swipeactionview.SwipeDirection
 import me.thanel.swipeactionview.SwipeGestureListener
 import java.util.Collections
 import kotlin.math.abs
+import androidx.core.graphics.drawable.toDrawable
 
 class ContactsAdapter(
     activity: SimpleActivity,
@@ -400,7 +401,7 @@ class ContactsAdapter(
                 }
                 drawablePlaceholder
             } else {
-                BitmapDrawable(resources, SimpleContactsHelper(activity).getContactLetterIcon(fullName))
+                SimpleContactsHelper(activity).getContactLetterIcon(fullName).toDrawable(resources)
             }
         if (contact.photoUri.isEmpty() && contact.photo == null) {
             drawable.setDrawableByLayerId(R.id.shortcut_contact_image, placeholderImage)
@@ -495,7 +496,7 @@ class ContactsAdapter(
             findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).beVisibleIf(showContactThumbnails)
 
             if (showContactThumbnails) {
-                val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(context).getContactLetterIcon(fullName))
+                val placeholderImage = SimpleContactsHelper(context).getContactLetterIcon(fullName).toDrawable(resources)
                 if (contact.photoUri.isEmpty() && contact.photo == null) {
                     if (contact.isABusinessContact()) {
                         val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, activity.theme)

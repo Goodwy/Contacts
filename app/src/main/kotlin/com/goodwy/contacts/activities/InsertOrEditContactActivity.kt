@@ -25,6 +25,7 @@ import com.goodwy.contacts.helpers.ADD_NEW_CONTACT_NUMBER
 import com.goodwy.contacts.helpers.KEY_EMAIL
 import com.goodwy.contacts.helpers.KEY_NAME
 import com.goodwy.contacts.interfaces.RefreshContactsListener
+import androidx.core.graphics.drawable.toDrawable
 
 class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
     companion object {
@@ -159,7 +160,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
 //                getProperTextColor()
 //            )
 //        )
-        val placeholderImage = BitmapDrawable(resources, SimpleContactsHelper(this).getContactLetterIcon("+"))
+        val placeholderImage = SimpleContactsHelper(this).getContactLetterIcon("+").toDrawable(resources)
         binding.newContactTmb.setImageDrawable(placeholderImage)
         binding.newContactName.setTextColor(getProperTextColor())
         binding.newContactHolder.setOnClickListener {

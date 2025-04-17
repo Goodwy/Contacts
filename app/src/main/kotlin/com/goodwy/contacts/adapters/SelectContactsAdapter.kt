@@ -27,6 +27,7 @@ import com.goodwy.contacts.databinding.ItemAddFavoriteWithNumberBinding
 import com.goodwy.contacts.databinding.ItemAddFavoriteWithoutNumberBinding
 import com.goodwy.contacts.extensions.config
 import kotlin.math.abs
+import androidx.core.graphics.drawable.toDrawable
 
 class SelectContactsAdapter(
     val activity: SimpleActivity, var contacts: ArrayList<Contact>, private val selectedContacts: ArrayList<Contact>, private val allowPickMultiple: Boolean,
@@ -154,7 +155,7 @@ class SelectContactsAdapter(
                             }
                             drawablePlaceholder
                         } else {
-                            BitmapDrawable(root.resources, SimpleContactsHelper(root.context).getContactLetterIcon(avatarName))
+                            SimpleContactsHelper(root.context).getContactLetterIcon(avatarName).toDrawable(root.resources)
                         }
 
                     if (contact.photoUri.isEmpty() && contact.photo == null) {

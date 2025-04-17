@@ -17,6 +17,7 @@ import com.goodwy.commons.helpers.SimpleContactsHelper
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.databinding.ItemAutocompleteNameNumberBinding
+import androidx.core.graphics.drawable.toDrawable
 
 class AutoCompleteTextViewAdapter(
     val activity: SimpleActivity,
@@ -33,7 +34,7 @@ class AutoCompleteTextViewAdapter(
             listItem = ItemAutocompleteNameNumberBinding.inflate(activity.layoutInflater, parent, false).root
         }
 
-        val placeholder = BitmapDrawable(activity.resources, SimpleContactsHelper(context).getContactLetterIcon(nameToUse))
+        val placeholder = SimpleContactsHelper(context).getContactLetterIcon(nameToUse).toDrawable(activity.resources)
         ItemAutocompleteNameNumberBinding.bind(listItem).apply {
             root.setBackgroundColor(context.getProperBackgroundColor())
             itemAutocompleteName.setTextColor(context.getProperTextColor())

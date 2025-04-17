@@ -23,6 +23,7 @@ import ezvcard.parameter.RelatedType
 import ezvcard.property.*
 import java.io.OutputStream
 import java.util.Calendar
+import androidx.core.net.toUri
 
 class VcfExporter {
     enum class ExportResult {
@@ -234,7 +235,7 @@ class VcfExporter {
 
 
                 try {
-                    val inputStream = context.contentResolver.openInputStream(Uri.parse(contact.photoUri))
+                    val inputStream = context.contentResolver.openInputStream(contact.photoUri.toUri())
 
                     if (inputStream != null) {
                         val photoByteArray = inputStream.readBytes()
