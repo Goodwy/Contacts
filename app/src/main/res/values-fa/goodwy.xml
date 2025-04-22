@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">کشور</string>
+    <string name="ringtone_for_private_contact">آهنگ زنگ برای تماس خصوصی در دسترس نیست</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">خیابان</string>
     <string name="neighborhood">شماره آپارتمان یا سوئیت</string>

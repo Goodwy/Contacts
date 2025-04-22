@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">രാജ്യം</string>
+    <string name="ringtone_for_private_contact">സ്വകാര്യ കോൺടാക്റ്റിന് റിംഗ്ടോൺ ലഭ്യമല്ല.</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">തെരുവ്</string>
     <string name="neighborhood">അപ്പാർട്ട്മെന്റ് അല്ലെങ്കിൽ സ്യൂട്ട് നമ്പർ</string>

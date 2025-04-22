@@ -25,7 +25,9 @@ class MyContactsContentProvider : ContentProvider() {
                     MyContactsContentProvider.COL_PHOTO_URI,
                     MyContactsContentProvider.COL_PHONE_NUMBERS,
                     MyContactsContentProvider.COL_BIRTHDAYS,
-                    MyContactsContentProvider.COL_ANNIVERSARIES
+                    MyContactsContentProvider.COL_ANNIVERSARIES,
+                    MyContactsContentProvider.COL_COMPANY,
+                    MyContactsContentProvider.COL_JOB_POSITION
                 )
             )
 
@@ -45,6 +47,8 @@ class MyContactsContentProvider : ContentProvider() {
                     .add(MyContactsContentProvider.COL_PHONE_NUMBERS, phoneNumbers)
                     .add(MyContactsContentProvider.COL_BIRTHDAYS, birthdays)
                     .add(MyContactsContentProvider.COL_ANNIVERSARIES, anniversaries)
+                    .add(MyContactsContentProvider.COL_COMPANY, it.company)
+                    .add(MyContactsContentProvider.COL_JOB_POSITION, it.jobPosition)
             }
 
             return matrixCursor

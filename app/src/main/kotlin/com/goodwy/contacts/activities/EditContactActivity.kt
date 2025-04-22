@@ -6,7 +6,6 @@ import android.content.ClipData
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.drawable.ColorDrawable
 import android.media.AudioManager
 import android.media.RingtoneManager
 import android.net.Uri
@@ -55,6 +54,8 @@ import java.util.LinkedList
 import java.util.Locale
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
+import com.mikhaellopez.rxanimation.RxAnimation
+import com.mikhaellopez.rxanimation.shake
 
 class EditContactActivity : ContactActivity() {
     companion object {
@@ -837,18 +838,26 @@ class EditContactActivity : ContactActivity() {
 
     private fun setupRingtone() {
         binding.contactRingtone.setOnClickListener {
-            hideKeyboard()
-            val ringtonePickerIntent = getRingtonePickerIntent()
-            try {
-                startActivityForResult(ringtonePickerIntent, INTENT_SELECT_RINGTONE)
-            } catch (e: Exception) {
-                val currentRingtone = contact!!.ringtone ?: getDefaultAlarmSound(RingtoneManager.TYPE_RINGTONE).uri
-                SelectAlarmSoundDialog(this, currentRingtone, AudioManager.STREAM_RING, PICK_RINGTONE_INTENT_ID, RingtoneManager.TYPE_RINGTONE, true,
-                    onAlarmPicked = {
-                        contact!!.ringtone = it?.uri
-                        binding.contactRingtone.text = it?.title
-                    }, onAlarmSoundDeleted = {}
-                )
+            if (contact!!.source == SMT_PRIVATE) {
+                RxAnimation.from(binding.contactSourceHolder)
+                    .shake(shakeTranslation = 2f)
+                    .subscribe()
+
+                toast(R.string.ringtone_for_private_contact)
+            } else {
+                hideKeyboard()
+                val ringtonePickerIntent = getRingtonePickerIntent()
+                try {
+                    startActivityForResult(ringtonePickerIntent, INTENT_SELECT_RINGTONE)
+                } catch (e: Exception) {
+                    val currentRingtone = contact!!.ringtone ?: getDefaultAlarmSound(RingtoneManager.TYPE_RINGTONE).uri
+                    SelectAlarmSoundDialog(this, currentRingtone, AudioManager.STREAM_RING, PICK_RINGTONE_INTENT_ID, RingtoneManager.TYPE_RINGTONE, true,
+                        onAlarmPicked = {
+                            contact!!.ringtone = it?.uri
+                            binding.contactRingtone.text = it?.title
+                        }, onAlarmSoundDeleted = {}
+                    )
+                }
             }
         }
 
@@ -1048,8 +1057,8 @@ class EditContactActivity : ContactActivity() {
         originalContactSource = contact!!.source
         getPublicContactSource(contact!!.source) {
             binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
-            setupContactSourceImage(it)
         }
+        setupContactSourceImage(contact!!.source)
         if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) {
             binding.contactSourceHolder.setBackgroundColor(white)
         }
@@ -1061,8 +1070,8 @@ class EditContactActivity : ContactActivity() {
         contact = getEmptyContact()
         getPublicContactSource(contact!!.source) {
             binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
-            setupContactSourceImage(it)
         }
+        setupContactSourceImage(contact!!.source)
 
         // if the last used contact source is not available anymore, use the first available one. Could happen at ejecting SIM card
         ContactsHelper(this).getSaveableContactSources { sources ->
@@ -1072,8 +1081,8 @@ class EditContactActivity : ContactActivity() {
                 contact?.source = originalContactSource
                 getPublicContactSource(contact!!.source) {
                     binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
-                    setupContactSourceImage(it)
                 }
+                setupContactSourceImage(contact?.source ?: "")
             }
         }
         binding.contactSource.setTextColor(getProperPrimaryColor())
@@ -1084,6 +1093,11 @@ class EditContactActivity : ContactActivity() {
 
         if (source.contains("gmail.com", true) || source.contains("googlemail.com", true)) {
             binding.contactSourceImage.setImageDrawable(getPackageDrawable("google"))
+            binding.contactSourceImage.beVisible()
+        }
+
+        if (source == "") {
+            binding.contactSourceImage.setImageDrawable(getPackageDrawable(source))
             binding.contactSourceImage.beVisible()
         }
 
@@ -1568,8 +1582,8 @@ class EditContactActivity : ContactActivity() {
             contact!!.source = if (it == getString(R.string.phone_storage_hidden)) SMT_PRIVATE else it
             getPublicContactSource(it) {
                 binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
-                setupContactSourceImage(it)
             }
+            setupContactSourceImage(contact!!.source)
         }
     }
 

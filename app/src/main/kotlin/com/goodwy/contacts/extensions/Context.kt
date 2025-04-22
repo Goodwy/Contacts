@@ -30,6 +30,7 @@ fun Context.getCachePhotoUri(file: File = getCachePhoto()) = FileProvider.getUri
 fun Context.getPackageDrawable(packageName: String): Drawable {
     return resources.getDrawable(
         when (packageName) {
+            "" -> R.drawable.ic_android
             "google" -> R.drawable.ic_google
             SMT_PRIVATE -> R.drawable.ic_launcher
             TELEGRAM_PACKAGE -> R.drawable.ic_telegram_vector

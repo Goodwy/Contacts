@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Χώρα</string>
+    <string name="ringtone_for_private_contact">Ο ήχος κλήσης δεν είναι διαθέσιμος για ιδιωτική επαφή</string>
     <string name="show_private_contacts_g">Εμφάνιση ιδιωτικών επαφών σε Right Dialer και Right Messages</string>
     <string name="street">Οδός</string>
     <string name="neighborhood">Αριθμός διαμερίσματος ή σουίτας</string>

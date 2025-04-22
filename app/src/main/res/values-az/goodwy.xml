@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">ölkə</string>
+    <string name="ringtone_for_private_contact">Zəng melodiyası şəxsi əlaqə üçün mövcud deyil</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">Küçə</string>
     <string name="neighborhood">Mənzil və ya suite nömrəsi</string>

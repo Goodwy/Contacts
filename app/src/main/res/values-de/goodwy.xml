@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Land</string>
+    <string name="ringtone_for_private_contact">Klingelton ist für den privaten Kontakt nicht verfügbar</string>
     <string name="show_private_contacts_g">Zeige private Kontakte in Right Dialer und Right Messages</string>
     <string name="street">Straße</string>
     <string name="neighborhood">Nummer des Apartments oder der Suite</string>

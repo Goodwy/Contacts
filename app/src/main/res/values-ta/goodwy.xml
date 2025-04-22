@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">நாடு</string>
+    <string name="ringtone_for_private_contact">தனிப்பட்ட தொடர்புக்கு ரிங்டோன் கிடைக்கவில்லை.</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">தெரு</string>
     <string name="neighborhood">அபார்ட்மெண்ட் அல்லது அறை எண்</string>

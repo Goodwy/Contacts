@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Quốc gia</string>
+    <string name="ringtone_for_private_contact">Nhạc chuông không có sẵn để liên hệ riêng tư</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">Lộ</string>
     <string name="neighborhood">Số căn hộ hoặc dãy phòng</string>

@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Maa</string>
+    <string name="ringtone_for_private_contact">Soittoääni ei ole käytettävissä yksityiseen yhteydenottoon</string>
     <string name="show_private_contacts_g">Näytä yksityiset yhteystiedot sovelluksissa Right Dialer ja Right Messages</string>
     <string name="street">Katu</string>
     <string name="neighborhood">Huoneiston tai sviitin numero</string>

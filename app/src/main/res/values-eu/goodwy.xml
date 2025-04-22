@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Herrialdea</string>
+    <string name="ringtone_for_private_contact">Dei-tonua ez dago erabilgarri kontaktu pribatuetarako</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">Kalea</string>
     <string name="neighborhood">Apartamentu edo suite zenbakia</string>

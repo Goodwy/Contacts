@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Negara</string>
+    <string name="ringtone_for_private_contact">Nada dering tidak tersedia untuk kontak pribadi</string>
     <string name="show_private_contacts_g">Tampilkan kontak privat ke Right Dialer dan Right Messages</string>
     <string name="street">Jalan</string>
     <string name="neighborhood">Nomor apartemen atau suite</string>

@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Paese</string>
+    <string name="ringtone_for_private_contact">La suoneria non è disponibile per i contatti privati</string>
     <string name="show_private_contacts_g">Mostra i contatti privati su Right Dialer e Right Messages</string>
     <string name="street">Via</string>
     <string name="neighborhood">Numero dell\'appartamento o della suite</string>

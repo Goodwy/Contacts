@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Land</string>
+    <string name="ringtone_for_private_contact">Ringetone er ikke tilgjengelig for privat kontakt</string>
     <string name="show_private_contacts_g">Vis private kontakter til Right Dialer og Right Messages</string>
     <string name="street">Gate</string>
     <string name="neighborhood">Leilighets- eller suitenummer</string>

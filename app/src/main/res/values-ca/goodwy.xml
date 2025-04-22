@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">País</string>
+    <string name="ringtone_for_private_contact">El to de trucada no està disponible per al contacte privat</string>
     <string name="show_private_contacts_g">Mostra els contactes privats al Right Dialer i Right Messages</string>
     <string name="street">Carrer</string>
     <string name="neighborhood">Número d\'apartament o suite</string>

@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Țară</string>
+    <string name="ringtone_for_private_contact">Tonul de apel nu este disponibil pentru contactul privat</string>
     <string name="show_private_contacts_g">Afișați contactele private în Right Dialer și Right Messages</string>
     <string name="street">Stradă</string>
     <string name="neighborhood">Numărul apartamentului sau apartamentului</string>

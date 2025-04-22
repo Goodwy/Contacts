@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Ország</string>
+    <string name="ringtone_for_private_contact">A csengőhang nem érhető el privát kapcsolattartáshoz</string>
     <string name="show_private_contacts_g">Privát névjegyek megjelenítése a Right Dialer és a Right Messages</string>
     <string name="street">Utca</string>
     <string name="neighborhood">Apartman vagy lakosztály száma</string>

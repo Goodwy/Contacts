@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">بلد</string>
+    <string name="ringtone_for_private_contact">نغمة الرنين غير متوفرة للاتصال الخاص</string>
     <string name="show_private_contacts_g">إظهار جهات الاتصال الخاصة إلى Right Dialer و Right Messages</string>
     <string name="street">شارع</string>
     <string name="neighborhood">رقم الشقة أو الجناح</string>

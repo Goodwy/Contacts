@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">भूक्षेत्र</string>
+    <string name="ringtone_for_private_contact">निजी संपर्क के लिए रिंगटोन उपलब्ध नहीं है</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">गली</string>
     <string name="neighborhood">अपार्टमेंट या सुइट नंबर</string>

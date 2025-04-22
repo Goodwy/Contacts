@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">ملک</string>
+    <string name="ringtone_for_private_contact">نجی رابطے لئی رنگ ٹون دستیاب نئیں</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">گلی</string>
     <string name="neighborhood">اپارٹمنٹ یا سوٹ نمبر</string>

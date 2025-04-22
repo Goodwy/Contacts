@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Ülke</string>
+    <string name="ringtone_for_private_contact">Zil sesi özel kişi için kullanılamaz</string>
     <string name="show_private_contacts_g">Özel kişileri Right Dialer ve Right Messages gösterme</string>
     <string name="street">Sokak</string>
     <string name="neighborhood">Daire veya süit numarası</string>

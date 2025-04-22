@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Kraštas</string>
+    <string name="ringtone_for_private_contact">Skambėjimo tonas negalimas privačiam kontaktui</string>
     <string name="show_private_contacts_g">Rodyti privačius kontaktus \"Right Dialer\" ir \"Right Messages\"</string>
     <string name="street">Gatvė</string>
     <string name="neighborhood">Buto arba liukso numeris</string>

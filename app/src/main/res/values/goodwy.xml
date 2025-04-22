@@ -11,6 +11,7 @@
     <string name="pobox">Post office box</string>
     <string name="region">State</string>
     <string name="country">Country</string>
+    <string name="ringtone_for_private_contact">Ringtone is not available for private contact</string>
 
     <!-- Settings -->
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>

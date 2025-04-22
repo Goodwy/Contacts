@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">國家</string>
+    <string name="ringtone_for_private_contact">鈴聲不可用於私人聯繫人</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">街</string>
     <string name="neighborhood">公寓或套房編號</string>

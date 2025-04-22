@@ -13,6 +13,7 @@
     <string name="country">Краіна</string>
 
     <!-- Settings -->
+    <string name="ringtone_for_private_contact">Рынгтон недаступны для прыватнага кантакту</string>
     <string name="show_private_contacts_g">Паказаць асабістыя кантакты ў Right Dialer і Right Messages</string>
 
 </resources>

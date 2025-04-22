@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Gwlad</string>
+    <string name="ringtone_for_private_contact">Nid yw\'r tôn ffôn ar gael ar gyfer cyswllt preifat</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">Stryd</string>
     <string name="neighborhood">Nifer y fflatiau neu gyfres</string>

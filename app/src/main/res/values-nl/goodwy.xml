@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Land</string>
+    <string name="ringtone_for_private_contact">Beltoon is niet beschikbaar voor privécontact</string>
     <string name="show_private_contacts_g">Privécontacten tonen aan Right Dialer en Right Messages</string>
     <string name="street">Straat</string>
     <string name="neighborhood">Appartement of suite nummer</string>

@@ -23,6 +23,11 @@
     <string name="wecom" translatable="false">WeCom</string>
 
     <!-- Release notes -->
+    <string name="release_620">
+        Added additional fields for simple private contacts\n
+        It is now impossible to set a ringtone for private contacts, because the system does not have access to the private contact and will not be able to use the selected ringtone.\n
+        Improved performance, bug fixes
+    </string>
     <string name="release_612">
         Removed irrelevant messengers, added relevant ones\n
         Improved performance, bug fixes

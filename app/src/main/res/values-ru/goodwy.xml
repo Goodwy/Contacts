@@ -11,6 +11,7 @@
     <string name="pobox">Почтовый ящик</string>
     <string name="region">Регион</string>
     <string name="country">Страна</string>
+    <string name="ringtone_for_private_contact">Мелодия звонка не доступна для приватного контакта</string>
 
     <!-- Settings -->
     <string name="show_private_contacts_g">Показывать личные контакты в Right Dialer и Right Messages</string>

@@ -13,6 +13,7 @@
     <string name="country">Країна</string>
 
     <!-- Settings -->
+    <string name="ringtone_for_private_contact">Мелодія дзвінка недоступна для приватного контакту</string>
     <string name="show_private_contacts_g">Показувати особисті контакти в Right Dialer і Right Messages</string>
 
 </resources>

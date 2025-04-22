@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Riik</string>
+    <string name="ringtone_for_private_contact">Helin pole privaatseks kontaktiks saadaval</string>
     <string name="show_private_contacts_g">Näita privaatseks märgitud kontakte Right Dialer ja Right Messages</string>
     <string name="street">Tänav</string>
     <string name="neighborhood">Korteri või sviidi number</string>

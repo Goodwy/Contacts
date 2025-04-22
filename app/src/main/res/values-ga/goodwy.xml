@@ -13,5 +13,6 @@
     <string name="country">Country</string>
 
     <!-- Settings -->
+    <string name="ringtone_for_private_contact">Níl an ringtone ar fáil le haghaidh teagmhála príobháideach</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
 </resources>

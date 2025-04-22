@@ -1183,6 +1183,11 @@ class ViewContactActivity : ContactActivity() {
                         contactSourceImage.beVisible()
                     }
 
+                    if (key.source == "") {
+                        contactSourceImage.setImageDrawable(getPackageDrawable(key.source))
+                        contactSourceImage.beVisible()
+                    }
+
                     if (key.source == SMT_PRIVATE) {
                         contactSourceImage.setImageDrawable(getPackageDrawable(SMT_PRIVATE))
                         contactSourceImage.beVisible()
@@ -1260,7 +1265,7 @@ class ViewContactActivity : ContactActivity() {
 
     private fun setupRingtone() {
         if (showFields and SHOW_RINGTONE_FIELD != 0) {
-            binding.contactRingtoneHolder.beVisible()
+            binding.contactRingtoneHolder.beVisibleIf(contact!!.source != SMT_PRIVATE)
 
             binding.contactRingtoneHolder.background.setTint(buttonBg)
             binding.contactRingtoneChevron.setColorFilter(getProperTextColor())

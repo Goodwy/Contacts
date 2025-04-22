@@ -868,6 +868,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             add(Release(610, R.string.release_610))
             add(Release(611, R.string.release_611))
             add(Release(612, R.string.release_612))
+            add(Release(620, R.string.release_620))
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }

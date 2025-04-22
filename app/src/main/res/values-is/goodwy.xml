@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Land</string>
+    <string name="ringtone_for_private_contact">Hringitónn er ekki í boði fyrir einkatengiliði</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">Stræti</string>
     <string name="neighborhood">Íbúð eða svítunúmer</string>

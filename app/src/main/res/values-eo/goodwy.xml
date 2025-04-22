@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Lando</string>
+    <string name="ringtone_for_private_contact">Ringtono ne disponeblas por privata kontakto</string>
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
     <string name="street">Strato</string>
     <string name="neighborhood">Numero de apartamento aŭ suite</string>

@@ -7,6 +7,7 @@
 
     <!-- Settings -->
     <string name="country">Држава</string>
+    <string name="ringtone_for_private_contact">Мелодија звона није доступна за приватни контакт</string>
     <string name="show_private_contacts_g">Прикажи приватне контакте у апликацијама Right Dialer и Right Messages</string>
     <string name="street">Улица</string>
     <string name="neighborhood">Број стана или апартмана</string>
