@@ -1079,10 +1079,12 @@ class EditContactActivity : ContactActivity() {
             if (!sourceNames.contains(originalContactSource)) {
                 originalContactSource = sourceNames.first()
                 contact?.source = originalContactSource
-                getPublicContactSource(contact!!.source) {
-                    binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
+                runOnUiThread {
+                    getPublicContactSource(contact!!.source) {
+                        binding.contactSource.text = if (it == "") getString(R.string.phone_storage) else it
+                    }
+                    setupContactSourceImage(contact?.source ?: "")
                 }
-                setupContactSourceImage(contact?.source ?: "")
             }
         }
         binding.contactSource.setTextColor(getProperPrimaryColor())

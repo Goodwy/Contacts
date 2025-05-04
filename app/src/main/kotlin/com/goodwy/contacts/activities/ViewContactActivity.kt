@@ -13,6 +13,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.text.BidiFormatter
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
@@ -447,6 +448,11 @@ class ViewContactActivity : ContactActivity() {
         collapsingToolbar.copyOnLongClick(displayName)*/
     }
 
+    //This converts the string to RTL and left-aligns it if there is at least one RTL-language character in the string, and returns to LTR otherwise.
+    fun formatterUnicodeWrap(text: String): String {
+        return BidiFormatter.getInstance().unicodeWrap(text)
+    }
+
     private fun setupPhoneNumbers() {
         var phoneNumbers = contact!!.phoneNumbers.toMutableSet() as LinkedHashSet<PhoneNumber>
 
@@ -497,9 +503,9 @@ class ViewContactActivity : ContactActivity() {
 
                     binding.contactNumbersHolder.addView(root)
                     if (config.formatPhoneNumbers) {
-                        contactNumber.text = phoneNumber.value.formatPhoneNumber()
+                        contactNumber.text = formatterUnicodeWrap(phoneNumber.value.formatPhoneNumber())
                     } else {
-                        contactNumber.text = phoneNumber.value
+                        contactNumber.text = formatterUnicodeWrap(phoneNumber.value)
                     }
                     contactNumberType.text = getPhoneNumberTypeText(phoneNumber.type, phoneNumber.label)
                     root.copyOnLongClick(phoneNumber.value)
