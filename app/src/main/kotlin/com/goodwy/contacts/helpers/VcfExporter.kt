@@ -1,17 +1,17 @@
 package com.goodwy.contacts.helpers
 
 import android.content.Context
-import android.net.Uri
-import android.os.Build
 import android.provider.ContactsContract.CommonDataKinds.Email
 import android.provider.ContactsContract.CommonDataKinds.Event
 import android.provider.ContactsContract.CommonDataKinds.Im
 import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
-import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
+import com.goodwy.commons.R
 import com.goodwy.commons.extensions.getDateTimeFromDateString
 import com.goodwy.commons.extensions.showErrorToast
 import com.goodwy.commons.extensions.toast
+import com.goodwy.commons.helpers.CUSTOM_EVENT_TYPE_DEATH
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.models.contacts.ContactRelation
 import com.goodwy.contacts.helpers.VcfExporter.ExportResult.EXPORT_FAIL
@@ -21,9 +21,9 @@ import ezvcard.VCardVersion
 import ezvcard.parameter.ImageType
 import ezvcard.parameter.RelatedType
 import ezvcard.property.*
+import ezvcard.util.PartialDate
 import java.io.OutputStream
-import java.util.Calendar
-import androidx.core.net.toUri
+import java.time.LocalDate
 
 class VcfExporter {
     enum class ExportResult {
@@ -33,14 +33,13 @@ class VcfExporter {
     private var contactsExported = 0
     private var contactsFailed = 0
 
-    @RequiresApi(Build.VERSION_CODES.P)
     fun exportContacts(
         context: Context,
         outputStream: OutputStream?,
         contacts: ArrayList<Contact>,
         showExportingToast: Boolean,
         version: VCardVersion = VCardVersion.V4_0,
-        callback: (result: ExportResult) -> Unit
+        callback: (result: ExportResult) -> Unit,
     ) {
         try {
             if (outputStream == null) {
@@ -56,7 +55,15 @@ class VcfExporter {
             for (contact in contacts) {
                 val card = VCard()
 
-                val formattedName = arrayOf(contact.prefix, contact.firstName, contact.middleName, contact.surname, contact.suffix)
+                card.addProperty(RawProperty("X-PRODID", getAppInfo(context)))
+
+                val formattedName = arrayOf(
+                    contact.prefix,
+                    contact.firstName,
+                    contact.middleName,
+                    contact.surname,
+                    contact.suffix
+                )
                     .filter { it.isNotEmpty() }
                     .joinToString(separator = " ")
                 card.formattedName = FormattedName(formattedName)
@@ -90,22 +97,59 @@ class VcfExporter {
                 }
 
                 contact.events.forEach { event ->
-                    if (event.type == Event.TYPE_ANNIVERSARY || event.type == Event.TYPE_BIRTHDAY) {
-                        val dateTime = event.value.getDateTimeFromDateString(false)
-                        Calendar.getInstance().apply {
-                            clear()
+                    val dateTime = event.value.getDateTimeFromDateString(false)
+                    when (event.type) {
+                        Event.TYPE_BIRTHDAY -> {
                             if (event.value.startsWith("--")) {
-                                set(Calendar.YEAR, 1900)
+                                val partial = PartialDate.builder()
+                                    .month(dateTime.monthOfYear)
+                                    .date(dateTime.dayOfMonth)
+                                    .build()
+                                card.birthdays.add(Birthday(partial))
                             } else {
-                                set(Calendar.YEAR, dateTime.year)
-
+                                val date = LocalDate.of(dateTime.year, dateTime.monthOfYear, dateTime.dayOfMonth)
+                                card.birthdays.add(Birthday(date))
                             }
-                            set(Calendar.MONTH, dateTime.monthOfYear - 1)
-                            set(Calendar.DAY_OF_MONTH, dateTime.dayOfMonth)
-                            if (event.type == Event.TYPE_BIRTHDAY) {
-                                card.birthdays.add(Birthday(time))
+                        }
+
+                        Event.TYPE_ANNIVERSARY -> {
+                            if (event.value.startsWith("--")) {
+                                val partial = PartialDate.builder()
+                                    .month(dateTime.monthOfYear)
+                                    .date(dateTime.dayOfMonth)
+                                    .build()
+                                card.anniversaries.add(Anniversary(partial))
                             } else {
-                                card.anniversaries.add(Anniversary(time))
+                                val date = LocalDate.of(dateTime.year, dateTime.monthOfYear, dateTime.dayOfMonth)
+                                card.anniversaries.add(Anniversary(date))
+                            }
+                        }
+
+                        else -> {
+                            if (event.label == context.getString(com.goodwy.strings.R.string.death)
+                                || event.type == CUSTOM_EVENT_TYPE_DEATH
+                            ) {
+                                if (event.value.startsWith("--")) {
+                                    val partial = PartialDate.builder()
+                                        .month(dateTime.monthOfYear)
+                                        .date(dateTime.dayOfMonth)
+                                        .build()
+                                    card.deathdates.add(Deathdate(partial))
+                                } else {
+                                    val date = LocalDate.of(dateTime.year, dateTime.monthOfYear, dateTime.dayOfMonth)
+                                    card.deathdates.add(Deathdate(date))
+                                }
+                            } else {
+                                val eventLabel = event.label.ifBlank { context.getString(R.string.other) }
+
+                                val dateString = if (event.value.startsWith("--")) {
+                                    "--${dateTime.monthOfYear.toString().padStart(2, '0')}-${dateTime.dayOfMonth.toString().padStart(2, '0')}"
+                                } else {
+                                    LocalDate.of(dateTime.year, dateTime.monthOfYear, dateTime.dayOfMonth).toString()
+                                }
+
+                                card.addProperty(RawProperty("X-EVENT-DATE", dateString))
+                                card.addProperty(RawProperty("X-EVENT-LABEL", eventLabel))
                             }
                         }
                     }
@@ -113,8 +157,18 @@ class VcfExporter {
 
                 contact.addresses.forEach {
                     val address = Address()
-                    if (it.country.isNotEmpty() || it.region.isNotEmpty() || it.city.isNotEmpty() || it.postcode.isNotEmpty() ||
-                        it.pobox.isNotEmpty() || it.street.isNotEmpty() || it.neighborhood.isNotEmpty()
+                    if (
+                        listOf(
+                            it.country,
+                            it.region,
+                            it.city,
+                            it.postcode,
+                            it.pobox,
+                            it.street,
+                            it.neighborhood
+                        )
+                            .map { it.isEmpty() }
+                            .fold(false) { a, b -> a || b }
                     ) {
                         address.country = it.country
                         address.region = it.region
@@ -233,9 +287,9 @@ class VcfExporter {
                     }
                 }
 
-
                 try {
-                    val inputStream = context.contentResolver.openInputStream(contact.photoUri.toUri())
+                    val inputStream =
+                        context.contentResolver.openInputStream(contact.photoUri.toUri())
 
                     if (inputStream != null) {
                         val photoByteArray = inputStream.readBytes()
@@ -302,4 +356,15 @@ class VcfExporter {
     }
 
     private fun getPreferredType(value: Int) = "$PREF=$value"
+
+    private fun getAppInfo(context: Context): String {
+        return try {
+            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            val packageName = packageInfo.packageName ?: "unknown"
+            val versionName = packageInfo.versionName ?: "unknown"
+            "//$packageName//$versionName"
+        } catch (_: Exception) {
+            "unknown"
+        }
+    }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
@@ -52,7 +53,8 @@
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:paddingStart="@dimen/normal_margin"
-            android:textAppearance="@style/DialpadLetterStyle"/>
+            android:textAppearance="@style/LetterFastscrollerStyleSmall"
+            tools:ignore="RtlSymmetry" />
 
         <com.reddit.indicatorfastscroll.FastScrollerThumbView
             android:id="@+id/letter_fastscroller_thumb"

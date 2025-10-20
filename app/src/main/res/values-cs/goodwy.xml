@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Akce Messengerů</string>
 
     <!-- Settings -->
-    <string name="country">Země</string>
     <string name="ringtone_for_private_contact">Vyzváněcí tón není k dispozici pro soukromý kontakt</string>
-    <string name="show_private_contacts_g">Zobrazit soukromé kontakty do aplikací Right Dialer a Right Messages</string>
-    <string name="street">Ulice</string>
-    <string name="neighborhood">Číslo apartmánu nebo apartmá</string>
-    <string name="city">Město</string>
-    <string name="postcode">Psč</string>
-    <string name="pobox">Poštovní schránka</string>
-    <string name="region">Oblast</string>
+    <string name="show_private_contacts_g">Zobrazit soukromé kontakty aplikacím Right Dialer a Right Messages</string>
 
 </resources>

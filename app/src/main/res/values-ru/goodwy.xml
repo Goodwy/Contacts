@@ -3,14 +3,7 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Действия в мессенджерах</string>
-    <string name="street">Улица</string>
-    <string name="neighborhood">Номер квартиры</string>
-    <string name="city">Город</string>
-    <string name="postcode">Индекс</string>
-    <string name="pobox">Почтовый ящик</string>
-    <string name="region">Регион</string>
-    <string name="country">Страна</string>
+    <string name="messengers_actions_g">Действия мессенджеров</string>
     <string name="ringtone_for_private_contact">Мелодия звонка не доступна для приватного контакта</string>
 
     <!-- Settings -->

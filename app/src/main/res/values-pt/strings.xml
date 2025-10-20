@@ -43,7 +43,7 @@
     <string name="merge_duplicate_contacts">Unir contactos duplicados</string>
     <string name="no_favorites">Ainda não adicionou contactos aos favoritos.</string>
     <string name="toggle_favorite">Alternar favorito</string>
-    <string name="search_contacts">Pesquisar contactos</string>
+    <string name="search_contacts">Pesquisar contatos</string>
     <string name="search_favorites">Pesquisar favoritos</string>
     <string name="search_groups">Pesquisar grupos</string>
     <string name="import_contacts">Importar contactos</string>
@@ -55,7 +55,7 @@
     <string name="include_contact_sources">Incluir origem dos contactos</string>
     <string name="filename_without_vcf">Nome do ficheiro (sem .vcf)</string>
     <string name="dialpad">Marcador</string>
-    <string name="add_number_to_contact">Adicionar número a um contacto</string>
+    <string name="add_number_to_contact">Adicionar número ao contato</string>
     <string name="prefix">Prefixo</string>
     <string name="suffix">Sufixo</string>
     <string name="phone_numbers">Número de telefone</string>
@@ -78,4 +78,13 @@
     <string name="faq_1_text">Sim, basta aceder a Definições -&gt; Gerir campos a mostrar. Aqui, pode escolher os campos que serão mostrados. Alguns dos campos estão ocultos e, assim, pode mostrar alguns destes.</string>
     <string name="show_private_contacts">Partilhar contactos entre Fossify Phone, Fossify SMS Messenger e Fossify Calendar</string>
     <string name="format_phone_numbers">Formatar números de telefone</string>
+    <string name="street">Rua</string>
+    <string name="city">Cidade</string>
+    <string name="neighborhood">Número de apartamento ou lote</string>
+    <string name="postcode">Código postal</string>
+    <string name="pobox">Estação de correio</string>
+    <string name="country">País</string>
+    <string name="region">Distrito</string>
+    <string name="select_account">Seleção de conta</string>
+    <string name="structured_addresses">Endereços estruturados (edição)</string>
 </resources>

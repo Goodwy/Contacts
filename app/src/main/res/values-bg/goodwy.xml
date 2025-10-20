@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Действия на Messengers</string>
 
     <!-- Settings -->
-    <string name="country">Страна</string>
     <string name="ringtone_for_private_contact">Мелодията на звънене не е налична за личен контакт</string>
-    <string name="show_private_contacts_g">Показване на поверителни контакти в Right Dialer и Right Messages</string>
-    <string name="street">Улица</string>
-    <string name="neighborhood">Номер на апартамент или апартамент</string>
-    <string name="city">Град</string>
-    <string name="postcode">Пощенски код</string>
-    <string name="pobox">Пощенска кутия</string>
-    <string name="region">Регион</string>
+    <string name="show_private_contacts_g">Показване на лични контакти на Right Dialer и Right Messages</string>
 
 </resources>

@@ -3,16 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Ziņotāju darbības</string>
 
     <!-- Settings -->
-    <string name="country">Valsts</string>
     <string name="ringtone_for_private_contact">Zvana signāls nav pieejams privātiem kontaktiem</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">Iela</string>
-    <string name="neighborhood">Dzīvokļa vai apartamenta numurs</string>
-    <string name="city">Pilsēta</string>
-    <string name="postcode">Pasta indekss</string>
-    <string name="pobox">Pasta kastīte</string>
-    <string name="region">Reģions</string>
+    <string name="show_private_contacts_g">Rādīt privātos kontaktus labajā zvanītājā un labajās ziņās</string>
 </resources>

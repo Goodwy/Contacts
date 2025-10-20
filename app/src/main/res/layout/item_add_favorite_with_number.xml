@@ -38,6 +38,7 @@
             android:paddingStart="@dimen/medium_margin"
             android:paddingEnd="@dimen/activity_margin"
             android:textSize="@dimen/bigger_text_size"
+            android:textDirection="locale"
             tools:text="John Doe" />
 
         <TextView

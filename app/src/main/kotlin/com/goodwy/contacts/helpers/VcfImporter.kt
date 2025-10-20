@@ -11,10 +11,18 @@ import com.goodwy.commons.extensions.getCachePhoto
 import com.goodwy.commons.extensions.groupsDB
 import com.goodwy.commons.extensions.normalizePhoneNumber
 import com.goodwy.commons.extensions.showErrorToast
+import com.goodwy.commons.extensions.toast
 import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.DEFAULT_MIMETYPE
 import com.goodwy.commons.models.PhoneNumber
-import com.goodwy.commons.models.contacts.*
+import com.goodwy.commons.models.contacts.Address
+import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.models.contacts.ContactRelation
+import com.goodwy.commons.models.contacts.Email
+import com.goodwy.commons.models.contacts.Event
+import com.goodwy.commons.models.contacts.Group
+import com.goodwy.commons.models.contacts.IM
+import com.goodwy.commons.models.contacts.Organization
 import com.goodwy.contacts.activities.SimpleActivity
 import com.goodwy.contacts.extensions.getCachePhotoUri
 import com.goodwy.contacts.helpers.VcfImporter.ImportResult.IMPORT_FAIL
@@ -23,11 +31,14 @@ import com.goodwy.contacts.helpers.VcfImporter.ImportResult.IMPORT_PARTIAL
 import ezvcard.Ezvcard
 import ezvcard.VCard
 import ezvcard.parameter.RelatedType
+import ezvcard.property.RawProperty
+import ezvcard.property.TextProperty
+import ezvcard.property.VCardProperty
 import ezvcard.util.PartialDate
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URLDecoder
-import java.util.Date
+import java.time.LocalDate
 import java.util.Locale
 
 class VcfImporter(val activity: SimpleActivity) {
@@ -60,15 +71,26 @@ class VcfImporter(val activity: SimpleActivity) {
                 val phoneNumbers = ArrayList<PhoneNumber>()
                 ezContact.telephoneNumbers.forEach {
                     val number = it.text
-                    val type = getPhoneNumberTypeId(it.types.firstOrNull()?.value ?: MOBILE, it.types.getOrNull(1)?.value)
+                    val type = getPhoneNumberTypeId(
+                        type = it.types.firstOrNull()?.value ?: MOBILE,
+                        subtype = it.types.getOrNull(1)?.value
+                    )
                     val label = if (type == Phone.TYPE_CUSTOM) {
                         it.types.firstOrNull()?.value ?: ""
                     } else {
                         ""
                     }
-                    val preferred = getPreferredValue(it.types.lastOrNull()?.value) == 1
 
-                    phoneNumbers.add(PhoneNumber(number, type, label, number.normalizePhoneNumber(), preferred))
+                    val preferred = getPreferredValue(it.types.lastOrNull()?.value) == 1
+                    phoneNumbers.add(
+                        PhoneNumber(
+                            value = number,
+                            type = type,
+                            label = label,
+                            normalizedNumber = number.normalizePhoneNumber(),
+                            isPrimary = preferred
+                        )
+                    )
                 }
 
                 val emails = ArrayList<Email>()
@@ -123,29 +145,95 @@ class VcfImporter(val activity: SimpleActivity) {
                     }
 
                     address = address.trim()
-
                     if (address.isNotEmpty()) {
-                        addresses.add(Address(address, type, label, country, region, city, postcode, pobox, street, neighborhood))
+                        addresses.add(
+                            Address(
+                                value = address,
+                                type = type,
+                                label = label,
+                                country = country,
+                                region = region,
+                                city = city,
+                                postcode = postcode,
+                                pobox = pobox,
+                                street = street,
+                                neighborhood = neighborhood
+                            )
+                        )
                     }
                 }
 
                 val events = ArrayList<Event>()
                 ezContact.anniversaries.forEach { anniversary ->
                     val event = if (anniversary.date != null) {
-                        Event(formatDateToDayCode(anniversary.date), CommonDataKinds.Event.TYPE_ANNIVERSARY)
+                        Event(
+                            formatDateToDayCode(LocalDate.from(anniversary.date)),
+                            CommonDataKinds.Event.TYPE_ANNIVERSARY,
+                            ""
+                        )
                     } else {
-                        Event(formatPartialDateToDayCode(anniversary.partialDate), CommonDataKinds.Event.TYPE_ANNIVERSARY)
+                        Event(
+                            formatPartialDateToDayCode(anniversary.partialDate),
+                            CommonDataKinds.Event.TYPE_ANNIVERSARY,
+                            ""
+                        )
                     }
                     events.add(event)
                 }
 
                 ezContact.birthdays.forEach { birthday ->
                     val event = if (birthday.date != null) {
-                        Event(formatDateToDayCode(birthday.date), CommonDataKinds.Event.TYPE_BIRTHDAY)
+                        Event(
+                            formatDateToDayCode(LocalDate.from(birthday.date)),
+                            CommonDataKinds.Event.TYPE_BIRTHDAY,
+                            ""
+                        )
                     } else {
-                        Event(formatPartialDateToDayCode(birthday.partialDate), CommonDataKinds.Event.TYPE_BIRTHDAY)
+                        Event(
+                            formatPartialDateToDayCode(birthday.partialDate),
+                            CommonDataKinds.Event.TYPE_BIRTHDAY,
+                            ""
+                        )
                     }
                     events.add(event)
+                }
+
+                ezContact.deathdates.forEach { deathdate ->
+                    val event = if (deathdate.date != null) {
+                        Event(
+                            formatDateToDayCode(LocalDate.from(deathdate.date)),
+                            CommonDataKinds.Event.TYPE_CUSTOM,
+                            activity.getString(com.goodwy.strings.R.string.death)
+                        )
+                    } else {
+                        Event(
+                            formatPartialDateToDayCode(deathdate.partialDate),
+                            CommonDataKinds.Event.TYPE_CUSTOM,
+                            activity.getString(com.goodwy.strings.R.string.death)
+                        )
+                    }
+                    events.add(event)
+                }
+
+                try {
+                    val dateProperties = ezContact.properties.filter {
+                        it is RawProperty && it.propertyName.equals("X-EVENT-DATE", ignoreCase = true)
+                    }.map { it as RawProperty }
+
+                    val labelProperties = ezContact.properties.filter {
+                        it is RawProperty && it.propertyName.equals("X-EVENT-LABEL", ignoreCase = true)
+                    }.map { it as RawProperty }
+
+                    val pairs = dateProperties.zip(labelProperties)
+
+                    pairs.forEach { (dateProp, labelProp) ->
+                        val label = parseAppleLabel(labelProp)
+                        if (label != "Birthday" && label != "Anniversary") {
+                            events.add(createCustomEvent(label, dateProp.value))
+                        }
+                    }
+                } catch (_: Exception) {
+                    activity.toast("Failed to import some events")
                 }
 
                 val starred = 0
@@ -169,7 +257,6 @@ class VcfImporter(val activity: SimpleActivity) {
                 }
 
                 val ringtone = null
-
                 val relations = ArrayList<ContactRelation>()
                 ezContact.relations.forEach {
                     val name = it.text
@@ -182,7 +269,10 @@ class VcfImporter(val activity: SimpleActivity) {
                 val IMs = ArrayList<IM>()
                 ezContact.impps.forEach {
                     val typeString = it.uri.scheme
-                    val value = URLDecoder.decode(it.uri.toString().substring(it.uri.scheme.length + 1), "UTF-8")
+                    val value = URLDecoder.decode(
+                        it.uri.toString().substring(it.uri.scheme.length + 1),
+                        "UTF-8"
+                    )
                     val type = when {
                         it.isAim -> Im.PROTOCOL_AIM
                         it.isYahoo -> Im.PROTOCOL_YAHOO
@@ -195,18 +285,52 @@ class VcfImporter(val activity: SimpleActivity) {
                         else -> Im.PROTOCOL_CUSTOM
                     }
 
-                    val label = if (type == Im.PROTOCOL_CUSTOM) URLDecoder.decode(typeString, "UTF-8") else ""
+                    val label = if (type == Im.PROTOCOL_CUSTOM) {
+                        URLDecoder.decode(
+                            typeString,
+                            "UTF-8"
+                        )
+                    } else {
+                        ""
+                    }
                     val IM = IM(value, type, label)
                     IMs.add(IM)
                 }
 
                 val contact = Contact(
-                    0, prefix, firstName, middleName, surname, suffix, nickname, photoUri, phoneNumbers, emails, addresses, events,
-                    targetContactSource, starred, contactId, thumbnailUri, photo, notes, groups, organization, websites, relations, IMs, DEFAULT_MIMETYPE, ringtone
+                    id = 0,
+                    prefix = prefix,
+                    firstName = firstName,
+                    middleName = middleName,
+                    surname = surname,
+                    suffix = suffix,
+                    nickname = nickname,
+                    photoUri = photoUri,
+                    phoneNumbers = phoneNumbers,
+                    emails = emails,
+                    addresses = addresses,
+                    events = events,
+                    source = targetContactSource,
+                    starred = starred,
+                    contactId = contactId,
+                    thumbnailUri = thumbnailUri,
+                    photo = photo,
+                    notes = notes,
+                    groups = groups,
+                    organization = organization,
+                    websites = websites,
+                    relations = relations,
+                    IMs = IMs,
+                    mimetype = DEFAULT_MIMETYPE,
+                    ringtone = ringtone
                 )
 
                 // if there is no N and ORG fields at the given contact, only FN, treat it as an organization
-                if (contact.getNameToDisplay().isEmpty() && contact.organization.isEmpty() && ezContact.formattedName?.value?.isNotEmpty() == true) {
+                if (
+                    contact.getNameToDisplay().isEmpty()
+                    && contact.organization.isEmpty()
+                    && ezContact.formattedName?.value?.isNotEmpty() == true)
+                {
                     contact.organization.company = ezContact.formattedName.value
                     contact.mimetype = CommonDataKinds.Organization.CONTENT_ITEM_TYPE
                 }
@@ -231,17 +355,21 @@ class VcfImporter(val activity: SimpleActivity) {
         }
     }
 
-    private fun formatDateToDayCode(date: Date): String {
-        val year = if (date.year == 0) "-" else "${1900 + date.year}"
-        val month = String.format("%02d", date.month + 1)
-        val day = String.format("%02d", date.date)
-        return "$year-$month-$day"
+    private fun formatDateToDayCode(date: LocalDate): String {
+        if (date.year == 1900) {
+            // for backward compatibility with old exports
+            return "--%02d-%02d".format(date.monthValue, date.dayOfMonth)
+        }
+
+        return "%04d-%02d-%02d".format(
+            date.year, date.monthValue, date.dayOfMonth
+        )
     }
 
     private fun formatPartialDateToDayCode(partialDate: PartialDate): String {
-        val month = String.format("%02d", partialDate.month)
-        val day = String.format("%02d", partialDate.date)
-        return "--$month-$day"
+        return "--%02d-%02d".format(
+            partialDate.month, partialDate.date
+        )
     }
 
     private fun getContactGroups(ezContact: VCard): ArrayList<Group> {
@@ -270,32 +398,33 @@ class VcfImporter(val activity: SimpleActivity) {
         return groups
     }
 
-    private fun getPhoneNumberTypeId(type: String, subtype: String?) = when (type.uppercase(Locale.getDefault())) {
-        CELL -> Phone.TYPE_MOBILE
-        HOME -> {
-            if (subtype?.uppercase(Locale.getDefault()) == FAX) {
-                Phone.TYPE_FAX_HOME
-            } else {
-                Phone.TYPE_HOME
+    private fun getPhoneNumberTypeId(type: String, subtype: String?) =
+        when (type.uppercase(Locale.getDefault())) {
+            CELL -> Phone.TYPE_MOBILE
+            HOME -> {
+                if (subtype?.uppercase(Locale.getDefault()) == FAX) {
+                    Phone.TYPE_FAX_HOME
+                } else {
+                    Phone.TYPE_HOME
+                }
             }
-        }
 
-        WORK -> {
-            if (subtype?.uppercase(Locale.getDefault()) == FAX) {
-                Phone.TYPE_FAX_WORK
-            } else {
-                Phone.TYPE_WORK
+            WORK -> {
+                if (subtype?.uppercase(Locale.getDefault()) == FAX) {
+                    Phone.TYPE_FAX_WORK
+                } else {
+                    Phone.TYPE_WORK
+                }
             }
-        }
 
-        MAIN -> Phone.TYPE_MAIN
-        WORK_FAX -> Phone.TYPE_FAX_WORK
-        HOME_FAX -> Phone.TYPE_FAX_HOME
-        FAX -> Phone.TYPE_FAX_WORK
-        PAGER -> Phone.TYPE_PAGER
-        OTHER -> Phone.TYPE_OTHER
-        else -> Phone.TYPE_CUSTOM
-    }
+            MAIN -> Phone.TYPE_MAIN
+            WORK_FAX -> Phone.TYPE_FAX_WORK
+            HOME_FAX -> Phone.TYPE_FAX_HOME
+            FAX -> Phone.TYPE_FAX_WORK
+            PAGER -> Phone.TYPE_PAGER
+            OTHER -> Phone.TYPE_OTHER
+            else -> Phone.TYPE_CUSTOM
+        }
 
     private fun getEmailTypeId(type: String) = when (type.uppercase(Locale.getDefault())) {
         HOME -> CommonDataKinds.Email.TYPE_HOME
@@ -336,7 +465,6 @@ class VcfImporter(val activity: SimpleActivity) {
                 RelatedType.SIBLING -> ContactRelation.TYPE_SIBLING
                 RelatedType.SPOUSE -> ContactRelation.TYPE_SPOUSE
                 RelatedType.SWEETHEART -> ContactRelation.TYPE_SWEETHEART
-                RelatedType.PARENT -> ContactRelation.TYPE_PARENT
                 else -> ContactRelation.TYPE_CONTACT
             }
         }
@@ -368,5 +496,31 @@ class VcfImporter(val activity: SimpleActivity) {
         }
 
         return -1
+    }
+
+    private fun parseAppleLabel(property: VCardProperty): String {
+        val labelValue = when (property) {
+            is RawProperty -> property.value
+            is TextProperty -> property.value
+            else -> property.toString()
+        }
+
+        // Removing the Apple wrapper: _$!<Label>!$_
+        return labelValue.removePrefix("_$!<").removeSuffix(">!\$_")
+    }
+
+    private fun createCustomEvent(label: String, dateValue: String): Event {
+        // Convert back to partial date if necessary
+        val normalizedDate = if (dateValue.startsWith("1900-")) {
+            "--${dateValue.removePrefix("1900-")}"
+        } else {
+            dateValue
+        }
+
+        return Event(
+            value = normalizedDate,
+            type = CommonDataKinds.Event.TYPE_CUSTOM,
+            label = label,
+        )
     }
 }

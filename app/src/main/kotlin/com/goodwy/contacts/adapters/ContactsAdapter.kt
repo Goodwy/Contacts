@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.content.res.Resources
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
 import android.graphics.drawable.LayerDrawable
@@ -75,6 +74,7 @@ class ContactsAdapter(
     private var textToHighlight = highlightText
 
     var startNameWithSurname = config.startNameWithSurname
+    var showNicknameInsteadNames = Contact.Companion.showNicknameInsteadNames
     var showContactThumbnails = config.showContactThumbnails
     var showPhoneNumbers = config.showPhoneNumbers
     var fontSize = activity.getTextSize()
@@ -215,7 +215,7 @@ class ContactsAdapter(
 
     private fun editContact() {
         val contact = getItemWithKey(selectedKeys.first()) ?: return
-        activity.editContact(contact)
+        activity.editContact(contact, config.mergeDuplicateContacts)
     }
 
     private fun askConfirmDelete() {
@@ -414,9 +414,7 @@ class ContactsAdapter(
                     .error(placeholderImage)
 
                 val size = activity.resources.getDimension(com.goodwy.commons.R.dimen.shortcut_size).toInt()
-                val itemToLoad: Any? = if (contact.photoUri.isNotEmpty()) {
-                    contact.photoUri
-                } else {
+                val itemToLoad: Any? = contact.photoUri.ifEmpty {
                     contact.photo
                 }
 
@@ -457,6 +455,10 @@ class ContactsAdapter(
             if (getLastItem() == contact || !context.config.useDividers) findViewById<ImageView>(R.id.divider)?.visibility = View.INVISIBLE else findViewById<ImageView>(R.id.divider)?.visibility = View.VISIBLE
 
             setupViewBackground(activity)
+            if (activity.isDynamicTheme() && !activity.isSystemInDarkMode()) {
+                findViewById<FrameLayout>(R.id.item_contact_frame).setBackgroundColor(surfaceColor)
+            } else findViewById<FrameLayout>(R.id.item_contact_frame).setBackgroundColor(backgroundColor)
+
             findViewById<FrameLayout>(R.id.item_contact_frame)?.isSelected = selectedKeys.contains(contact.id)
             val fullName = contact.getNameToDisplay()
             findViewById<TextView>(com.goodwy.commons.R.id.item_contact_name).text = if (textToHighlight.isEmpty()) fullName else {
@@ -516,9 +518,7 @@ class ContactsAdapter(
                         .error(placeholderImage)
                         .centerCrop()
 
-                    val itemToLoad: Any? = if (contact.photoUri.isNotEmpty()) {
-                        contact.photoUri
-                    } else {
+                    val itemToLoad: Any? = contact.photoUri.ifEmpty {
                         contact.photo
                     }
 
@@ -558,7 +558,6 @@ class ContactsAdapter(
             //swipe
             if (activity.config.useSwipeToAction && findViewById<SwipeActionView>(R.id.itemContactSwipe) != null) {
                 findViewById<ConstraintLayout>(R.id.itemContactFrameSelect).setupViewBackground(activity)
-                findViewById<FrameLayout>(R.id.item_contact_frame).setBackgroundColor(backgroundColor)
 
                 val isRTL = activity.isRTLLayout
                 val swipeLeftAction = if (isRTL) activity.config.swipeRightAction else activity.config.swipeLeftAction
@@ -576,6 +575,9 @@ class ContactsAdapter(
                 findViewById<RelativeLayout>(R.id.swipeRightIconHolder).setBackgroundColor(swipeActionColor(swipeRightAction))
 
                 findViewById<SwipeActionView>(R.id.itemContactSwipe).apply {
+                    setDirectionEnabled(SwipeDirection.Left, swipeLeftAction != SWIPE_ACTION_NONE)
+                    setDirectionEnabled(SwipeDirection.Right, swipeRightAction != SWIPE_ACTION_NONE)
+
                     if (activity.config.swipeRipple) {
                         setRippleColor(SwipeDirection.Left, swipeActionColor(swipeLeftAction))
                         setRippleColor(SwipeDirection.Right, swipeActionColor(swipeRightAction))

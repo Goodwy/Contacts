@@ -4,15 +4,20 @@
 
     <!-- Visible fields -->
     <string name="messengers_actions_g">Messengers actions</string>
-    <string name="street">Street</string>
-    <string name="neighborhood">Apartment or suite number</string>
-    <string name="city">City</string>
-    <string name="postcode">Postal code</string>
-    <string name="pobox">Post office box</string>
-    <string name="region">State</string>
-    <string name="country">Country</string>
     <string name="ringtone_for_private_contact">Ringtone is not available for private contact</string>
 
     <!-- Settings -->
     <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+
+    <!-- Messengers -->
+    <string name="username" translatable="false">Username</string>
+    <string name="userid" translatable="false">User ID</string>
+    <string name="qq_id" translatable="false">QQ ID</string>
+    <string name="matrix_id" translatable="false">Matrix ID (@user:matrix.org)</string>
+    <string name="discord_tag" translatable="false">Discord tag (username#discriminator)</string>
+    <string name="line_id" translatable="false">LINE ID</string>
+    <string name="linkedin_id" translatable="false">LinkedIn ID</string>
+    <string name="threema_id" translatable="false">Threema ID (8 characters)</string>
+    <string name="wechat_id" translatable="false">WeChat ID</string>
+    <string name="phone_number_international_format" translatable="false">Phone number (without +)</string>
 </resources>

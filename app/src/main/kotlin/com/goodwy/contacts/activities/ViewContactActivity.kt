@@ -4,9 +4,8 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.ContentUris
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.PorterDuff
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.LayerDrawable
 import android.media.AudioManager
 import android.media.RingtoneManager
@@ -53,9 +52,8 @@ class ViewContactActivity : ContactActivity() {
     private var duplicateInitialized = false
     private val mergeDuplicate: Boolean get() = config.mergeDuplicateContacts
     private val binding by viewBinding(ActivityViewContactBinding::inflate)
-    private val white = 0xFFFFFFFF.toInt()
-    private val gray = 0xFFEBEBEB.toInt()
-    private var buttonBg = white
+    private var buttonBg = Color.WHITE
+    private var allContacts = ArrayList<Contact>()
 
     companion object {
         private const val COMPARABLE_PHONE_NUMBER_LENGTH = 9
@@ -63,6 +61,7 @@ class ViewContactActivity : ContactActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         showTransparentTop = true
+        isMaterialActivity = true
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
@@ -70,13 +69,13 @@ class ViewContactActivity : ContactActivity() {
             return
         }
 
-        updateMaterialActivityViews(binding.contactWrapper, binding.contactHolder, useTransparentNavigation = false, useTopSearchMenu = false)
-        setWindowTransparency(true) { _, _, leftNavigationBarSize, rightNavigationBarSize ->
-            binding.contactWrapper.setPadding(leftNavigationBarSize, 0, rightNavigationBarSize, 0)
-            updateNavigationBarColor(getProperBackgroundColor())
-        }
+        updateMaterialActivityViews(
+            binding.contactWrapper,
+            binding.contactHolder,
+            useTransparentNavigation = true,
+            useTopSearchMenu = false
+        )
 
-        showFields = config.showContactFields
         binding.contactWrapper.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         setupMenu()
         initButton()
@@ -84,7 +83,9 @@ class ViewContactActivity : ContactActivity() {
 
     override fun onResume() {
         super.onResume()
-        buttonBg = if (baseConfig.backgroundColor == white || baseConfig.backgroundColor == gray) white else getBottomNavigationBackgroundColor()
+        buttonBg = if ((isLightTheme() || isGrayTheme()) && !isDynamicTheme()) Color.WHITE else getSurfaceColor()
+
+        showFields = config.showContactFields
 
         isViewIntent = intent.action == ContactsContract.QuickContact.ACTION_QUICK_CONTACT || intent.action == Intent.ACTION_VIEW
         if (isViewIntent) {
@@ -102,6 +103,9 @@ class ViewContactActivity : ContactActivity() {
             ensureBackgroundThread {
                 initContact()
             }
+        }
+        ContactsHelper(this@ViewContactActivity).getContacts {
+            allContacts = it
         }
         updateColors()
     }
@@ -139,16 +143,15 @@ class ViewContactActivity : ContactActivity() {
     }
 
     private fun updateColors() {
-        val properBackgroundColor = getProperBackgroundColor()
-
-        if (baseConfig.backgroundColor == white) {
-            val colorToWhite = 0xFFf2f2f6.toInt()
+        if (isLightTheme() && !isDynamicTheme()) {
+            val colorToWhite = getSurfaceColor()
             supportActionBar?.setBackgroundDrawable(colorToWhite.toDrawable())
             window.decorView.setBackgroundColor(colorToWhite)
             window.statusBarColor = colorToWhite
             //window.navigationBarColor = colorToWhite
             binding.contactAppbar.setBackgroundColor(colorToWhite)
         } else {
+            val properBackgroundColor = getProperBackgroundColor()
             window.decorView.setBackgroundColor(properBackgroundColor)
             binding.contactAppbar.setBackgroundColor(properBackgroundColor)
         }
@@ -205,7 +208,7 @@ class ViewContactActivity : ContactActivity() {
 
             findItem(R.id.edit).setOnMenuItemClickListener {
                 if (contact != null) {
-                    launchEditContact(contact!!)
+                    launchEditContact(contact!!, false)
                 }
                 true
             }
@@ -242,7 +245,7 @@ class ViewContactActivity : ContactActivity() {
         var contactId: Int
         try {
             contactId = intent.getIntExtra(CONTACT_ID, 0)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return
         }
 
@@ -354,7 +357,7 @@ class ViewContactActivity : ContactActivity() {
             }
         }
 
-        getDuplicateContacts {
+        initializeDuplicateContacts {
             duplicateInitialized = true
             setupContactDetails()
         }
@@ -382,10 +385,14 @@ class ViewContactActivity : ContactActivity() {
         updateTextColors(binding.contactScrollview)
     }
 
-    private fun launchEditContact(contact: Contact) {
+    private fun launchEditContact(contact: Contact, editExactContact: Boolean) {
         wasEditLaunched = true
         duplicateInitialized = false
-        editContact(contact)
+        if (editExactContact) {
+            editContact(contact)
+        } else {
+            editContact(contact, config.mergeDuplicateContacts)
+        }
     }
 
     private fun openWith() {
@@ -430,7 +437,7 @@ class ViewContactActivity : ContactActivity() {
 
     private fun setupNames() {
         var displayName = contact!!.getNameToDisplay()
-        if (contact!!.nickname.isNotEmpty()) {
+        if (contact!!.nickname.isNotEmpty() && !config.showNicknameInsteadNames) {
             displayName += " (${contact!!.nickname})"
         }
 
@@ -919,7 +926,6 @@ class ViewContactActivity : ContactActivity() {
                     binding.contactRelationsHolder.addView(root)
                     contactRelation.text = relation.name
                     contactRelationType.text = getRelationTypeText(relation.type, relation.label)
-                    root.copyOnLongClick(relation.name)
 
                     binding.contactRelationsHolder.background .setTint(buttonBg)
 
@@ -928,6 +934,13 @@ class ViewContactActivity : ContactActivity() {
                     dividerContactRelation.setBackgroundColor(getProperTextColor())
                     dividerContactRelation.isGone = isLastItem == relation
                     contactRelation.setTextColor(getProperPrimaryColor())
+
+                    root.copyOnLongClick(relation.name)
+                    root.setOnClickListener {
+                        val contact = allContacts.firstOrNull { it.getNameToDisplay() == contactRelation.value }
+                        if (contact != null) viewContact(contact)
+                        else toast(com.goodwy.commons.R.string.no_contacts_found)
+                    }
                 }
             }
             binding.contactRelationsHolder.beVisible()
@@ -1002,7 +1015,6 @@ class ViewContactActivity : ContactActivity() {
                     binding.contactImsHolder.addView(root)
                     contactIm.text = IM.value
                     contactImType.text = getIMTypeText(IM.type, IM.label)
-                    root.copyOnLongClick(IM.value)
 
                     binding.contactImsHolder.background .setTint(buttonBg)
 
@@ -1011,6 +1023,11 @@ class ViewContactActivity : ContactActivity() {
                     dividerContactIm.setBackgroundColor(getProperTextColor())
                     dividerContactIm.isGone = isLastItem == IM
                     contactIm.setTextColor(getProperPrimaryColor())
+
+                    root.copyOnLongClick(IM.value)
+                    root.setOnClickListener {
+                        openMessengerProfile(IM.value, IM.type)
+                    }
                 }
             }
             binding.contactImsHolder.beVisible()
@@ -1039,7 +1056,7 @@ class ViewContactActivity : ContactActivity() {
                 ItemViewEventBinding.inflate(layoutInflater, binding.contactEventsHolder, false).apply {
                     binding.contactEventsHolder.addView(root)
                     it.value.getDateTimeFromDateString(true, contactEvent)
-                    contactEventType.setText(getEventTextId(it.type))
+                    contactEventType.setText(getEventTypeText(it.type, it.label))
                     root.copyOnLongClick(it.value)
 
                     binding.contactEventsHolder.background .setTint(buttonBg)
@@ -1170,13 +1187,14 @@ class ViewContactActivity : ContactActivity() {
             for ((key, value) in sources) {
                 val isLastItem = sources.keys.last()
                 ItemViewContactSourceBinding.inflate(layoutInflater, binding.contactSourcesHolder, false).apply {
-                    contactSource.text = if (value == "") getString(R.string.phone_storage) else value
+                    val sourceText = if (value == "") getString(R.string.phone_storage) else value
+                    contactSource.text = sourceText
                     contactSource.setTextColor(getProperPrimaryColor())
-                    contactSource.copyOnLongClick(value)
+                    contactSource.copyOnLongClick(sourceText)
                     binding.contactSourcesHolder.addView(root)
 
                     contactSource.setOnClickListener {
-                        launchEditContact(key)
+                        launchEditContact(key, true)
                     }
 
                     binding.contactSourcesHolder.background .setTint(buttonBg)
@@ -1187,51 +1205,37 @@ class ViewContactActivity : ContactActivity() {
                     if (key.source.contains("gmail.com", true) || key.source.contains("googlemail.com", true)) {
                         contactSourceImage.setImageDrawable(getPackageDrawable("google"))
                         contactSourceImage.beVisible()
-                    }
-
-                    if (key.source == "") {
+                    } else if (key.source == "") {
                         contactSourceImage.setImageDrawable(getPackageDrawable(key.source))
                         contactSourceImage.beVisible()
-                    }
-
-                    if (key.source == SMT_PRIVATE) {
+                    } else if (key.source == SMT_PRIVATE) {
                         contactSourceImage.setImageDrawable(getPackageDrawable(SMT_PRIVATE))
                         contactSourceImage.beVisible()
-                    }
-
-                    if (value.lowercase(Locale.getDefault()) == WHATSAPP) {
+                    } else if (value.lowercase(Locale.getDefault()) == WHATSAPP) {
                         contactSourceImage.setImageDrawable(getPackageDrawable(WHATSAPP_PACKAGE))
                         contactSourceImage.beVisible()
                         contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
-                    }
-
-                    if (value.lowercase(Locale.getDefault()) == SIGNAL) {
+                    } else if (value.lowercase(Locale.getDefault()) == SIGNAL) {
                         contactSourceImage.setImageDrawable(getPackageDrawable(SIGNAL_PACKAGE))
                         contactSourceImage.beVisible()
                         contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
-                    }
-
-                    if (value.lowercase(Locale.getDefault()) == VIBER) {
+                    } else if (value.lowercase(Locale.getDefault()) == VIBER) {
                         contactSourceImage.setImageDrawable(getPackageDrawable(VIBER_PACKAGE))
                         contactSourceImage.beVisible()
                         contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
-                    }
-
-                    if (value.lowercase(Locale.getDefault()) == TELEGRAM) {
+                    } else if (value.lowercase(Locale.getDefault()) == TELEGRAM) {
                         contactSourceImage.setImageDrawable(getPackageDrawable(TELEGRAM_PACKAGE))
                         contactSourceImage.beVisible()
                         contactSourceImage.setOnClickListener {
                             showSocialActions(key.id)
                         }
-                    }
-
-                    if (value.lowercase(Locale.getDefault()) == THREEMA) {
+                    } else if (value.lowercase(Locale.getDefault()) == THREEMA) {
                         contactSourceImage.setImageDrawable(getPackageDrawable(THREEMA_PACKAGE))
                         contactSourceImage.beVisible()
                         contactSourceImage.setOnClickListener {
@@ -1297,7 +1301,7 @@ class ViewContactActivity : ContactActivity() {
                 val ringtonePickerIntent = getRingtonePickerIntent()
                 try {
                     startActivityForResult(ringtonePickerIntent, INTENT_SELECT_RINGTONE)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     val currentRingtone = contact!!.ringtone ?: getDefaultAlarmSound(RingtoneManager.TYPE_RINGTONE).uri
                     SelectAlarmSoundDialog(this@ViewContactActivity,
                         currentRingtone,
@@ -1356,7 +1360,7 @@ class ViewContactActivity : ContactActivity() {
                             flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
                             try {
                                 startActivity(this)
-                            } catch (e: SecurityException) {
+                            } catch (_: SecurityException) {
                                 handlePermission(PERMISSION_CALL_PHONE) { success ->
                                     if (success) {
                                         startActivity(this)
@@ -1364,7 +1368,7 @@ class ViewContactActivity : ContactActivity() {
                                         toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                     }
                                 }
-                            } catch (e: ActivityNotFoundException) {
+                            } catch (_: ActivityNotFoundException) {
                                 toast(com.goodwy.commons.R.string.no_app_found)
                             } catch (e: Exception) {
                                 showErrorToast(e)
@@ -1388,7 +1392,7 @@ class ViewContactActivity : ContactActivity() {
                                 flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 try {
                                     startActivity(this)
-                                } catch (e: SecurityException) {
+                                } catch (_: SecurityException) {
                                     handlePermission(PERMISSION_CALL_PHONE) { success ->
                                         if (success) {
                                             startActivity(this)
@@ -1396,7 +1400,7 @@ class ViewContactActivity : ContactActivity() {
                                             toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                         }
                                     }
-                                } catch (e: ActivityNotFoundException) {
+                                } catch (_: ActivityNotFoundException) {
                                     toast(com.goodwy.commons.R.string.no_app_found)
                                 } catch (e: Exception) {
                                     showErrorToast(e)
@@ -1411,7 +1415,7 @@ class ViewContactActivity : ContactActivity() {
                             flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
                             try {
                                 startActivity(this)
-                            } catch (e: SecurityException) {
+                            } catch (_: SecurityException) {
                                 handlePermission(PERMISSION_CALL_PHONE) { success ->
                                     if (success) {
                                         startActivity(this)
@@ -1419,7 +1423,7 @@ class ViewContactActivity : ContactActivity() {
                                         toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                     }
                                 }
-                            } catch (e: ActivityNotFoundException) {
+                            } catch (_: ActivityNotFoundException) {
                                 toast(com.goodwy.commons.R.string.no_app_found)
                             } catch (e: Exception) {
                                 showErrorToast(e)
@@ -1442,7 +1446,7 @@ class ViewContactActivity : ContactActivity() {
                             flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
                             try {
                                 startActivity(this)
-                            } catch (e: SecurityException) {
+                            } catch (_: SecurityException) {
                                 handlePermission(PERMISSION_CALL_PHONE) { success ->
                                     if (success) {
                                         startActivity(this)
@@ -1450,7 +1454,7 @@ class ViewContactActivity : ContactActivity() {
                                         toast(com.goodwy.commons.R.string.no_phone_call_permission)
                                     }
                                 }
-                            } catch (e: ActivityNotFoundException) {
+                            } catch (_: ActivityNotFoundException) {
                                 toast(com.goodwy.commons.R.string.no_app_found)
                             } catch (e: Exception) {
                                 showErrorToast(e)
@@ -1510,21 +1514,11 @@ class ViewContactActivity : ContactActivity() {
         }
     }
 
-    private fun getDuplicateContacts(callback: () -> Unit) {
-        ContactsHelper(this).getDuplicatesOfContact(contact!!, false) { contacts ->
-            ensureBackgroundThread {
-                duplicateContacts.clear()
-                val displayContactSources = getVisibleContactSources()
-                contacts.filter { displayContactSources.contains(it.source) }.forEach {
-                    val duplicate = ContactsHelper(this).getContactWithId(it.id, it.isPrivate())
-                    if (duplicate != null) {
-                        duplicateContacts.add(duplicate)
-                    }
-                }
-
-                runOnUiThread {
-                    callback()
-                }
+    private fun initializeDuplicateContacts(callback: () -> Unit) {
+        getDuplicateContacts(contact!!, false) {
+            duplicateContacts = it
+            runOnUiThread {
+                callback()
             }
         }
     }

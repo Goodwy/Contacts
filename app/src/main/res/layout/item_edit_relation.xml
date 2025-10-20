@@ -31,11 +31,11 @@
         android:contentDescription="@null" />
 
     <com.goodwy.commons.views.MyEditText
-        android:id="@+id/contact_relation"
+        android:id="@+id/contactRelation"
         android:layout_width="match_parent"
         android:layout_height="@dimen/contact_edit_height"
         android:layout_centerVertical="true"
-        android:layout_toStartOf="@+id/contact_relation_remove"
+        android:layout_toStartOf="@+id/contactRelationSelectContact"
         android:layout_toEndOf="@+id/contact_relation_type"
         android:background="@null"
         android:hint="@string/relation_hint_g"
@@ -47,6 +47,19 @@
         android:singleLine="true"
         android:textCursorDrawable="@null"
         android:textSize="@dimen/bigger_text_size" />
+
+    <ImageView
+        android:id="@+id/contactRelationSelectContact"
+        android:layout_width="@dimen/edit_contact_add_icon"
+        android:layout_height="@dimen/edit_contact_add_icon"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@+id/contact_relation_remove"
+        android:layout_marginStart="@dimen/normal_margin"
+        android:layout_marginEnd="@dimen/smaller_margin"
+        android:foreground="@drawable/button_round_pressed"
+        android:contentDescription="@string/choose_contact"
+        android:alpha="0.8"
+        android:src="@drawable/ic_person_rounded_scaled" />
 
     <ImageView
         android:id="@+id/contact_relation_remove"
@@ -71,7 +84,7 @@
         android:id="@+id/dividerContactRelation"
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:layout_below="@+id/contact_relation"
+        android:layout_below="@+id/contactRelation"
         android:layout_marginStart="@dimen/contact_padding_left"
         android:layout_marginEnd="@dimen/contact_padding_left"
         android:alpha="0.2"

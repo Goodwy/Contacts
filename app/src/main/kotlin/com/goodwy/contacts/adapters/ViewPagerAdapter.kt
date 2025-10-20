@@ -3,6 +3,7 @@ package com.goodwy.contacts.adapters
 import android.view.View
 import android.view.ViewGroup
 import androidx.viewpager.widget.PagerAdapter
+import com.goodwy.commons.extensions.getProperAccentColor
 import com.goodwy.commons.extensions.getProperPrimaryColor
 import com.goodwy.commons.extensions.getProperTextColor
 import com.goodwy.commons.helpers.TAB_CONTACTS
@@ -21,7 +22,11 @@ class ViewPagerAdapter(val activity: SimpleActivity, val currTabsList: ArrayList
 
         (view as MyViewPagerFragment<*>).apply {
             setupFragment(activity)
-            setupColors(activity.getProperTextColor(), activity.getProperPrimaryColor())
+            setupColors(
+                textColor = activity.getProperTextColor(),
+                primaryColor = activity.getProperPrimaryColor(),
+                accentColor = activity.getProperAccentColor()
+            )
         }
 
         return view

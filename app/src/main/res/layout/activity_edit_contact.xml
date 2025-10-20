@@ -326,7 +326,6 @@
                     android:alpha="0.8"
                     android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_phone_vector" />
-
             </RelativeLayout>
 
             <LinearLayout
@@ -338,7 +337,6 @@
                 android:orientation="vertical">
 
                 <include layout="@layout/item_edit_phone_number" />
-
             </LinearLayout>
 
             <RelativeLayout
@@ -376,180 +374,13 @@
                     android:foreground="@drawable/button_round_pressed"
                     android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/contact_emails_title_holder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_numbers_add_new_holder"
-                android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingStart="@dimen/contact_padding_left"
-                android:paddingTop="@dimen/contact_padding_top"
-                android:paddingEnd="@dimen/contact_padding_left"
-                android:paddingBottom="2dp">
-
-                <com.goodwy.commons.views.MyTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_toStartOf="@+id/contact_emails_icon"
-                    android:alpha="0.8"
-                    android:text="@string/emails"
-                    android:textSize="@dimen/normal_text_size" />
-
-                <ImageView
-                    android:id="@+id/contact_emails_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginStart="@dimen/activity_margin"
-                    android:layout_marginEnd="5dp"
-                    android:alpha="0.8"
-                    android:contentDescription="@null"
-                    app:srcCompat="@drawable/ic_mail_vector" />
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:id="@+id/contactEmailsHolder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_emails_title_holder"
-                android:background="@color/activated_item_foreground"
-                android:orientation="vertical">
-
-                <include layout="@layout/item_edit_email" />
-
-            </LinearLayout>
-
-            <RelativeLayout
-                android:id="@+id/contact_emails_add_new_holder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contactEmailsHolder"
-                android:background="@color/activated_item_foreground">
-
-                <com.goodwy.commons.views.MyTextView
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/contact_edit_height"
-                    android:layout_centerVertical="true"
-                    android:alpha="0.5"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:paddingStart="22dp"
-                    android:paddingEnd="52dp"
-                    android:text="@string/add_email"
-                    android:textStyle="italic"
-                    android:textSize="@dimen/normal_text_size" />
-
-                <ImageView
-                    android:layout_width="@dimen/edit_contact_add_icon"
-                    android:layout_height="@dimen/edit_contact_add_icon"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginTop="@dimen/medium_margin"
-                    android:layout_marginBottom="@dimen/medium_margin"
-                    android:layout_marginEnd="@dimen/contact_padding_left"
-                    android:background="@drawable/circle_background"
-                    android:backgroundTint="@color/green"
-                    android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/smaller_margin"
-                    android:src="@drawable/ic_plus_vector" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/contact_addresses_title_holder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_emails_add_new_holder"
-                android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingStart="@dimen/contact_padding_left"
-                android:paddingTop="@dimen/contact_padding_top"
-                android:paddingEnd="@dimen/contact_padding_left"
-                android:paddingBottom="2dp">
-
-                <com.goodwy.commons.views.MyTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_toStartOf="@+id/contact_addresses_icon"
-                    android:alpha="0.8"
-                    android:text="@string/addresses"
-                    android:textSize="@dimen/normal_text_size" />
-
-                <ImageView
-                    android:id="@+id/contact_addresses_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginStart="@dimen/activity_margin"
-                    android:layout_marginEnd="5dp"
-                    android:alpha="0.8"
-                    android:contentDescription="@null"
-                    app:srcCompat="@drawable/ic_place_vector" />
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:id="@+id/contactAddressesHolder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_addresses_title_holder"
-                android:background="@color/activated_item_foreground"
-                android:orientation="vertical">
-
-                <include layout="@layout/item_edit_structured_address" />
-
-            </LinearLayout>
-
-            <RelativeLayout
-                android:id="@+id/contact_addresses_add_new_holder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contactAddressesHolder"
-                android:background="@color/activated_item_foreground">
-
-                <com.goodwy.commons.views.MyTextView
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/contact_edit_height"
-                    android:layout_centerVertical="true"
-                    android:alpha="0.5"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:paddingStart="22dp"
-                    android:paddingEnd="52dp"
-                    android:text="@string/add_address"
-                    android:textSize="@dimen/normal_text_size"
-                    android:textStyle="italic" />
-
-                <ImageView
-                    android:layout_width="@dimen/edit_contact_add_icon"
-                    android:layout_height="@dimen/edit_contact_add_icon"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginTop="@dimen/medium_margin"
-                    android:layout_marginBottom="@dimen/medium_margin"
-                    android:layout_marginEnd="@dimen/contact_padding_left"
-                    android:background="@drawable/circle_background"
-                    android:backgroundTint="@color/green"
-                    android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/smaller_margin"
-                    android:src="@drawable/ic_plus_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
                 android:id="@+id/contact_ims_title_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_addresses_add_new_holder"
+                android:layout_below="@+id/contact_numbers_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
@@ -575,7 +406,6 @@
                     android:alpha="0.8"
                     android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_im" />
-
             </RelativeLayout>
 
             <LinearLayout
@@ -587,7 +417,6 @@
                 android:orientation="vertical">
 
                 <include layout="@layout/item_edit_im" />
-
             </LinearLayout>
 
             <RelativeLayout
@@ -628,10 +457,170 @@
             </RelativeLayout>
 
             <RelativeLayout
-                android:id="@+id/contact_events_title_holder"
+                android:id="@+id/contact_emails_title_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_ims_add_new_holder"
+                android:layout_marginTop="@dimen/contact_edit_title_top"
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingTop="@dimen/contact_padding_top"
+                android:paddingEnd="@dimen/contact_padding_left"
+                android:paddingBottom="2dp">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_emails_icon"
+                    android:alpha="0.8"
+                    android:text="@string/emails"
+                    android:textSize="@dimen/normal_text_size" />
+
+                <ImageView
+                    android:id="@+id/contact_emails_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
+                    app:srcCompat="@drawable/ic_mail_vector" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/contactEmailsHolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_emails_title_holder"
+                android:background="@color/activated_item_foreground"
+                android:orientation="vertical">
+
+                <include layout="@layout/item_edit_email" />
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_emails_add_new_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contactEmailsHolder"
+                android:background="@color/activated_item_foreground">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/contact_edit_height"
+                    android:layout_centerVertical="true"
+                    android:alpha="0.5"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
+                    android:text="@string/add_email"
+                    android:textStyle="italic"
+                    android:textSize="@dimen/normal_text_size" />
+
+                <ImageView
+                    android:layout_width="@dimen/edit_contact_add_icon"
+                    android:layout_height="@dimen/edit_contact_add_icon"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="@dimen/medium_margin"
+                    android:layout_marginBottom="@dimen/medium_margin"
+                    android:layout_marginEnd="@dimen/contact_padding_left"
+                    android:background="@drawable/circle_background"
+                    android:backgroundTint="@color/green"
+                    android:foreground="@drawable/button_round_pressed"
+                    android:padding="@dimen/smaller_margin"
+                    android:src="@drawable/ic_plus_vector" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_addresses_title_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_emails_add_new_holder"
+                android:layout_marginTop="@dimen/contact_edit_title_top"
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingTop="@dimen/contact_padding_top"
+                android:paddingEnd="@dimen/contact_padding_left"
+                android:paddingBottom="2dp">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_addresses_icon"
+                    android:alpha="0.8"
+                    android:text="@string/addresses"
+                    android:textSize="@dimen/normal_text_size" />
+
+                <ImageView
+                    android:id="@+id/contact_addresses_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
+                    app:srcCompat="@drawable/ic_place_vector" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/contactAddressesHolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_addresses_title_holder"
+                android:background="@color/activated_item_foreground"
+                android:orientation="vertical">
+
+                <include layout="@layout/item_edit_structured_address" />
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_addresses_add_new_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contactAddressesHolder"
+                android:background="@color/activated_item_foreground">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/contact_edit_height"
+                    android:layout_centerVertical="true"
+                    android:alpha="0.5"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
+                    android:text="@string/add_address"
+                    android:textSize="@dimen/normal_text_size"
+                    android:textStyle="italic" />
+
+                <ImageView
+                    android:layout_width="@dimen/edit_contact_add_icon"
+                    android:layout_height="@dimen/edit_contact_add_icon"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="@dimen/medium_margin"
+                    android:layout_marginBottom="@dimen/medium_margin"
+                    android:layout_marginEnd="@dimen/contact_padding_left"
+                    android:background="@drawable/circle_background"
+                    android:backgroundTint="@color/green"
+                    android:foreground="@drawable/button_round_pressed"
+                    android:padding="@dimen/smaller_margin"
+                    android:src="@drawable/ic_plus_vector" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_events_title_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_addresses_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingStart="@dimen/contact_padding_left"
                 android:paddingTop="@dimen/contact_padding_top"
@@ -668,7 +657,6 @@
                 android:orientation="vertical">
 
                 <include layout="@layout/item_event" />
-
             </LinearLayout>
 
             <RelativeLayout
@@ -706,95 +694,13 @@
                     android:foreground="@drawable/button_round_pressed"
                     android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/contact_relations_title_holder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_events_add_new_holder"
-                android:layout_marginTop="@dimen/contact_edit_title_top"
-                android:paddingStart="@dimen/contact_padding_left"
-                android:paddingTop="@dimen/contact_padding_top"
-                android:paddingEnd="@dimen/contact_padding_left"
-                android:paddingBottom="2dp">
-
-                <com.goodwy.commons.views.MyTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_toStartOf="@+id/contact_relations_icon"
-                    android:alpha="0.8"
-                    android:text="@string/relations_g"
-                    android:textSize="@dimen/normal_text_size" />
-
-                <ImageView
-                    android:id="@+id/contact_relations_icon"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginStart="@dimen/activity_margin"
-                    android:layout_marginEnd="5dp"
-                    android:alpha="0.8"
-                    android:contentDescription="@null"
-                    app:srcCompat="@drawable/ic_group_work_vector" />
-            </RelativeLayout>
-
-            <LinearLayout
-                android:id="@+id/contactRelationsHolder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_relations_title_holder"
-                android:background="@color/activated_item_foreground"
-                android:orientation="vertical">
-
-                <include layout="@layout/item_edit_relation" />
-
-            </LinearLayout>
-
-            <RelativeLayout
-                android:id="@+id/contact_relations_add_new_holder"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/contactRelationsHolder"
-                android:background="@color/activated_item_foreground">
-
-                <com.goodwy.commons.views.MyTextView
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/contact_edit_height"
-                    android:layout_centerVertical="true"
-                    android:alpha="0.5"
-                    android:background="?attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:maxLines="2"
-                    android:ellipsize="end"
-                    android:paddingStart="22dp"
-                    android:paddingEnd="52dp"
-                    android:text="@string/add_related_person"
-                    android:textStyle="italic"
-                    android:textSize="@dimen/normal_text_size" />
-
-                <ImageView
-                    android:layout_width="@dimen/edit_contact_add_icon"
-                    android:layout_height="@dimen/edit_contact_add_icon"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_marginTop="@dimen/medium_margin"
-                    android:layout_marginBottom="@dimen/medium_margin"
-                    android:layout_marginEnd="@dimen/contact_padding_left"
-                    android:background="@drawable/circle_background"
-                    android:backgroundTint="@color/green"
-                    android:foreground="@drawable/button_round_pressed"
-                    android:padding="@dimen/smaller_margin"
-                    android:src="@drawable/ic_plus_vector" />
             </RelativeLayout>
 
             <RelativeLayout
                 android:id="@+id/contact_notes_title_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/contact_relations_add_new_holder"
+                android:layout_below="@+id/contact_events_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
@@ -870,7 +776,6 @@
                     android:alpha="0.8"
                     android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_bell_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
@@ -902,7 +807,6 @@
                     android:layout_marginEnd="@dimen/contact_padding_left"
                     android:alpha="0.8"
                     app:srcCompat="@drawable/ic_chevron_right_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
@@ -946,7 +850,6 @@
                 android:orientation="vertical">
 
                 <include layout="@layout/item_edit_website" />
-
             </LinearLayout>
 
             <RelativeLayout
@@ -987,10 +890,90 @@
             </RelativeLayout>
 
             <RelativeLayout
-                android:id="@+id/contact_groups_title_holder"
+                android:id="@+id/contact_relations_title_holder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_websites_add_new_holder"
+                android:layout_marginTop="@dimen/contact_edit_title_top"
+                android:paddingStart="@dimen/contact_padding_left"
+                android:paddingTop="@dimen/contact_padding_top"
+                android:paddingEnd="@dimen/contact_padding_left"
+                android:paddingBottom="2dp">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@+id/contact_relations_icon"
+                    android:alpha="0.8"
+                    android:text="@string/relations_g"
+                    android:textSize="@dimen/normal_text_size" />
+
+                <ImageView
+                    android:id="@+id/contact_relations_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="@dimen/activity_margin"
+                    android:layout_marginEnd="5dp"
+                    android:alpha="0.8"
+                    android:contentDescription="@null"
+                    app:srcCompat="@drawable/ic_group_work_vector" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/contactRelationsHolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_relations_title_holder"
+                android:background="@color/activated_item_foreground"
+                android:orientation="vertical">
+
+                <include layout="@layout/item_edit_relation" />
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_relations_add_new_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contactRelationsHolder"
+                android:background="@color/activated_item_foreground">
+
+                <com.goodwy.commons.views.MyTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/contact_edit_height"
+                    android:layout_centerVertical="true"
+                    android:alpha="0.5"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:paddingStart="22dp"
+                    android:paddingEnd="52dp"
+                    android:text="@string/add_related_person"
+                    android:textStyle="italic"
+                    android:textSize="@dimen/normal_text_size" />
+
+                <ImageView
+                    android:layout_width="@dimen/edit_contact_add_icon"
+                    android:layout_height="@dimen/edit_contact_add_icon"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="@dimen/medium_margin"
+                    android:layout_marginBottom="@dimen/medium_margin"
+                    android:layout_marginEnd="@dimen/contact_padding_left"
+                    android:background="@drawable/circle_background"
+                    android:backgroundTint="@color/green"
+                    android:foreground="@drawable/button_round_pressed"
+                    android:padding="@dimen/smaller_margin"
+                    android:src="@drawable/ic_plus_vector" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/contact_groups_title_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contact_relations_add_new_holder"
                 android:layout_marginTop="@dimen/contact_edit_title_top"
                 android:paddingTop="@dimen/contact_padding_top"
                 android:paddingBottom="2dp"
@@ -1016,7 +999,6 @@
                     android:alpha="0.8"
                     android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_people_rounded" />
-
             </RelativeLayout>
 
             <LinearLayout
@@ -1028,7 +1010,6 @@
                 android:orientation="vertical">
 
                 <include layout="@layout/item_edit_group" />
-
             </LinearLayout>
 
             <RelativeLayout
@@ -1066,7 +1047,6 @@
                     android:foreground="@drawable/button_round_pressed"
                     android:padding="@dimen/smaller_margin"
                     android:src="@drawable/ic_plus_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
@@ -1099,11 +1079,10 @@
                     android:alpha="0.8"
                     android:contentDescription="@null"
                     app:srcCompat="@drawable/ic_source_vector" />
-
             </RelativeLayout>
 
             <RelativeLayout
-                android:id="@+id/contact_source_holder"
+                android:id="@+id/contactSourceHolder"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/contact_source_title_holder"
@@ -1114,12 +1093,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="@dimen/contact_edit_height"
-                    android:layout_toStartOf="@+id/contactSourceImage"
                     android:background="?attr/selectableItemBackground"
                     android:gravity="center_vertical"
                     android:maxLines="2"
                     android:paddingStart="@dimen/contact_padding_left"
-                    android:paddingEnd="@dimen/contact_padding_left"
+                    android:paddingEnd="60dp"
                     android:textSize="@dimen/bigger_text_size"
                     tools:text="hello@goodwy.com" />
 
@@ -1135,7 +1113,28 @@
                     app:shapeAppearanceOverlay="@style/roundedImageView"
                     tools:src="@drawable/ic_whatsapp_vector"
                     tools:visibility="visible" />
+            </RelativeLayout>
 
+            <RelativeLayout
+                android:id="@+id/contact_add_fields_holder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/contactSourceHolder"
+                android:layout_marginTop="34dp"
+                android:background="@color/activated_item_foreground">
+
+                <TextView
+                    android:id="@+id/contact_add_fields"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/contact_edit_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:maxLines="2"
+                    android:paddingStart="@dimen/contact_padding_left"
+                    android:paddingEnd="@dimen/contact_padding_left"
+                    android:textSize="@dimen/bigger_text_size"
+                    android:text="@string/add_field" />
             </RelativeLayout>
 
         </RelativeLayout>

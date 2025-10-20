@@ -73,6 +73,18 @@
         <item quantity="one">%d skupinu</item>
         <item quantity="few">%d skupiny</item>
         <item quantity="other">%d skupín</item>
-    </plurals>    <string name="faq_1_title">Chcem upraviť viditeľné polia kontaktov. Dá sa to?</string>
+    </plurals>
+    <string name="faq_1_title">Chcem upraviť viditeľné polia kontaktov. Dá sa to?</string>
     <string name="faq_1_text">Áno, stačí ísť do Nastavenia -&gt; Spravovať zobrazené polia kontaktov. Tam si viete zvoliť, ktoré polia majú byť viditeľné. Niektoré sú v predvolenom stave vypnuté, čiže tam môžete objaviť aj nové.</string>
+    <string name="street">Ulica</string>
+    <string name="neighborhood">Číslo kancelárie alebo bytu</string>
+    <string name="city">Mesto</string>
+    <string name="postcode">PSČ</string>
+    <string name="pobox">P.O. Box</string>
+    <string name="region">Štát</string>
+    <string name="country">Krajina</string>
+    <string name="select_account">Vybrať účet</string>
+    <string name="format_phone_numbers">Formátovať telefónne čísla</string>
+    <string name="show_private_contacts">Zobraziť súkromné kontakty vo Fossify Phone, Fossify SMS Messenger a Fossify Calendar</string>
+    <string name="structured_addresses">Štruktúrovaná adresa (režim úprav)</string>
 </resources>

@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">การกระทำของผู้ส่งสาร</string>
 
     <!-- Settings -->
-    <string name="country">ประเทศ</string>
     <string name="ringtone_for_private_contact">เสียงเรียกเข้าไม่สามารถใช้ได้สําหรับการติดต่อส่วนตัว</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">ถนน</string>
-    <string name="neighborhood">หมายเลขอพาร์ตเมนต์หรือห้องสวีท</string>
-    <string name="city">เมือง</string>
-    <string name="postcode">รหัสไปรษณีย์</string>
-    <string name="pobox">ตู้ไปรษณีย์</string>
-    <string name="region">บริเวณ</string>
+    <string name="show_private_contacts_g">แสดงรายชื่อติดต่อส่วนตัวใน Right Dialer และ Right Messages</string>
 
 </resources>

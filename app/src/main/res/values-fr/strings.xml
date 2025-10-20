@@ -13,7 +13,7 @@
     <string name="send_email_to_group">Envoyer un courriel au groupe</string>
     <string name="fields_empty">Au moins un champ doit être rempli</string>
     <string name="must_be_at_edit">Vous devez être sur l\'écran « Modifier » pour modifier un contact</string>
-    <string name="no_contacts_with_emails">Aucun contact comportant un adresse électronique n\'a été trouvé</string>
+    <string name="no_contacts_with_emails">Aucun contact ayant una adresse électronique n\'a été trouvé</string>
     <string name="no_contacts_with_phone_numbers">Aucun contact comportant un numéro de téléphone n\'a été trouvé</string>
     <string name="new_contact">Nouveau contact</string>
     <string name="edit_contact">Modifier le contact</string>
@@ -41,8 +41,8 @@
     <string name="show_private_contacts">Afficher les contacts privés pour Fossify Phone, Fossify SMS Messenger et Fossify Calendar</string>
     <string name="merge_duplicate_contacts">Fusionner les contacts en double</string>
     <string name="no_favorites">Il semble que vous n\'ayez pas encore ajouté de contacts favoris.</string>
-    <string name="toggle_favorite">Activer/désactiver le favori</string>
-    <string name="search_contacts">Rechercher des contacts</string>
+    <string name="toggle_favorite">Ajouter/retirer des favoris</string>
+    <string name="search_contacts">Recherche de contacts</string>
     <string name="search_favorites">Rechercher des favoris</string>
     <string name="search_groups">Rechercher des groupes</string>
     <string name="import_contacts">Importer des contacts</string>
@@ -60,7 +60,7 @@
     <string name="phone_numbers">Numéros de téléphone</string>
     <string name="emails">Adresses électroniques</string>
     <string name="addresses">Adresses</string>
-    <string name="events">Évènements (dates de naissance, dates anniversaires)</string>
+    <string name="events">Évènements (dates de naissance, anniversaires)</string>
     <string name="organization">Organisme</string>
     <string name="websites">Sites web</string>
     <string name="groups">Groupes</string>
@@ -77,5 +77,14 @@
     <string name="faq_1_text">Oui. Rendez-vous dans les « Paramètres », puis dans « Gérer les champs de contact affichés ». Vous pourrez y sélectionner les champs à afficher. Certains champs sont même désactivés par défaut. Vous pourrez donc en trouver de nouveaux.</string>
     <string name="app_launcher_name">Contacts</string>
     <string name="contacts">Contacts</string>
-    <string name="format_phone_numbers">Format des numéros de téléphone</string>
+    <string name="format_phone_numbers">Formater les numéros de téléphone</string>
+    <string name="street">Rue</string>
+    <string name="pobox">Boite postale</string>
+    <string name="region">Région</string>
+    <string name="country">Pays</string>
+    <string name="neighborhood">Appartement ou numéro d\'entrée</string>
+    <string name="city">Ville</string>
+    <string name="postcode">Code postal</string>
+    <string name="select_account">Sélectionner un compte</string>
+    <string name="structured_addresses">Adresses structurées (modification)</string>
 </resources>

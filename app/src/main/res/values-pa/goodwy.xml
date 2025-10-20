@@ -3,16 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">ਮੈਸੇਂਜਰ ਕਾਰਵਾਈਆਂ</string>
 
     <!-- Settings -->
-    <string name="country">ਦੇਸ਼</string>
     <string name="ringtone_for_private_contact">ਰਿੰਗਟੋਨ ਨਿੱਜੀ ਸੰਪਰਕ ਲਈ ਉਪਲਬਧ ਨਹੀਂ ਹੈ।</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">ਗਲੀ</string>
-    <string name="neighborhood">ਅਪਾਰਟਮੈਂਟ ਜਾਂ ਸੂਟ ਨੰਬਰ</string>
-    <string name="city">ਸ਼ਹਿਰ</string>
-    <string name="postcode">ਡਾਕ ਕੋਡ</string>
-    <string name="pobox">ਡਾਕਘਰ ਡੱਬਾ</string>
-    <string name="region">ਖੇਤਰ</string>
+    <string name="show_private_contacts_g">ਸੱਜੇ ਡਾਇਲਰ ਅਤੇ ਸੱਜੇ ਸੁਨੇਹਿਆਂ ਨੂੰ ਨਿੱਜੀ ਸੰਪਰਕ ਦਿਖਾਓ</string>
 </resources>

@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.text.SpannableString
 import android.text.format.DateFormat
 import android.text.style.RelativeSizeSpan
@@ -152,6 +153,18 @@ fun Context.backupContacts(callback: (success: Boolean) -> Unit) {
     }
 }
 
+fun Context.copyUriToTempFile(uri: Uri, name: String): File? {
+    val tempFile = getTempFile(name)
+    contentResolver.openInputStream(uri)?.use { input ->
+        FileOutputStream(tempFile).use { output ->
+            input.copyTo(output)
+        }
+    }
+
+    return tempFile
+}
+
+// Goodwy
 fun Context.getFormattedTime(passedSeconds: Int, showSeconds: Boolean, makeAmPmSmaller: Boolean): SpannableString {
     val use24HourFormat = DateFormat.is24HourFormat(this)
     val hours = (passedSeconds / 3600) % 24

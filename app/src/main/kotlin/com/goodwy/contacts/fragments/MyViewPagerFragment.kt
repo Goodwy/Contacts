@@ -2,7 +2,6 @@ package com.goodwy.contacts.fragments
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.RelativeLayout
@@ -16,6 +15,7 @@ import com.goodwy.commons.adapters.MyRecyclerViewAdapter
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.contacts.Contact
+import com.goodwy.commons.models.contacts.Contact.Companion.showNicknameInsteadNames
 import com.goodwy.commons.models.contacts.Group
 import com.goodwy.commons.views.MyFloatingActionButton
 import com.goodwy.commons.views.MyRecyclerView
@@ -30,6 +30,7 @@ import com.goodwy.contacts.adapters.GroupsAdapter
 import com.goodwy.contacts.databinding.FragmentLayoutBinding
 import com.goodwy.contacts.databinding.FragmentLettersLayoutBinding
 import com.goodwy.contacts.extensions.config
+import com.goodwy.contacts.extensions.setupWithContacts
 import com.goodwy.contacts.helpers.AVOID_CHANGING_TEXT_TAG
 import com.goodwy.contacts.helpers.AVOID_CHANGING_VISIBILITY_TAG
 import com.goodwy.contacts.helpers.Config
@@ -55,6 +56,11 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
         config = activity.config
         if (this.activity == null) {
             this.activity = activity
+
+            val useSurfaceColor = context.isDynamicTheme() && !context.isSystemInDarkMode()
+            val backgroundColor = if (useSurfaceColor) context.getSurfaceColor() else context.getProperBackgroundColor()
+            innerBinding.fragmentWrapper.setBackgroundColor(backgroundColor)
+
             //innerBinding.fragmentFab.beGoneIf(activity is InsertOrEditContactActivity)
             innerBinding.fragmentFab.setOnClickListener {
                 fabClicked()
@@ -90,7 +96,7 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
         }
     }
 
-    fun setupColors(textColor: Int, adjustedPrimaryColor: Int) {
+    fun setupColors(textColor: Int, primaryColor: Int, accentColor: Int) {
         when (this) {
             is GroupsFragment -> (innerBinding.fragmentList.adapter as? GroupsAdapter)?.updateTextColor(textColor)
             else -> (innerBinding.fragmentList.adapter as? ContactsAdapter)?.apply {
@@ -99,14 +105,14 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
         }
 
         context.updateTextColors(innerBinding.fragmentWrapper.parent as ViewGroup)
-        innerBinding.fragmentFastscroller?.updateColors(adjustedPrimaryColor)
-        innerBinding.fragmentPlaceholder2.setTextColor(adjustedPrimaryColor)
+        innerBinding.fragmentFastscroller?.updateColors(primaryColor)
+        innerBinding.fragmentPlaceholder2.setTextColor(primaryColor)
 
         innerBinding.letterFastscroller?.textColor = textColor.getColorStateList()
-        innerBinding.letterFastscroller?.pressedTextColor = adjustedPrimaryColor
+        innerBinding.letterFastscroller?.pressedTextColor = accentColor
         innerBinding.letterFastscrollerThumb?.fontSize = context.getTextSize()
-        innerBinding.letterFastscrollerThumb?.textColor = adjustedPrimaryColor.getContrastColor()
-        innerBinding.letterFastscrollerThumb?.thumbColor = adjustedPrimaryColor.getColorStateList()
+        innerBinding.letterFastscrollerThumb?.textColor = accentColor.getContrastColor()
+        innerBinding.letterFastscrollerThumb?.thumbColor = accentColor.getColorStateList()
     }
 
     fun startNameWithSurnameChanged(startNameWithSurname: Boolean) {
@@ -135,7 +141,9 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
         val filtered = when (this) {
             is GroupsFragment -> contacts
             is FavoritesFragment -> {
-                val favouriteContacts = contacts.filter { it.starred == 1 }
+                val contactSources = activity!!.getVisibleContactSources()
+                val favouriteContacts = contacts
+                    .filter { it.starred == 1 && contactSources.contains(it.source) }
 
                 if (activity!!.config.isCustomOrderSelected) {
                     sortFavourites(favouriteContacts)
@@ -275,26 +283,34 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
     }
 
     fun setupLetterFastscroller(contacts: List<Contact>) {
-        val sorting = context.config.sorting
-        innerBinding.letterFastscroller?.setupWithRecyclerView(innerBinding.fragmentList, { position ->
-            try {
-                val contact = contacts[position]
-                val name = when {
-                    contact.isABusinessContact() -> contact.getFullCompany()
-                    sorting and SORT_BY_SURNAME != 0 && contact.surname.isNotEmpty() -> contact.surname
-                    sorting and SORT_BY_MIDDLE_NAME != 0 && contact.middleName.isNotEmpty() -> contact.middleName
-                    sorting and SORT_BY_FIRST_NAME != 0 && contact.firstName.isNotEmpty() -> contact.firstName
-                    context.config.startNameWithSurname -> contact.surname
-                    else -> contact.getNameToDisplay()
-                }
+//        val sorting = context.config.sorting
+//        innerBinding.letterFastscroller?.setupWithRecyclerView(innerBinding.fragmentList, { position ->
+//            try {
+//                val contact = contacts[position]
+//                val firstName = if (showNicknameInsteadNames && contact.nickname.isBlank()) contact.nickname else contact.firstName
+//                var name = when {
+//                    contact.isABusinessContact() -> contact.getFullCompany()
+//                    sorting and SORT_BY_SURNAME != 0 && contact.surname.isNotEmpty() -> contact.surname
+//                    sorting and SORT_BY_MIDDLE_NAME != 0 && contact.middleName.isNotEmpty() -> contact.middleName
+//                    sorting and SORT_BY_FIRST_NAME != 0 && firstName.isNotEmpty() -> firstName
+//                    context.config.startNameWithSurname -> contact.surname
+//                    else -> contact.getNameToDisplay()
+//                }
+//
+//                if (name.isEmpty()) {
+//                    name = contact.getNameToDisplay()
+//                }
+//
+//                val emoji = name.take(2)
+//                val character = if (emoji.isEmoji()) emoji else if (name.isNotEmpty()) name.substring(0, 1) else ""
+//                FastScrollItemIndicator.Text(character.normalizeString().uppercase(Locale.getDefault()))
+//            } catch (_: Exception) {
+//                FastScrollItemIndicator.Text("")
+//            }
+//        })
 
-                val emoji = name.take(2)
-                val character = if (emoji.isEmoji()) emoji else if (name.isNotEmpty()) name.substring(0, 1) else ""
-                FastScrollItemIndicator.Text(character.normalizeString().toUpperCase(Locale.getDefault()))
-            } catch (e: Exception) {
-                FastScrollItemIndicator.Text("")
-            }
-        })
+        // Unified with Dialer
+        innerBinding.letterFastscroller?.setupWithContacts(innerBinding.fragmentList, contacts)
     }
 
     fun fontSizeChanged() {
@@ -324,7 +340,7 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
             val filtered = contactsIgnoringSearch.filter {
                 getProperText(it.getNameToDisplay(), shouldNormalize).contains(fixedText, true) ||
                     getProperText(it.nickname, shouldNormalize).contains(fixedText, true) ||
-                    (fixedText.toIntOrNull() != null && it.phoneNumbers.any {
+                    (fixedText.toLongOrNull() != null && it.phoneNumbers.any {
                         fixedText.normalizePhoneNumber().isNotEmpty() && it.normalizedNumber.contains(fixedText.normalizePhoneNumber(), true)
                     }) ||
                     it.emails.any { it.value.contains(fixedText, true) } ||
@@ -349,7 +365,7 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
             }
 
             innerBinding.fragmentPlaceholder.beVisibleIf(filtered.isEmpty())
-            (adapter as? ContactsAdapter)?.updateItems(filtered, fixedText.normalizeString())
+            adapter.updateItems(filtered, fixedText.normalizeString())
             setupLetterFastscroller(filtered)
         } else if (adapter is GroupsAdapter) {
             val filtered = groupsIgnoringSearch.filter {
@@ -361,7 +377,7 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
             }
 
             innerBinding.fragmentPlaceholder.beVisibleIf(filtered.isEmpty())
-            (adapter as? GroupsAdapter)?.updateItems(filtered, fixedText)
+            adapter.updateItems(filtered, text)
         }
     }
 

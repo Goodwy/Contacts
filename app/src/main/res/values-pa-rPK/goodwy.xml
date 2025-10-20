@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">میسنجرز دے اعمال</string>
 
     <!-- Settings -->
-    <string name="country">ملک</string>
     <string name="ringtone_for_private_contact">نجی رابطے لئی رنگ ٹون دستیاب نئیں</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">گلی</string>
-    <string name="neighborhood">اپارٹمنٹ یا سوٹ نمبر</string>
-    <string name="city">شہر</string>
-    <string name="postcode">پوسٹل کوڈ</string>
-    <string name="pobox">ڈاک خانے دا ڈبہ</string>
-    <string name="region">خطہ</string>
+    <string name="show_private_contacts_g">دائیں ڈائلر اور دائیں پیغامات پر نجی رابطے دکھائیں۔</string>
 
 </resources>

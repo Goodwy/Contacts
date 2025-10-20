@@ -3,16 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Радње са месинџерима</string>
+    <string name="messengers_actions_g">Акције Месинџера</string>
 
     <!-- Settings -->
-    <string name="country">Држава</string>
     <string name="ringtone_for_private_contact">Мелодија звона није доступна за приватни контакт</string>
-    <string name="show_private_contacts_g">Прикажи приватне контакте у апликацијама Right Dialer и Right Messages</string>
-    <string name="street">Улица</string>
-    <string name="neighborhood">Број стана или апартмана</string>
-    <string name="city">Цити</string>
-    <string name="postcode">Поштански број</string>
-    <string name="pobox">Поштански сандучић</string>
-    <string name="region">Регион</string>
+    <string name="show_private_contacts_g">Прикажи приватне контакте апликацијама Right Dialer и Right Messages</string>
 </resources>

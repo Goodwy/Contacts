@@ -3,16 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
-    <string name="street">Street</string>
-    <string name="neighborhood">Apartment or suite number</string>
-    <string name="city">City</string>
-    <string name="postcode">Postal code</string>
-    <string name="pobox">Post office box</string>
-    <string name="region">State</string>
-    <string name="country">Country</string>
+    <string name="messengers_actions_g">Gníomhartha teachtairí</string>
 
     <!-- Settings -->
     <string name="ringtone_for_private_contact">Níl an ringtone ar fáil le haghaidh teagmhála príobháideach</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="show_private_contacts_g">Taispeáin teagmhálacha príobháideacha don Dialer Ceart agus do Theachtaireachtaí Ceart</string>
 </resources>

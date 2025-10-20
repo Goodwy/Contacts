@@ -1,6 +1,5 @@
 package com.goodwy.contacts.adapters
 
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.LayerDrawable
 import android.util.SparseArray
 import android.util.TypedValue
@@ -30,8 +29,13 @@ import kotlin.math.abs
 import androidx.core.graphics.drawable.toDrawable
 
 class SelectContactsAdapter(
-    val activity: SimpleActivity, var contacts: ArrayList<Contact>, private val selectedContacts: ArrayList<Contact>, private val allowPickMultiple: Boolean,
-    recyclerView: MyRecyclerView, private val itemClick: ((Contact) -> Unit)? = null
+    val activity: SimpleActivity,
+    var contacts: ArrayList<Contact>,
+    private val selectedContacts: HashSet<Contact>,
+    private val allowPickMultiple: Boolean,
+    recyclerView: MyRecyclerView,
+    private val onSelectionChanged: ((HashSet<Contact>) -> Unit)? = null,
+    private val itemClick: ((Contact) -> Unit)? = null
 ) :
     RecyclerView.Adapter<SelectContactsAdapter.ViewHolder>() {
     private val itemViews = SparseArray<View>()
@@ -47,33 +51,52 @@ class SelectContactsAdapter(
     private var textToHighlight = ""
 
     init {
-        contacts.forEachIndexed { index, contact ->
-            if (selectedContacts.asSequence().map { it.id }.contains(contact.id)) {
-                selectedPositions.add(index)
-            }
-        }
+        updateSelectedPositions()
 
         if (recyclerView.itemDecorationCount > 0) {
             recyclerView.removeItemDecorationAt(0)
         }
     }
 
+    private fun updateSelectedPositions() {
+        selectedPositions.clear()
+        contacts.forEachIndexed { index, contact ->
+            if (selectedContacts.contains(contact)) {
+                selectedPositions.add(index)
+            }
+        }
+    }
+
     private fun toggleItemSelection(select: Boolean, pos: Int) {
+        val contact = contacts.getOrNull(pos) ?: return
+
         if (select) {
             if (itemViews[pos] != null) {
                 selectedPositions.add(pos)
+                selectedContacts.add(contact)
             }
         } else {
             selectedPositions.remove(pos)
+            selectedContacts.remove(contact)
         }
 
-        itemBindingClass.bind(itemViews[pos]).contactCheckbox.isChecked = select
+        // We notify you of a change in choice
+        onSelectionChanged?.invoke(selectedContacts)
+
+        // Updating UI
+        itemViews[pos]?.let { view ->
+            itemBindingClass.bind(view).contactCheckbox.isChecked = select
+        }
+    }
+
+    fun updateContacts(newContacts: ArrayList<Contact>) {
+        contacts = newContacts
+        updateSelectedPositions()
+        notifyDataSetChanged()
     }
 
     fun getSelectedItemsSet(): HashSet<Contact> {
-        val selectedItemsSet = HashSet<Contact>(selectedPositions.size)
-        selectedPositions.forEach { selectedItemsSet.add(contacts[it]) }
-        return selectedItemsSet
+        return selectedContacts
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -100,7 +123,11 @@ class SelectContactsAdapter(
         fun bindView(contact: Contact): View {
             itemBindingClass.bind(itemView).apply {
                 contactCheckbox.beVisibleIf(allowPickMultiple)
-                contactCheckbox.setColors(root.context.getProperTextColor(), root.context.getProperPrimaryColor(), root.context.getProperBackgroundColor())
+                contactCheckbox.setColors(
+                    textColor = root.context.getProperTextColor(),
+                    accentColor = root.context.getProperAccentColor(),
+                    backgroundColor = root.context.getProperBackgroundColor()
+                )
                 val textColor = root.context.getProperTextColor()
 
                 val fullName = contact.getNameToDisplay()
@@ -141,6 +168,7 @@ class SelectContactsAdapter(
                 if (showContactThumbnails) {
                     val avatarName = when {
                         contact.isABusinessContact() -> contact.getFullCompany()
+                        config.showNicknameInsteadNames -> contact.nickname
                         config.startNameWithSurname -> contact.surname
                         else -> contact.firstName
                     }

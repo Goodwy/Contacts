@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Messenger 操作</string>
 
     <!-- Settings -->
-    <string name="country">國家</string>
     <string name="ringtone_for_private_contact">鈴聲不可用於私人聯繫人</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">街</string>
-    <string name="neighborhood">公寓或套房編號</string>
-    <string name="city">城市</string>
-    <string name="postcode">郵遞區號</string>
-    <string name="pobox">郵政信箱</string>
-    <string name="region">地區</string>
+    <string name="show_private_contacts_g">向 Right Dialer 和 Right Messages 顯示私人聯絡人</string>
 
 </resources>

@@ -141,8 +141,8 @@ class SettingsActivity : SimpleActivity() {
 
         setupCustomizeColors()
         setupShowDialpadButton()
-        setupMaterialDesign3()
         setupOverflowIcon()
+        setupFloatingButtonStyle()
         setupUseColoredContacts()
         setupContactsColorList()
 
@@ -177,6 +177,7 @@ class SettingsActivity : SimpleActivity() {
         setupContactThumbnailsSize()
         setupShowPhoneNumbers()
         setupStartNameWithSurname()
+        setupShowNicknameInsteadNames()
         setupChangeColourTopBar()
 
         setupExportContacts()
@@ -210,7 +211,7 @@ class SettingsActivity : SimpleActivity() {
             binding.settingsBackupsHolder,
             binding.settingsOtherHolder
         ).forEach {
-            it.setCardBackgroundColor(getBottomNavigationBackgroundColor())
+            it.setCardBackgroundColor(getSurfaceColor())
         }
 
         arrayOf(
@@ -230,24 +231,13 @@ class SettingsActivity : SimpleActivity() {
 
     private fun setupPurchaseThankYou() = binding.apply {
         settingsPurchaseThankYouHolder.beGoneIf(isPro())
-        settingsPurchaseThankYouHolder.setOnClickListener {
-            launchPurchase()
-        }
-        moreButton.setOnClickListener {
-            launchPurchase()
-        }
-        val appDrawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.ic_plus_support, getProperPrimaryColor())
-        purchaseLogo.setImageDrawable(appDrawable)
-        val drawable = resources.getColoredDrawableWithColor(this@SettingsActivity, com.goodwy.commons.R.drawable.button_gray_bg, getProperPrimaryColor())
-        moreButton.background = drawable
-        moreButton.setTextColor(getProperBackgroundColor())
-        moreButton.setPadding(2, 2, 2, 2)
+        settingsPurchaseThankYouHolder.onClick = { launchPurchase() }
     }
 
     private fun setupCustomizeColors() = binding.apply {
         settingsCustomizeColorsHolder.setOnClickListener {
             startCustomizationActivity(
-                showAccentColor = false,
+                showAccentColor = true,
                 productIdList = arrayListOf(productIdX1, productIdX2, productIdX3),
                 productIdListRu = arrayListOf(productIdX1, productIdX2, productIdX3),
                 subscriptionIdList = arrayListOf(subscriptionIdX1, subscriptionIdX2, subscriptionIdX3),
@@ -284,7 +274,7 @@ class SettingsActivity : SimpleActivity() {
 
             RadioGroupIconDialog(this@SettingsActivity, items, config.screenSlideAnimation, com.goodwy.strings.R.string.screen_slide_animation) {
                 config.screenSlideAnimation = it as Int
-                config.tabsChanged = true
+                config.needRestart = true
                 binding.settingsScreenSlideAnimation.text = getScreenSlideAnimationText()
             }
         }
@@ -346,7 +336,7 @@ class SettingsActivity : SimpleActivity() {
             val checkedItemId = if (config.bottomNavigationBar) 1 else 0
             RadioGroupIconDialog(this@SettingsActivity, items, checkedItemId, com.goodwy.strings.R.string.tab_navigation) {
                 config.bottomNavigationBar = it == 1
-                config.tabsChanged = true
+                config.needRestart = true
                 binding.settingsNavigationBarStyle.text = getNavigationBarStyleText()
                 binding.settingsChangeColourTopBarHolder.beVisibleIf(config.bottomNavigationBar)
             }
@@ -365,7 +355,7 @@ class SettingsActivity : SimpleActivity() {
             RadioGroupDialog(this@SettingsActivity, items, config.fontSize, com.goodwy.commons.R.string.font_size) {
                 config.fontSize = it as Int
                 binding.settingsFontSize.text = getFontSizeText()
-                config.tabsChanged = true
+                config.needRestart = true
             }
         }
     }
@@ -417,7 +407,7 @@ class SettingsActivity : SimpleActivity() {
                 RadioGroupDialog(this@SettingsActivity, items, config.contactThumbnailsSize, com.goodwy.strings.R.string.contact_thumbnails_size) {
                     config.contactThumbnailsSize = it as Int
                     settingsContactThumbnailsSize.text = getContactThumbnailsSizeText()
-                    config.tabsChanged = true
+                    config.needRestart = true
                 }
             } else {
                 RxAnimation.from(settingsContactThumbnailsSizeHolder)
@@ -453,7 +443,7 @@ class SettingsActivity : SimpleActivity() {
         binding.settingsFormatPhoneNumbersHolder.setOnClickListener {
             binding.settingsFormatPhoneNumbers.toggle()
             config.formatPhoneNumbers = binding.settingsFormatPhoneNumbers.isChecked
-            config.tabsChanged = true
+            config.needRestart = true
         }
     }
 
@@ -477,6 +467,17 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    private fun setupShowNicknameInsteadNames() {
+        binding.apply {
+            settingsShowNicknameInsteadNames.isChecked = config.showNicknameInsteadNames
+            settingsShowNicknameInsteadNamesHolder.setOnClickListener {
+                settingsShowNicknameInsteadNames.toggle()
+                config.showNicknameInsteadNames = settingsShowNicknameInsteadNames.isChecked
+                config.needRestart = true
+            }
+        }
+    }
+
     private fun setupChangeColourTopBar() {
         binding.apply {
             settingsChangeColourTopBarHolder.beVisibleIf(config.bottomNavigationBar)
@@ -484,7 +485,7 @@ class SettingsActivity : SimpleActivity() {
             settingsChangeColourTopBarHolder.setOnClickListener {
                 settingsChangeColourTopBar.toggle()
                 config.changeColourTopBar = settingsChangeColourTopBar.isChecked
-                config.tabsChanged = true
+                config.needRestart = true
             }
         }
     }
@@ -656,7 +657,7 @@ class SettingsActivity : SimpleActivity() {
 
                 try {
                     startActivityForResult(this, PICK_IMPORT_SOURCE_INTENT)
-                } catch (e: ActivityNotFoundException) {
+                } catch (_: ActivityNotFoundException) {
                     toast(com.goodwy.commons.R.string.system_service_disabled, Toast.LENGTH_LONG)
                 } catch (e: Exception) {
                     showErrorToast(e)
@@ -689,7 +690,7 @@ class SettingsActivity : SimpleActivity() {
 
                     try {
                         startActivityForResult(this, PICK_EXPORT_FILE_INTENT)
-                    } catch (e: ActivityNotFoundException) {
+                    } catch (_: ActivityNotFoundException) {
                         toast(com.goodwy.commons.R.string.no_app_found, Toast.LENGTH_LONG)
                     } catch (e: Exception) {
                         showErrorToast(e)
@@ -714,7 +715,12 @@ class SettingsActivity : SimpleActivity() {
             if (contacts.isEmpty()) {
                 toast(com.goodwy.commons.R.string.no_entries_for_exporting)
             } else {
-                VcfExporter().exportContacts(this, outputStream, contacts, true) { result ->
+                VcfExporter().exportContacts(
+                    context = this,
+                    outputStream = outputStream,
+                    contacts = contacts,
+                    showExportingToast = true
+                ) { result ->
                     toast(
                         when (result) {
                             VcfExporter.ExportResult.EXPORT_OK -> com.goodwy.commons.R.string.exporting_successful
@@ -729,25 +735,14 @@ class SettingsActivity : SimpleActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
-        if (requestCode == PICK_IMPORT_SOURCE_INTENT && resultCode == Activity.RESULT_OK && resultData?.data != null) {
+        if (requestCode == PICK_IMPORT_SOURCE_INTENT && resultCode == RESULT_OK && resultData?.data != null) {
             tryImportContactsFromFile(resultData.data!!) {}
-        } else if (requestCode == PICK_EXPORT_FILE_INTENT && resultCode == Activity.RESULT_OK && resultData?.data != null) {
+        } else if (requestCode == PICK_EXPORT_FILE_INTENT && resultCode == RESULT_OK && resultData?.data != null) {
             try {
                 val outputStream = contentResolver.openOutputStream(resultData.data!!)
                 exportContactsTo(ignoredExportContactSources, outputStream)
             } catch (e: Exception) {
                 showErrorToast(e)
-            }
-        }
-    }
-
-    private fun setupMaterialDesign3() {
-        binding.apply {
-            settingsMaterialDesign3.isChecked = config.materialDesign3
-            settingsMaterialDesign3Holder.setOnClickListener {
-                settingsMaterialDesign3.toggle()
-                config.materialDesign3 = settingsMaterialDesign3.isChecked
-                config.tabsChanged = true
             }
         }
     }
@@ -783,13 +778,48 @@ class SettingsActivity : SimpleActivity() {
         }
     }
 
+    private fun setupFloatingButtonStyle() {
+        binding.apply {
+            settingsFloatingButtonStyle.applyColorFilter(getProperTextColor())
+            settingsFloatingButtonStyle.setImageResource(
+                if (baseConfig.materialDesign3) com.goodwy.commons.R.drawable.squircle_bg else com.goodwy.commons.R.drawable.ic_circle_filled
+            )
+            settingsFloatingButtonStyleHolder.setOnClickListener {
+                val items = arrayListOf(
+                    com.goodwy.commons.R.drawable.ic_circle_filled,
+                    com.goodwy.commons.R.drawable.squircle_bg
+                )
+
+                IconListDialog(
+                    activity = this@SettingsActivity,
+                    items = items,
+                    checkedItemId = if (baseConfig.materialDesign3) 2 else 1,
+                    defaultItemId = 1,
+                    titleId = com.goodwy.strings.R.string.floating_button_style,
+                    size = pixels(com.goodwy.commons.R.dimen.normal_icon_size).toInt(),
+                    color = getProperTextColor()
+                ) { wasPositivePressed, newValue ->
+                    if (wasPositivePressed) {
+                        if (newValue != if (baseConfig.materialDesign3) 2 else 1) {
+                            baseConfig.materialDesign3 = newValue == 2
+                            settingsFloatingButtonStyle.setImageResource(
+                                if (newValue == 2) com.goodwy.commons.R.drawable.squircle_bg else com.goodwy.commons.R.drawable.ic_circle_filled
+                            )
+                            config.needRestart = true
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun setupUseIconTabs() {
         binding.apply {
             settingsUseIconTabs.isChecked = config.useIconTabs
             settingsUseIconTabsHolder.setOnClickListener {
                 settingsUseIconTabs.toggle()
                 config.useIconTabs = settingsUseIconTabs.isChecked
-                config.tabsChanged = true
+                config.needRestart = true
             }
         }
     }
@@ -835,7 +865,7 @@ class SettingsActivity : SimpleActivity() {
                     if (config.contactColorList != newValue) {
                         config.contactColorList = newValue
                         settingsContactColorListIcon.setImageResource(getContactsColorListIcon(config.contactColorList))
-                        config.tabsChanged = true
+                        config.needRestart = true
                     }
                 }
             }
@@ -849,7 +879,7 @@ class SettingsActivity : SimpleActivity() {
             settingsUseSwipeToActionHolder.setOnClickListener {
                 settingsUseSwipeToAction.toggle()
                 config.useSwipeToAction = settingsUseSwipeToAction.isChecked
-                config.tabsChanged = true
+                config.needRestart = true
                 updateSwipeToActionVisible()
             }
         }
@@ -871,7 +901,7 @@ class SettingsActivity : SimpleActivity() {
             settingsSwipeVibrationHolder.setOnClickListener {
                 settingsSwipeVibration.toggle()
                 config.swipeVibration = settingsSwipeVibration.isChecked
-                config.tabsChanged = true
+                config.needRestart = true
             }
         }
     }
@@ -882,7 +912,7 @@ class SettingsActivity : SimpleActivity() {
             settingsSwipeRippleHolder.setOnClickListener {
                 settingsSwipeRipple.toggle()
                 config.swipeRipple = settingsSwipeRipple.isChecked
-                config.tabsChanged = true
+                config.needRestart = true
             }
         }
     }
@@ -896,13 +926,14 @@ class SettingsActivity : SimpleActivity() {
                 RadioItem(SWIPE_ACTION_EDIT, getString(com.goodwy.commons.R.string.edit), icon = com.goodwy.commons.R.drawable.ic_edit_vector),
                 RadioItem(SWIPE_ACTION_CALL, getString(com.goodwy.commons.R.string.call), icon = com.goodwy.commons.R.drawable.ic_phone_vector),
                 RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = R.drawable.ic_messages),
+                RadioItem(SWIPE_ACTION_NONE, getString(com.goodwy.commons.R.string.nothing)),
             )
 
             val title =
                 if (isRTLLayout) com.goodwy.strings.R.string.swipe_left_action else com.goodwy.strings.R.string.swipe_right_action
             RadioGroupIconDialog(this@SettingsActivity, items, config.swipeRightAction, title) {
                 config.swipeRightAction = it as Int
-                config.tabsChanged = true
+                config.needRestart = true
                 settingsSwipeRightAction.text = getSwipeActionText(false)
                 settingsSkipDeleteConfirmationHolder.beVisibleIf(config.swipeLeftAction == SWIPE_ACTION_DELETE || config.swipeRightAction == SWIPE_ACTION_DELETE)
             }
@@ -922,13 +953,14 @@ class SettingsActivity : SimpleActivity() {
                     RadioItem(SWIPE_ACTION_EDIT, getString(com.goodwy.commons.R.string.edit), icon = com.goodwy.commons.R.drawable.ic_edit_vector),
                     RadioItem(SWIPE_ACTION_CALL, getString(com.goodwy.commons.R.string.call), icon = com.goodwy.commons.R.drawable.ic_phone_vector),
                     RadioItem(SWIPE_ACTION_MESSAGE, getString(com.goodwy.commons.R.string.send_sms), icon = R.drawable.ic_messages),
+                    RadioItem(SWIPE_ACTION_NONE, getString(com.goodwy.commons.R.string.nothing)),
                 )
 
                 val title =
                     if (isRTLLayout) com.goodwy.strings.R.string.swipe_right_action else com.goodwy.strings.R.string.swipe_left_action
                 RadioGroupIconDialog(this@SettingsActivity, items, config.swipeLeftAction, title) {
                     config.swipeLeftAction = it as Int
-                    config.tabsChanged = true
+                    config.needRestart = true
                     settingsSwipeLeftAction.text = getSwipeActionText(true)
                     settingsSkipDeleteConfirmationHolder.beVisibleIf(config.swipeLeftAction == SWIPE_ACTION_DELETE || config.swipeRightAction == SWIPE_ACTION_DELETE)
                 }
@@ -947,7 +979,8 @@ class SettingsActivity : SimpleActivity() {
             SWIPE_ACTION_DELETE -> com.goodwy.commons.R.string.delete
             SWIPE_ACTION_EDIT -> com.goodwy.commons.R.string.edit
             SWIPE_ACTION_CALL -> com.goodwy.commons.R.string.call
-            else -> com.goodwy.commons.R.string.send_sms
+            SWIPE_ACTION_MESSAGE -> com.goodwy.commons.R.string.send_sms
+            else -> com.goodwy.commons.R.string.nothing
         }
     )
 
@@ -965,7 +998,7 @@ class SettingsActivity : SimpleActivity() {
     private fun setupTipJar() = binding.apply {
         settingsTipJarHolder.apply {
             beVisibleIf(isPro())
-            background.applyColorFilter(getBottomNavigationBackgroundColor().lightenColor(4))
+            background.applyColorFilter(getColoredMaterialStatusBarColor())
             setOnClickListener {
                 launchPurchase()
             }
@@ -1050,7 +1083,7 @@ class SettingsActivity : SimpleActivity() {
         val bgDrawable = ResourcesCompat.getDrawable(view.resources, com.goodwy.commons.R.drawable.button_background_16dp, null)
         snackbar.view.background = bgDrawable
         val properBackgroundColor = getProperBackgroundColor()
-        val backgroundColor = if (properBackgroundColor == Color.BLACK) getBottomNavigationBackgroundColor().lightenColor(6) else getBottomNavigationBackgroundColor().darkenColor(6)
+        val backgroundColor = if (properBackgroundColor == Color.BLACK) getSurfaceColor().lightenColor(6) else getSurfaceColor().darkenColor(6)
         snackbar.setBackgroundTint(backgroundColor)
         snackbar.setTextColor(getProperTextColor())
         snackbar.setActionTextColor(getProperPrimaryColor())

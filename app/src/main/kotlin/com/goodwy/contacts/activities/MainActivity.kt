@@ -12,6 +12,7 @@ import android.graphics.drawable.Icon
 import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.os.Handler
+import android.speech.RecognizerIntent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -72,19 +73,27 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     private var storedShowTabs = 0
     private var storedBackgroundColor = 0
     private var currentOldScrollY = 0
+    private var isSpeechToTextAvailable = false
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        isMaterialActivity = true
+        updateNavigationBarColor = false
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         appLaunched(BuildConfig.APPLICATION_ID)
         setupOptionsMenu()
         refreshMenuItems()
         val useBottomNavigationBar = config.bottomNavigationBar
-        updateMaterialActivityViews(binding.mainCoordinator, binding.mainHolder, useTransparentNavigation = false, useTopSearchMenu = useBottomNavigationBar)
+        updateMaterialActivityViews(
+            binding.mainCoordinator,
+            binding.mainHolder,
+            useTransparentNavigation = false,
+            useTopSearchMenu = useBottomNavigationBar
+        )
         storeStateVariables()
-        setupTabs()
         checkContactPermissions()
+        setupTabs()
         checkWhatsNewDialog()
 
         // TODO TRANSPARENT Navigation Bar
@@ -126,7 +135,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
 
         @SuppressLint("UnsafeIntentLaunch")
-        if (config.tabsChanged || storedBackgroundColor != getProperBackgroundColor()) {
+        if (config.needRestart || storedBackgroundColor != getProperBackgroundColor()) {
             config.lastUsedViewPagerPage = 0
             finish()
             startActivity(intent)
@@ -141,15 +150,20 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         }
 
         val properPrimaryColor = getProperPrimaryColor()
-        val properBackgroundColor = getProperBackgroundColor()
-        getAllFragments().forEach {
-            it?.setupColors(getProperTextColor(), properPrimaryColor)
-            it?.setBackgroundColor(properBackgroundColor)
+        val dialpadIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_dialpad_vector, properPrimaryColor.getContrastColor())
+        binding.mainDialpadButton.apply {
+            setImageDrawable(dialpadIcon)
+            beVisibleIf(config.showDialpadButton)
         }
+        val addIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_plus_vector, properPrimaryColor.getContrastColor())
+        binding.mainAddButton.setImageDrawable(addIcon)
 
-        setupTabColors()
         updateTextColors(binding.mainCoordinator)
-        binding.mainMenu.updateColors(getStartRequiredStatusBarColor(), scrollingView?.computeVerticalScrollOffset() ?: 0)
+        setupTabColors()
+        binding.mainMenu.updateColors(
+            background = getStartRequiredStatusBarColor(),
+            scrollOffset = scrollingView?.computeVerticalScrollOffset() ?: 0
+        )
 
         val configStartNameWithSurname = config.startNameWithSurname
         if (storedStartNameWithSurname != configStartNameWithSurname) {
@@ -171,14 +185,6 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 if (!binding.mainMenu.isSearchOpen) refreshContacts(ALL_TABS_MASK)
             }
         }
-
-        val dialpadIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_dialpad_vector, properPrimaryColor.getContrastColor())
-        binding.mainDialpadButton.apply {
-            setImageDrawable(dialpadIcon)
-            beVisibleIf(config.showDialpadButton)
-        }
-        val addIcon = resources.getColoredDrawableWithColor(com.goodwy.commons.R.drawable.ic_plus_vector, properPrimaryColor.getContrastColor())
-        binding.mainAddButton.setImageDrawable(addIcon)
 
         isFirstResume = false
         checkShortcuts()
@@ -205,7 +211,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         if (!isChangingConfigurations) {
             ContactsDatabase.destroyInstance()
         }
-        config.tabsChanged = false
+        config.needRestart = false
     }
 
     override fun onBackPressed() {
@@ -215,6 +221,21 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             mSearchMenuItem!!.collapseActionView()
         } else {
             super.onBackPressed()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == REQUEST_CODE_SPEECH_INPUT && resultCode == RESULT_OK) {
+            if (resultData != null) {
+                val res: ArrayList<String> =
+                    resultData.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS) as ArrayList<String>
+
+                val speechToText =  Objects.requireNonNull(res)[0]
+                if (speechToText.isNotEmpty()) {
+                    binding.mainMenu.setText(speechToText)
+                }
+            }
         }
     }
 
@@ -235,11 +256,20 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         binding.mainMenu.toggleHideOnScroll(false)
 
         if (config.bottomNavigationBar) {
+            if (baseConfig.useSpeechToText) {
+                isSpeechToTextAvailable = isSpeechToTextAvailable()
+                binding.mainMenu.showSpeechToText = isSpeechToTextAvailable
+            }
+
             binding.mainMenu.setupMenu()
+
+            binding.mainMenu.onSpeechToTextClickListener = {
+                speechToText()
+            }
+
             binding.mainMenu.onSearchClosedListener = {
                 getAllFragments().forEach {
                     it?.onSearchQueryChanged("")
-//                it?.onSearchClosed()
                 }
             }
 
@@ -297,7 +327,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             storedStartNameWithSurname = startNameWithSurname
             storedShowTabs = showTabs
             storedFontSize = fontSize
-            tabsChanged = false
+            needRestart = false
         }
         storedBackgroundColor = getProperBackgroundColor()
     }
@@ -377,7 +407,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             val createNewContact = getCreateNewContactShortcut(iconColor)
 
             try {
-                shortcutManager.dynamicShortcuts = Arrays.asList(createNewContact)
+                shortcutManager.dynamicShortcuts = listOf(createNewContact)
                 config.lastHandledShortcutColor = iconColor
             } catch (ignored: Exception) {
             }
@@ -421,6 +451,8 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
     }
 
     private fun setupTabColors() {
+        if (isDynamicTheme() && !isSystemInDarkMode()) binding.mainHolder.setBackgroundColor(getSurfaceColor())
+
         // bottom tab bar
         if (config.bottomNavigationBar) {
             val activeView = binding.mainTabsHolder.getTabAt(binding.viewPager.currentItem)?.customView
@@ -431,7 +463,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 updateBottomTabItemColors(inactiveView, false, getDeselectedTabDrawableIds()[index])
             }
 
-            val bottomBarColor = getBottomNavigationBackgroundColor()
+            val bottomBarColor =
+                if (isDynamicTheme() && !isSystemInDarkMode()) getColoredMaterialStatusBarColor()
+                else getSurfaceColor()
             binding.mainTabsHolder.setBackgroundColor(bottomBarColor)
             if (binding.mainTabsHolder.tabCount != 1) updateNavigationBarColor(bottomBarColor)
             else {
@@ -443,11 +477,21 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                     }
                 }
             }
+
+            val properTextColor = getProperTextColor()
+            val properPrimaryColor = getProperPrimaryColor()
+            getAllFragments().forEach {
+                it?.setupColors(properTextColor, properPrimaryColor, getProperAccentColor())
+                binding.mainTopTabsHolder.setTabTextColors(properTextColor, properPrimaryColor)
+            }
         } else {
             // top tab bar
+            val properTextColor = getProperTextColor()
+            val properPrimaryColor = getProperPrimaryColor()
+
             if (binding.viewPager.adapter != null) {
 
-                if (config.tabsChanged) {
+                if (config.needRestart) {
                     if (config.useIconTabs) {
                         binding.mainTopTabsHolder.getTabAt(0)?.text = null
                         binding.mainTopTabsHolder.getTabAt(1)?.text = null
@@ -460,16 +504,16 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 }
 
                 getInactiveTabIndexes(binding.viewPager.currentItem).forEach {
-                    binding.mainTopTabsHolder.getTabAt(it)?.icon?.applyColorFilter(getProperTextColor())
+                    binding.mainTopTabsHolder.getTabAt(it)?.icon?.applyColorFilter(properTextColor)
                     binding.mainTopTabsHolder.getTabAt(it)?.icon?.alpha = 220 // max 255
-                    binding.mainTopTabsHolder.setTabTextColors(getProperTextColor(), getProperPrimaryColor())
+                    binding.mainTopTabsHolder.setTabTextColors(properTextColor, properPrimaryColor)
                 }
 
-                binding.mainTopTabsHolder.getTabAt(binding.viewPager.currentItem)?.icon?.applyColorFilter(getProperPrimaryColor())
+                binding.mainTopTabsHolder.getTabAt(binding.viewPager.currentItem)?.icon?.applyColorFilter(properPrimaryColor)
                 binding.mainTopTabsHolder.getTabAt(binding.viewPager.currentItem)?.icon?.alpha = 220 // max 255
                 getAllFragments().forEach {
-                    it?.setupColors(getProperTextColor(), getProperPrimaryColor())
-                    binding.mainTopTabsHolder.setTabTextColors(getProperTextColor(), getProperPrimaryColor())
+                    it?.setupColors(properTextColor, properPrimaryColor, getProperAccentColor())
+                    binding.mainTopTabsHolder.setTabTextColors(properTextColor, properPrimaryColor)
                 }
             }
 
@@ -478,18 +522,18 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                 //background = ColorDrawable(getProperBackgroundColor())
                 setSelectedTabIndicatorColor(getProperBackgroundColor())
                 getTabAt(lastUsedPage)?.select()
-                getTabAt(lastUsedPage)?.icon?.applyColorFilter(getProperPrimaryColor())
+                getTabAt(lastUsedPage)?.icon?.applyColorFilter(properPrimaryColor)
                 getTabAt(lastUsedPage)?.icon?.alpha = 220 // max 255
 
                 getInactiveTabIndexes(lastUsedPage).forEach {
-                    getTabAt(it)?.icon?.applyColorFilter(getProperTextColor())
+                    getTabAt(it)?.icon?.applyColorFilter(properTextColor)
                     getTabAt(it)?.icon?.alpha = 220 // max 255
                 }
             }
 
             binding.mainTopTabsHolder.onTabSelectionChanged(
                 tabUnselectedAction = {
-                    it.icon?.applyColorFilter(getProperTextColor())
+                    it.icon?.applyColorFilter(properTextColor)
                     it.icon?.alpha = 220 // max 255
                 },
                 tabSelectedAction = {
@@ -502,7 +546,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
                     }
 
                     binding.viewPager.currentItem = it.position
-                    it.icon?.applyColorFilter(getProperPrimaryColor())
+                    it.icon?.applyColorFilter(properPrimaryColor)
                     it.icon?.alpha = 220 // max 255
 
                     if (config.openSearch) {
@@ -560,12 +604,13 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         binding.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrollStateChanged(state: Int) {}
 
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                if (config.bottomNavigationBar && config.changeColourTopBar) scrollChange()
+            }
 
             override fun onPageSelected(position: Int) {
                 if (config.bottomNavigationBar) {
                     binding.mainTabsHolder.getTabAt(position)?.select()
-                    if (config.changeColourTopBar) scrollChange()
                 } else binding.mainTopTabsHolder.getTabAt(position)?.select()
 
                 getAllFragments().forEach {
@@ -581,16 +626,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             if (config.bottomNavigationBar && config.changeColourTopBar) scrollChange()
         }
 
-        if (intent?.action == Intent.ACTION_VIEW && intent.data != null) {
-            tryImportContactsFromFile(intent.data!!) {
-                if (it) {
-                    runOnUiThread {
-                        refreshContacts(ALL_TABS_MASK)
-                    }
-                }
-            }
-            intent.data = null
-        }
+        handleExternalIntent()
 
         binding.mainDialpadButton.setOnClickListener {
             launchDialpad()
@@ -630,44 +666,70 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
         binding.mainTopTabsContainer.beGoneIf(binding.mainTopTabsHolder.tabCount == 1 || config.bottomNavigationBar)
     }
 
+    private fun handleExternalIntent() {
+        val uri = when (intent?.action) {
+            Intent.ACTION_VIEW -> intent.data
+            Intent.ACTION_SEND -> intent.getParcelableExtra(Intent.EXTRA_STREAM)
+            else -> null
+        }
+
+        if (uri != null) {
+            tryImportContactsFromFile(uri) { success ->
+                if (success) {
+                    runOnUiThread {
+                        refreshContacts(ALL_TABS_MASK)
+                    }
+                }
+            }
+            intent.action = null
+        }
+    }
+
     private fun scrollChange() {
         val myRecyclerView = getCurrentFragment()?.myRecyclerView()
         scrollingView = myRecyclerView
+
         val scrollingViewOffset = scrollingView?.computeVerticalScrollOffset() ?: 0
         currentOldScrollY = scrollingViewOffset
-        binding.mainMenu.updateColors(getStartRequiredStatusBarColor(), scrollingViewOffset)
-        setupSearchMenuScrollListenerNew(myRecyclerView, binding.mainMenu)
+
+        val useSurfaceColor = isDynamicTheme() && !isSystemInDarkMode()
+        val backgroundColor = if (useSurfaceColor) getSurfaceColor() else getProperBackgroundColor()
+        val statusBarColor = if (config.changeColourTopBar) getRequiredStatusBarColor(useSurfaceColor) else backgroundColor
+
+        binding.mainMenu.updateColors(statusBarColor, scrollingViewOffset)
+        setupSearchMenuScrollListenerNew(myRecyclerView, binding.mainMenu, useSurfaceColor)
     }
 
-    private fun setupSearchMenuScrollListenerNew(scrollingView: ScrollingView?, searchMenu: MySearchMenu) {
+    private fun setupSearchMenuScrollListenerNew(scrollingView: ScrollingView?, searchMenu: MySearchMenu, surfaceColor: Boolean) {
         this.scrollingView = scrollingView
         this.mySearchMenu = searchMenu
         if (scrollingView is RecyclerView) {
             scrollingView.setOnScrollChangeListener { _, _, _, _, _ ->
                 val newScrollY = scrollingView.computeVerticalScrollOffset()
-                if (newScrollY == 0 || currentOldScrollY == 0) scrollingChanged(newScrollY)
+                if (newScrollY == 0 || currentOldScrollY == 0) scrollingChanged(newScrollY, surfaceColor)
                 currentScrollY = newScrollY
                 currentOldScrollY = currentScrollY
             }
         }
     }
 
-    private fun scrollingChanged(newScrollY: Int) {
+    private fun scrollingChanged(newScrollY: Int, surfaceColor: Boolean) {
         if (newScrollY > 0 && currentOldScrollY == 0) {
-            val colorFrom = window.statusBarColor
+            val colorFrom = if (surfaceColor) getSurfaceColor() else getProperBackgroundColor()
             val colorTo = getColoredMaterialStatusBarColor()
             animateMySearchMenuColors(colorFrom, colorTo)
         } else if (newScrollY == 0 && currentOldScrollY > 0) {
-            val colorFrom = window.statusBarColor
-            val colorTo = getRequiredStatusBarColor()
+            val colorFrom = if (surfaceColor) getSurfaceColor() else getProperBackgroundColor()
+            val colorTo = getRequiredStatusBarColor(surfaceColor)
             animateMySearchMenuColors(colorFrom, colorTo)
         }
     }
 
     private fun getStartRequiredStatusBarColor(): Int {
+        val useSurfaceColor = isDynamicTheme() && !isSystemInDarkMode()
         val scrollingViewOffset = scrollingView?.computeVerticalScrollOffset() ?: 0
         return if (scrollingViewOffset == 0) {
-            getProperBackgroundColor()
+            if (useSurfaceColor) getSurfaceColor() else getProperBackgroundColor()
         } else {
             getColoredMaterialStatusBarColor()
         }
@@ -795,9 +857,9 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
 
             if (refreshTabsMask and TAB_GROUPS != 0) {
                 findViewById<MyViewPagerFragment<*>>(R.id.groups_fragment)?.apply {
-                    if (refreshTabsMask == TAB_GROUPS) {
+//                    if (refreshTabsMask == TAB_GROUPS) {
                         skipHashComparing = true
-                    }
+//                    }
                     refreshContacts(contacts)
                 }
             }
@@ -870,6 +932,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             add(Release(612, R.string.release_612))
             add(Release(620, R.string.release_620))
             add(Release(621, R.string.release_621))
+            add(Release(690, R.string.release_690))
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }

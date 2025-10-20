@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Tindakan pembawa pesan</string>
 
     <!-- Settings -->
-    <string name="country">Negara</string>
     <string name="ringtone_for_private_contact">Nada dering tidak tersedia untuk kontak pribadi</string>
-    <string name="show_private_contacts_g">Tampilkan kontak privat ke Right Dialer dan Right Messages</string>
-    <string name="street">Jalan</string>
-    <string name="neighborhood">Nomor apartemen atau suite</string>
-    <string name="city">Kota</string>
-    <string name="postcode">Kode Pos</string>
-    <string name="pobox">Kotak pos</string>
-    <string name="region">Wilayah</string>
+    <string name="show_private_contacts_g">Tampilkan kontak pribadi ke Right Dialer dan Right Messages</string>
 
 </resources>

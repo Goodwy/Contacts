@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Sõnumitoojate toimingud</string>
 
     <!-- Settings -->
-    <string name="country">Riik</string>
     <string name="ringtone_for_private_contact">Helin pole privaatseks kontaktiks saadaval</string>
-    <string name="show_private_contacts_g">Näita privaatseks märgitud kontakte Right Dialer ja Right Messages</string>
-    <string name="street">Tänav</string>
-    <string name="neighborhood">Korteri või sviidi number</string>
-    <string name="city">Linn</string>
-    <string name="postcode">Sihtnumber</string>
-    <string name="pobox">Postkontori postkast</string>
-    <string name="region">Piirkond</string>
+    <string name="show_private_contacts_g">Näita privaatkontakte Right Dialerile ja Right Messagesile</string>
 
 </resources>

@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds.Email
 import android.provider.ContactsContract.CommonDataKinds.Phone
+import android.speech.RecognizerIntent
 import androidx.viewpager.widget.ViewPager
 import com.goodwy.commons.databinding.BottomTablayoutItemBinding
 import com.goodwy.commons.extensions.*
@@ -26,6 +27,7 @@ import com.goodwy.contacts.helpers.KEY_EMAIL
 import com.goodwy.contacts.helpers.KEY_NAME
 import com.goodwy.contacts.interfaces.RefreshContactsListener
 import androidx.core.graphics.drawable.toDrawable
+import java.util.Objects
 
 class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
     companion object {
@@ -35,6 +37,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
 
     private var isSelectContactIntent = false
     private var specialMimeType: String? = null
+    private var isSpeechToTextAvailable = false
     private val binding by viewBinding(ActivityInsertEditContactBinding::inflate)
 
     private val contactsFavoritesList = arrayListOf(
@@ -92,7 +95,17 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
     private fun setupOptionsMenu() {
         binding.insertEditMenu.getToolbar().inflateMenu(R.menu.menu_insert_or_edit)
         binding.insertEditMenu.toggleHideOnScroll(false)
+
+        if (baseConfig.useSpeechToText) {
+            isSpeechToTextAvailable = isSpeechToTextAvailable()
+            binding.insertEditMenu.showSpeechToText = isSpeechToTextAvailable
+        }
+
         binding.insertEditMenu.setupMenu()
+
+        binding.insertEditMenu.onSpeechToTextClickListener = {
+            speechToText()
+        }
 
         binding.insertEditMenu.onSearchClosedListener = {
             getAllFragments().forEach {
@@ -102,6 +115,7 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
 
         binding.insertEditMenu.onSearchTextChangedListener = { text ->
             getCurrentFragment()?.onSearchQueryChanged(text)
+            binding.insertEditMenu.clearSearch()
         }
 
         binding.insertEditMenu.getToolbar().setOnMenuItemClickListener { menuItem ->
@@ -115,13 +129,26 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
     }
 
     private fun updateMenuColors() {
-        updateStatusbarColor(getProperBackgroundColor())
-        binding.insertEditMenu.updateColors()
+        val useSurfaceColor = isDynamicTheme() && !isSystemInDarkMode()
+        val backgroundColor = if (useSurfaceColor) getSurfaceColor() else getProperBackgroundColor()
+        binding.insertEditContactHolder.setBackgroundColor(backgroundColor)
+        updateStatusbarColor(backgroundColor)
+        binding.insertEditMenu.updateColors(background = backgroundColor)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
-        if (resultCode == Activity.RESULT_OK) {
+        if (requestCode == REQUEST_CODE_SPEECH_INPUT && resultCode == RESULT_OK) {
+            if (resultData != null) {
+                val res: java.util.ArrayList<String> =
+                    resultData.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS) as java.util.ArrayList<String>
+
+                val speechToText =  Objects.requireNonNull(res)[0]
+                if (speechToText.isNotEmpty()) {
+                    binding.insertEditMenu.setText(speechToText)
+                }
+            }
+        } else if (resultCode == RESULT_OK) {
             hideKeyboard()
             finish()
         }
@@ -207,7 +234,12 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
         }
     }
 
-    private fun getAllFragments() = arrayListOf<MyViewPagerFragment<*>?>(findViewById(R.id.favorites_fragment), findViewById(R.id.contacts_fragment))
+    private fun getAllFragments(): ArrayList<MyViewPagerFragment<*>?> {
+        return arrayListOf<MyViewPagerFragment<*>?>(
+            findViewById(R.id.favorites_fragment),
+            findViewById(R.id.contacts_fragment)
+        )
+    }
 
     private fun setupTabColors() {
         val activeView = binding.insertEditTabsHolder.getTabAt(binding.viewPager.currentItem)?.customView
@@ -218,7 +250,9 @@ class InsertOrEditContactActivity : SimpleActivity(), RefreshContactsListener {
             updateBottomTabItemColors(inactiveView, false, getDeselectedTabDrawableIds()[index])
         }
 
-        val bottomBarColor = getBottomNavigationBackgroundColor()
+        val bottomBarColor =
+            if (isDynamicTheme() && !isSystemInDarkMode()) getColoredMaterialStatusBarColor()
+            else getSurfaceColor()
         binding.insertEditTabsHolder.setBackgroundColor(bottomBarColor)
         if (binding.insertEditTabsHolder.tabCount != 1) updateNavigationBarColor(bottomBarColor)
         else {

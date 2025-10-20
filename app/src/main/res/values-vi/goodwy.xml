@@ -3,16 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Hành động của người đưa tin</string>
 
     <!-- Settings -->
-    <string name="country">Quốc gia</string>
     <string name="ringtone_for_private_contact">Nhạc chuông không có sẵn để liên hệ riêng tư</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">Lộ</string>
-    <string name="neighborhood">Số căn hộ hoặc dãy phòng</string>
-    <string name="city">Thành phố</string>
-    <string name="postcode">Mã bưu chính</string>
-    <string name="pobox">Hộp thư bưu điện</string>
-    <string name="region">Vùng</string>
+    <string name="show_private_contacts_g">Hiển thị danh bạ riêng tư cho Right Dialer và Right Messages</string>
 </resources>

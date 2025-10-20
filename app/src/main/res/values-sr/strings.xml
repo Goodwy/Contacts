@@ -78,4 +78,11 @@
     </plurals>
     <string name="faq_1_title">Желим да променим која су поља видљива у контактима. Могу ли ја то урадити\?</string>
     <string name="faq_1_text">Да, све што треба да урадите је да одете у Подешавања -&gt; Видљивост поља контакта. Тамо можете изабрати која поља треба да буду видљива. Нека од њих су чак и подразумевано онемогућена, тако да ћете можда тамо пронаћи неке нове.</string>
+    <string name="street">Улица</string>
+    <string name="neighborhood">Број стана или апартмана</string>
+    <string name="city">Град</string>
+    <string name="postcode">Поштански број</string>
+    <string name="pobox">Поштанска кутија</string>
+    <string name="region">Савезна држава</string>
+    <string name="country">Држава</string>
 </resources>

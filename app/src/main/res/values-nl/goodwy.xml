@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Acties van boodschappers</string>
 
     <!-- Settings -->
-    <string name="country">Land</string>
     <string name="ringtone_for_private_contact">Beltoon is niet beschikbaar voor privécontact</string>
-    <string name="show_private_contacts_g">Privécontacten tonen aan Right Dialer en Right Messages</string>
-    <string name="street">Straat</string>
-    <string name="neighborhood">Appartement of suite nummer</string>
-    <string name="city">Stad</string>
-    <string name="postcode">Postcode</string>
-    <string name="pobox">Postbus</string>
-    <string name="region">Regio</string>
+    <string name="show_private_contacts_g">Toon privécontacten aan de rechterkiezer en rechterberichten</string>
 
 </resources>

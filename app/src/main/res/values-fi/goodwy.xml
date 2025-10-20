@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Lähettiläiden toiminnot</string>
 
     <!-- Settings -->
-    <string name="country">Maa</string>
     <string name="ringtone_for_private_contact">Soittoääni ei ole käytettävissä yksityiseen yhteydenottoon</string>
-    <string name="show_private_contacts_g">Näytä yksityiset yhteystiedot sovelluksissa Right Dialer ja Right Messages</string>
-    <string name="street">Katu</string>
-    <string name="neighborhood">Huoneiston tai sviitin numero</string>
-    <string name="city">Kaupunki</string>
-    <string name="postcode">Postinumero</string>
-    <string name="pobox">Postilokero</string>
-    <string name="region">Alue</string>
+    <string name="show_private_contacts_g">Näytä yksityiset yhteystiedot Right Dialerille ja Right Messagesille</string>
 
 </resources>

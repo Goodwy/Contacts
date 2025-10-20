@@ -1,11 +1,15 @@
 package com.goodwy.contacts.extensions
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.ContactsContract.CommonDataKinds.Im.PROTOCOL_GOOGLE_TALK
+import android.provider.ContactsContract.CommonDataKinds.Im.PROTOCOL_QQ
+import android.provider.ContactsContract.CommonDataKinds.Im.PROTOCOL_SKYPE
 import androidx.appcompat.content.res.AppCompatResources
 import com.goodwy.commons.activities.BaseSimpleActivity
-import com.goodwy.commons.dialogs.CallConfirmationDialog
 import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
@@ -21,8 +25,7 @@ import com.goodwy.contacts.activities.ViewContactActivity
 import com.goodwy.contacts.dialogs.ImportContactsDialog
 import com.goodwy.contacts.helpers.DEFAULT_FILE_NAME
 import com.goodwy.contacts.helpers.VcfExporter
-import ezvcard.VCardVersion
-import java.io.FileOutputStream
+import androidx.core.net.toUri
 
 fun SimpleActivity.startCallIntent(recipient: String) {
     handlePermission(PERMISSION_CALL_PHONE) {
@@ -84,9 +87,12 @@ fun BaseSimpleActivity.shareContacts(contacts: ArrayList<Contact>) {
     }
 
     getFileOutputStream(file.toFileDirItem(this), true) {
-
-        // whatsApp does not support vCard version 4.0 yet
-        VcfExporter().exportContacts(this, it, contacts, false, version = VCardVersion.V3_0) {
+        VcfExporter().exportContacts(
+            context = this,
+            outputStream = it,
+            contacts = contacts,
+            showExportingToast = false
+        ) {
             if (it == VcfExporter.ExportResult.EXPORT_OK) {
                 sharePathIntent(file.absolutePath, BuildConfig.APPLICATION_ID)
             } else {
@@ -100,7 +106,7 @@ fun SimpleActivity.handleGenericContactClick(contact: Contact) {
     when (config.onContactClick) {
         ON_CLICK_CALL_CONTACT -> callContact(contact)
         ON_CLICK_VIEW_CONTACT -> viewContact(contact)
-        ON_CLICK_EDIT_CONTACT -> editContact(contact)
+        ON_CLICK_EDIT_CONTACT -> editContact(contact, config.mergeDuplicateContacts)
     }
 }
 
@@ -122,6 +128,59 @@ fun Activity.viewContact(contact: Contact) {
     }
 }
 
+fun Activity.editContact(contact: Contact, isMergedDuplicate: Boolean) {
+    if (!isMergedDuplicate) {
+        editContact(contact)
+    } else {
+        ContactsHelper(this).getContactSources { contactSources ->
+            getDuplicateContacts(contact, true) { contacts ->
+                if (contacts.size == 1) {
+                    runOnUiThread {
+                        editContact(contacts.first())
+                    }
+                } else {
+                    val items = ArrayList(contacts.mapIndexed { index, contact ->
+                        var source = getPublicContactSourceSync(contact.source, contactSources)
+                        if (source == "") {
+                            source = getString(R.string.phone_storage)
+                        }
+                        RadioItem(index, source, contact)
+                    }.sortedBy { it.title })
+
+                    runOnUiThread {
+                        RadioGroupDialog(
+                            activity = this,
+                            items = items,
+                            titleId = R.string.select_account,
+                        ) {
+                            editContact(it as Contact)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fun Activity.getDuplicateContacts(contact: Contact, includeCurrent: Boolean, callback: (duplicateContacts: ArrayList<Contact>) -> Unit) {
+    val duplicateContacts = ArrayList<Contact>()
+    if (includeCurrent) {
+        duplicateContacts.add(contact)
+    }
+    ContactsHelper(this).getDuplicatesOfContact(contact, false) { contacts ->
+        ensureBackgroundThread {
+            val displayContactSources = getVisibleContactSources()
+            contacts.filter { displayContactSources.contains(it.source) }.forEach {
+                val duplicate = ContactsHelper(this).getContactWithId(it.id, it.isPrivate())
+                if (duplicate != null) {
+                    duplicateContacts.add(duplicate)
+                }
+            }
+            callback(duplicateContacts)
+        }
+    }
+}
+
 fun Activity.editContact(contact: Contact) {
     hideKeyboard()
     Intent(applicationContext, EditContactActivity::class.java).apply {
@@ -135,16 +194,13 @@ fun SimpleActivity.tryImportContactsFromFile(uri: Uri, callback: (Boolean) -> Un
     when (uri.scheme) {
         "file" -> showImportContactsDialog(uri.path!!, callback)
         "content" -> {
-            val tempFile = getTempFile()
-            if (tempFile == null) {
-                toast(com.goodwy.commons.R.string.unknown_error_occurred)
-                return
-            }
-
             try {
-                val inputStream = contentResolver.openInputStream(uri)
-                val out = FileOutputStream(tempFile)
-                inputStream!!.copyTo(out)
+                val tempFile = copyUriToTempFile(uri, "import-${System.currentTimeMillis()}-$DEFAULT_FILE_NAME")
+                if (tempFile == null) {
+                    toast(com.goodwy.commons.R.string.unknown_error_occurred)
+                    return
+                }
+
                 showImportContactsDialog(tempFile.absolutePath, callback)
             } catch (e: Exception) {
                 showErrorToast(e)
@@ -195,4 +251,211 @@ fun SimpleActivity.launchAbout() {
         playStoreInstalled = isPlayStoreInstalled(),
         ruStoreInstalled = isRuStoreInstalled()
     )
+}
+
+fun Activity.openMessengerProfile(username: String, messengerType: Int) {
+    val cleanUsername = username.removePrefix("@")
+
+    val intent = when (messengerType) {
+        PROTOCOL_QQ -> {
+            // QQ - by QQ number
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://qm.qq.com/cgi-bin/qm/qr?k=$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_TEAMS, PROTOCOL_SKYPE -> {
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "msteams://teams.microsoft.com/l/chat/0/0?users=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://teams.microsoft.com/l/chat/0/0?users=$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_WECOM -> {
+            // WeCom (WeChat Work) - by userid
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "wxwork://contacts?userId=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://work.weixin.qq.com/wework_admin/contacts?userId=$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_GOOGLE_CHAT, PROTOCOL_GOOGLE_TALK -> {
+            // Google Chat - by email
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "com.google.android.apps.dynamite://chat/$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://mail.google.com/chat/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_MATRIX -> {
+            // Matrix - by Matrix ID (@user:homeserver.com)
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "element://open?userId=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://matrix.to/#/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_DISCORD -> {
+            // Discord uses tag (username#discriminator)
+            Intent(Intent.ACTION_VIEW).apply {
+                data = "https://discord.com/users/$cleanUsername".toUri()
+            }
+        }
+
+        PROTOCOL_WECHAT -> {
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "weixin://dl/chat?$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://weixin.qq.com/r/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_LINE -> {
+            // LINE - by LINE ID
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "line://ti/p/$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://line.me/R/ti/p/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_TELEGRAM -> {
+            // Let's try the app, then the web version
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "tg://resolve?domain=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://t.me/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_TELEGRAM_CHANNEL -> {
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "tg://resolve?domain=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://t.me/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_WHATSAPP -> {
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://wa.me/$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://web.whatsapp.com/send?phone=$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_INSTAGRAM -> {
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "instagram://user?username=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://instagram.com/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_FACEBOOK -> {
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "fb://profile/$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://facebook.com/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_VIBER -> {
+            Intent(Intent.ACTION_VIEW).apply {
+                data = "viber://add?number=$cleanUsername".toUri()
+            }
+        }
+
+        PROTOCOL_SIGNAL -> {
+            // Signal doesn't support direct links by username
+            // You can open the application for manual input
+            Intent(Intent.ACTION_VIEW).apply {
+                setPackage("org.thoughtcrime.securesms")
+            }
+        }
+
+        PROTOCOL_TWITTER -> {
+            // X (formerly Twitter)
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "twitter://user?screen_name=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://x.com/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_LINKEDIN -> {
+            // LinkedIn typically uses the full URL or ID
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "linkedin://profile/$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://linkedin.com/in/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        PROTOCOL_THREEMA -> {
+            // Threema - by Threema ID (8 characters)
+            val appIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "threema://compose?id=$cleanUsername".toUri()
+            }
+            val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = "https://threema.id/$cleanUsername".toUri()
+            }
+            createFallbackIntent(appIntent, webIntent)
+        }
+
+        else -> {
+            toast(com.goodwy.strings.R.string.failed_open_link)
+            return
+        }
+    }
+
+    try {
+        startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+        toast(com.goodwy.strings.R.string.failed_open_link)
+    }
+}
+
+private fun Activity.createFallbackIntent(appIntent: Intent, webIntent: Intent): Intent {
+    return try {
+        // Checking if the application is installed
+        packageManager.getPackageInfo(appIntent.`package` ?: "", 0)
+        appIntent
+    } catch (_: PackageManager.NameNotFoundException) {
+        webIntent
+    }
 }

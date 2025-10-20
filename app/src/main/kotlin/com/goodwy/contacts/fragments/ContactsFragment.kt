@@ -64,13 +64,13 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
                 val unique: Set<String> = HashSet(all)
                 val sizeUnique = unique.size
                 if (isHighScreenSize()) {
-                    if (sizeUnique > 48) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTooTiny
-                    else if (sizeUnique > 37) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTiny
-                    else innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleSmall
+                    if (sizeUnique > 48) innerBinding.letterFastscroller.textAppearanceRes = R.style.LetterFastscrollerStyleTooTiny
+                    else if (sizeUnique > 37) innerBinding.letterFastscroller.textAppearanceRes = R.style.LetterFastscrollerStyleTiny
+                    else innerBinding.letterFastscroller.textAppearanceRes = R.style.LetterFastscrollerStyleSmall
                 } else {
-                    if (sizeUnique > 36) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTooTiny
-                    else if (sizeUnique > 30) innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleTiny
-                    else innerBinding.letterFastscroller.textAppearanceRes = R.style.DialpadLetterStyleSmall
+                    if (sizeUnique > 36) innerBinding.letterFastscroller.textAppearanceRes = R.style.LetterFastscrollerStyleTooTiny
+                    else if (sizeUnique > 30) innerBinding.letterFastscroller.textAppearanceRes = R.style.LetterFastscrollerStyleTiny
+                    else innerBinding.letterFastscroller.textAppearanceRes = R.style.LetterFastscrollerStyleSmall
                 }
             } catch (e: Exception) {
                 activity?.copyToClipboard(e.toString()) }
@@ -100,6 +100,7 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
         } else {
             (currAdapter as ContactsAdapter).apply {
                 startNameWithSurname = context.config.startNameWithSurname
+                showNicknameInsteadNames = context.config.showNicknameInsteadNames
                 showPhoneNumbers = context.config.showPhoneNumbers
                 showContactThumbnails = context.config.showContactThumbnails
                 updateItems(contacts)

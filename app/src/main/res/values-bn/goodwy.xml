@@ -3,8 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">বার্তাবাহকদের কর্মকাণ্ড</string>
 
     <!-- Settings -->
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
+    <string name="ringtone_for_private_contact">ব্যক্তিগত যোগাযোগের জন্য রিংটোন উপলব্ধ নয়</string>
+    <string name="show_private_contacts_g">ডান ডায়ালার এবং ডান বার্তাগুলিতে ব্যক্তিগত পরিচিতিগুলি দেখান</string>
 </resources>

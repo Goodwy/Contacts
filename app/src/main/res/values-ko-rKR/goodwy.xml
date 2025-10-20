@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">메신저 동작</string>
 
     <!-- Settings -->
-    <string name="country">나라</string>
     <string name="ringtone_for_private_contact">벨소리는 개인 연락처에 사용할 수 없습니다.</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">거리</string>
-    <string name="neighborhood">아파트 또는 스위트룸 번호</string>
-    <string name="city">도시</string>
-    <string name="postcode">우편번호</string>
-    <string name="pobox">우체국 상자</string>
-    <string name="region">부위</string>
+    <string name="show_private_contacts_g">Right Dialer 및 Right Messages에 개인 연락처 표시</string>
 
 </resources>

@@ -24,8 +24,7 @@ import com.goodwy.commons.dialogs.ConfirmationDialog
 import com.goodwy.commons.dialogs.NewAppDialog
 import com.goodwy.commons.dialogs.RadioGroupDialog
 import com.goodwy.commons.extensions.*
-import com.goodwy.commons.helpers.ContactsHelper
-import com.goodwy.commons.helpers.SimpleContactsHelper
+import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.RadioItem
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.R
@@ -209,21 +208,31 @@ abstract class ContactActivity : SimpleActivity() {
         } else {
             getString(
                 when (type) {
-                    PROTOCOL_TEAMS -> R.string.teams
-                    PROTOCOL_WECOM -> R.string.wecom
-                    PROTOCOL_GOOGLE_CHAT -> R.string.google_chat
-                    PROTOCOL_MATRIX -> R.string.matrix
-                    PROTOCOL_DISCORD -> R.string.discord
-                    PROTOCOL_WECHAT -> R.string.wechat
-                    PROTOCOL_LINE -> R.string.line
-                    Im.PROTOCOL_AIM -> R.string.aim
-                    Im.PROTOCOL_MSN -> R.string.windows_live
-                    Im.PROTOCOL_YAHOO -> R.string.yahoo
-                    Im.PROTOCOL_SKYPE -> R.string.skype
-                    Im.PROTOCOL_QQ -> R.string.qq
-                    Im.PROTOCOL_GOOGLE_TALK -> R.string.hangouts
-                    Im.PROTOCOL_ICQ -> R.string.icq
-                    else -> R.string.jabber
+                    PROTOCOL_TEAMS -> com.goodwy.commons.R.string.teams
+                    PROTOCOL_WECOM -> com.goodwy.commons.R.string.wecom
+                    PROTOCOL_GOOGLE_CHAT -> com.goodwy.commons.R.string.google_chat
+                    PROTOCOL_MATRIX -> com.goodwy.commons.R.string.matrix
+                    PROTOCOL_DISCORD -> com.goodwy.commons.R.string.discord
+                    PROTOCOL_WECHAT -> com.goodwy.commons.R.string.wechat
+                    PROTOCOL_LINE -> com.goodwy.commons.R.string.line
+                    Im.PROTOCOL_AIM -> com.goodwy.commons.R.string.aim
+                    Im.PROTOCOL_MSN -> com.goodwy.commons.R.string.windows_live
+                    Im.PROTOCOL_YAHOO -> com.goodwy.commons.R.string.yahoo
+                    Im.PROTOCOL_SKYPE -> com.goodwy.commons.R.string.skype
+                    Im.PROTOCOL_QQ -> com.goodwy.commons.R.string.qq
+                    Im.PROTOCOL_GOOGLE_TALK -> com.goodwy.commons.R.string.hangouts
+                    Im.PROTOCOL_ICQ -> com.goodwy.commons.R.string.icq
+                    PROTOCOL_TELEGRAM -> com.goodwy.commons.R.string.telegram
+                    PROTOCOL_TELEGRAM_CHANNEL -> com.goodwy.commons.R.string.telegram_channel
+                    PROTOCOL_WHATSAPP -> com.goodwy.commons.R.string.whatsapp
+                    PROTOCOL_INSTAGRAM -> com.goodwy.commons.R.string.instagram
+                    PROTOCOL_FACEBOOK -> com.goodwy.commons.R.string.facebook
+                    PROTOCOL_VIBER -> com.goodwy.commons.R.string.viber
+                    PROTOCOL_SIGNAL -> com.goodwy.commons.R.string.signal
+                    PROTOCOL_TWITTER -> com.goodwy.commons.R.string.twitter
+                    PROTOCOL_LINKEDIN -> com.goodwy.commons.R.string.linkedin
+                    PROTOCOL_THREEMA -> com.goodwy.commons.R.string.threema
+                    else -> com.goodwy.commons.R.string.jabber
                 }
             )
         }

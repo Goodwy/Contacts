@@ -18,4 +18,16 @@
         android:icon="@drawable/ic_mail_vector"
         android:title="@string/send_email_to_group"
         app:showAsAction="always"/>
+    <item
+        android:id="@+id/rename_group"
+        android:icon="@drawable/ic_rename_vector"
+        android:showAsAction="ifRoom"
+        android:title="@string/rename"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/delete_group"
+        android:icon="@drawable/ic_delete_outline"
+        android:showAsAction="ifRoom"
+        android:title="@string/delete"
+        app:showAsAction="ifRoom" />
 </menu>

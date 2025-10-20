@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Mezularien ekintzak</string>
 
     <!-- Settings -->
-    <string name="country">Herrialdea</string>
     <string name="ringtone_for_private_contact">Dei-tonua ez dago erabilgarri kontaktu pribatuetarako</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">Kalea</string>
-    <string name="neighborhood">Apartamentu edo suite zenbakia</string>
-    <string name="city">Hiria</string>
-    <string name="postcode">Posta kodea</string>
-    <string name="pobox">Posta-kutxa</string>
-    <string name="region">Eskualdea</string>
+    <string name="show_private_contacts_g">Erakutsi kontaktu pribatuak Eskuineko markagailuari eta Eskuineko mezuei</string>
 
 </resources>

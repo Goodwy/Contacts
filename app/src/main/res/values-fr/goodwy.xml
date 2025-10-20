@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Actions des messagers</string>
 
     <!-- Settings -->
-    <string name="country">Pays</string>
     <string name="ringtone_for_private_contact">La sonnerie n’est pas disponible pour un contact privé</string>
-    <string name="show_private_contacts_g">Présenter les contacts privés à Right Dialer et Right Messages</string>
-    <string name="street">Rue</string>
-    <string name="neighborhood">Numéro de l’appartement ou de la suite</string>
-    <string name="city">Ville</string>
-    <string name="postcode">Code postal</string>
-    <string name="pobox">Case postale</string>
-    <string name="region">Région</string>
+    <string name="show_private_contacts_g">Afficher les contacts privés sur Right Dialer et Right Messages</string>
 
 </resources>

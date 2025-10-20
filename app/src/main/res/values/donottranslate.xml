@@ -3,26 +3,19 @@
     <string name="package_name">com.goodwy.contacts</string>
     <string name="app_name" translatable="false">Right Contacts</string>
 
-    <string name="im" translatable="false">IM</string>
-    <string name="aim" translatable="false">AIM</string>
-    <string name="windows_live" translatable="false">Windows Live</string>
-    <string name="yahoo" translatable="false">Yahoo</string>
-    <string name="skype" translatable="false">Skype</string>
-    <string name="qq" translatable="false">QQ</string>
-    <string name="hangouts" translatable="false">Hangouts</string>
-    <string name="icq" translatable="false">ICQ</string>
-    <string name="jabber" translatable="false">Jabber</string>
-    <string name="telegram" translatable="false">Telegram</string>
-    <string name="viber" translatable="false">Viber</string>
-    <string name="google_chat" translatable="false">Google Chat</string>
-    <string name="teams" translatable="false">Teams</string>
-    <string name="matrix" translatable="false">Matrix</string>
-    <string name="discord" translatable="false">Discord</string>
-    <string name="wechat" translatable="false">WeChat</string>
-    <string name="line" translatable="false">Line</string>
-    <string name="wecom" translatable="false">WeCom</string>
-
     <!-- Release notes -->
+    <string name="release_690">
+        Changed color schemes and theme behavior\n
+        Added an auto dark/light theme\n
+        Added the ability to specify a custom event type\n
+        Added export and import of custom event types\n
+        Added voice input for search\n
+        Added the ability to select a related contact\n
+        Added the ability to switch to a related contact when names match\n
+        Added ‘Shows contact\'s nicknames (when available) instead of their first names’ option\n
+        Added the ability to disable one of the swipes\n
+        Fixed bugs, improved stability
+    </string>
     <string name="release_621">
         Bug fixes
     </string>

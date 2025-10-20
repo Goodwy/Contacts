@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">Dejanja Messengerja</string>
 
     <!-- Settings -->
-    <string name="country">Država</string>
     <string name="ringtone_for_private_contact">Melodija zvonjenja ni na voljo za zasebni stik</string>
-    <string name="show_private_contacts_g">Prikaži zasebne stike v Right Dialer in Right Messages</string>
-    <string name="street">Ulica</string>
-    <string name="neighborhood">Številka apartmaja ali apartmaja</string>
-    <string name="city">Mesto</string>
-    <string name="postcode">Poštna številka</string>
-    <string name="pobox">Poštni predal</string>
-    <string name="region">Regija</string>
+    <string name="show_private_contacts_g">Prikaži zasebne stike aplikacijama Right Dialer in Right Messages</string>
 
 </resources>

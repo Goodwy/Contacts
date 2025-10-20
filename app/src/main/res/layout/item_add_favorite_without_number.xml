@@ -39,6 +39,7 @@
             android:paddingStart="@dimen/medium_margin"
             android:paddingEnd="@dimen/activity_margin"
             android:textSize="@dimen/big_text_size"
+            android:textDirection="locale"
             tools:text="John Doe" />
 
         <com.goodwy.commons.views.MyAppCompatCheckbox

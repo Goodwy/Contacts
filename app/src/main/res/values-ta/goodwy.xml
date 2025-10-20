@@ -3,16 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">தூதர்களின் செயல்கள்</string>
 
     <!-- Settings -->
-    <string name="country">நாடு</string>
     <string name="ringtone_for_private_contact">தனிப்பட்ட தொடர்புக்கு ரிங்டோன் கிடைக்கவில்லை.</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">தெரு</string>
-    <string name="neighborhood">அபார்ட்மெண்ட் அல்லது அறை எண்</string>
-    <string name="city">நகரம்</string>
-    <string name="postcode">அஞ்சல் குறியீடு</string>
-    <string name="pobox">தபால் பெட்டி</string>
-    <string name="region">பகுதி</string>
+    <string name="show_private_contacts_g">வலது டயலர் மற்றும் வலது செய்திகளுக்கு தனிப்பட்ட தொடர்புகளைக் காட்டு</string>
 </resources>

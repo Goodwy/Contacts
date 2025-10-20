@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name_g">Right Contacts</string>
+
+    <!-- Visible fields -->
+    <string name="messengers_actions_g">رسول کے اعمال</string>
+
+    <!-- Settings -->
+    <string name="ringtone_for_private_contact">نجی رابطے لئی رنگ ٹون دستیاب نئیں</string>
+    <string name="show_private_contacts_g">دائیں ڈائلر اور دائیں پیغامات پر نجی رابطے دکھائیں۔</string>
+
+</resources>

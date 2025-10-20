@@ -56,7 +56,7 @@
     <string name="filename_without_vcf">Име на файла (без .vcf)</string>
     <string name="dialpad">Набиране на телефонни номера</string>
     <string name="add_number_to_contact">Добавяне на номера към контакт</string>
-    <string name="prefix">Представка</string>
+    <string name="prefix">Титла</string>
     <string name="suffix">Наставка</string>
     <string name="phone_numbers">Телефонни номера</string>
     <string name="emails">Електронна поща</string>
@@ -77,4 +77,13 @@
     <string name="faq_1_text">Да, трябва да отворите Настройки → Управление на полетата. От там можете да изберете кои полета да бъдат видими. Някои от тях по подразбиране са скрити, така че може да откриете нови полета.</string>
     <string name="show_private_contacts">Достъп до личните контакти на Fossify Phone, Fossify SMS Messenger and Fossify Calendar</string>
     <string name="format_phone_numbers">Форматиране на телефонните номера</string>
+    <string name="street">Улица</string>
+    <string name="neighborhood">Апартамент</string>
+    <string name="country">Държава</string>
+    <string name="select_account">Избиране на профил</string>
+    <string name="postcode">Пощенски код</string>
+    <string name="pobox">Пощенска кутия</string>
+    <string name="city">Град</string>
+    <string name="structured_addresses">Структурирани адреси (режим променяне)</string>
+    <string name="region">Област</string>
 </resources>

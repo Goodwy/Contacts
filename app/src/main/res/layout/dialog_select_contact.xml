@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/select_contact_holder"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
+
+    <com.goodwy.commons.views.MySearchMenuTop
+        android:id="@+id/selectContactSearchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/medium_margin" />
 
     <com.goodwy.commons.views.MyRecyclerView
         android:id="@+id/select_contact_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/selectContactSearchView"
         android:clipToPadding="false"
         android:layoutAnimation="@anim/layout_animation"
         android:paddingEnd="@dimen/big_margin"
@@ -19,6 +27,7 @@
         android:id="@+id/select_contact_placeholder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/selectContactSearchView"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="@dimen/small_margin"
         android:alpha="0.8"
@@ -29,20 +38,24 @@
         android:text="@string/no_contacts_found"
         android:textSize="@dimen/bigger_text_size"
         android:textStyle="italic"
-        android:visibility="gone" />
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <com.reddit.indicatorfastscroll.FastScrollerView
         android:id="@+id/letter_fastscroller"
         android:layout_width="32dp"
         android:layout_height="match_parent"
+        android:layout_below="@+id/selectContactSearchView"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:paddingTop="@dimen/bigger_margin" />
+        android:paddingTop="@dimen/bigger_margin"
+        android:textAppearance="@style/LetterFastscrollerStyleSmall" />
 
     <com.reddit.indicatorfastscroll.FastScrollerThumbView
         android:id="@+id/letter_fastscroller_thumb"
         android:layout_width="@dimen/fab_size"
         android:layout_height="match_parent"
+        android:layout_below="@+id/selectContactSearchView"
         android:layout_alignTop="@+id/letter_fastscroller"
         android:layout_alignBottom="@+id/letter_fastscroller"
         android:layout_marginEnd="@dimen/activity_margin"

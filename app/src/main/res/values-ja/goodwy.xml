@@ -3,17 +3,10 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">メッセンジャーのアクション</string>
 
     <!-- Settings -->
-    <string name="country">国</string>
     <string name="ringtone_for_private_contact">着信音はプライベートコンタクトには使用できません</string>
-    <string name="show_private_contacts_g">Right DialerとRight Messagesにプライベートな連絡先を表示する。</string>
-    <string name="street">通り</string>
-    <string name="neighborhood">アパートメントまたはスイート番号</string>
-    <string name="city">都市</string>
-    <string name="postcode">郵便番号</string>
-    <string name="pobox">私書箱</string>
-    <string name="region">地域</string>
+    <string name="show_private_contacts_g">プライベート連絡先を右ダイヤラーと右メッセージに表示する</string>
 
 </resources>

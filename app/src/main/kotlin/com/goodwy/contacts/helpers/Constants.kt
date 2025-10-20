@@ -3,7 +3,6 @@ package com.goodwy.contacts.helpers
 import com.goodwy.commons.helpers.TAB_CONTACTS
 import com.goodwy.commons.helpers.TAB_FAVORITES
 import com.goodwy.commons.helpers.TAB_GROUPS
-import org.joda.time.DateTime
 
 const val GROUP = "group"
 const val IS_FROM_SIMPLE_CONTACTS = "is_from_simple_contacts"
@@ -90,19 +89,10 @@ fun formatTime(showSeconds: Boolean, use24HourFormat: Boolean, hours: Int, minut
 // swiped left action
 const val SWIPE_RIGHT_ACTION = "swipe_right_action"
 const val SWIPE_LEFT_ACTION = "swipe_left_action"
+const val SWIPE_ACTION_NONE = 0
 const val SWIPE_ACTION_DELETE = 2
-const val SWIPE_ACTION_BLOCK = 4 //!! isNougatPlus()
 const val SWIPE_ACTION_CALL = 5
 const val SWIPE_ACTION_MESSAGE = 6
 const val SWIPE_ACTION_EDIT = 7
 const val SWIPE_VIBRATION = "swipe_vibration"
 const val SWIPE_RIPPLE = "swipe_ripple"
-
-// IMs
-const val PROTOCOL_TEAMS = 103
-const val PROTOCOL_WECOM = 104
-const val PROTOCOL_GOOGLE_CHAT = 105
-const val PROTOCOL_MATRIX = 111
-const val PROTOCOL_DISCORD = 112
-const val PROTOCOL_WECHAT = 113
-const val PROTOCOL_LINE = 114

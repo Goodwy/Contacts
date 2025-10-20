@@ -3,16 +3,9 @@
     <string name="app_name_g">Right Contacts</string>
 
     <!-- Visible fields -->
-    <string name="messengers_actions_g">Messengers actions</string>
+    <string name="messengers_actions_g">اقدامات پیام‌رسان‌ها</string>
 
     <!-- Settings -->
-    <string name="country">کشور</string>
     <string name="ringtone_for_private_contact">آهنگ زنگ برای تماس خصوصی در دسترس نیست</string>
-    <string name="show_private_contacts_g">Show private contacts to Right Dialer and Right Messages</string>
-    <string name="street">خیابان</string>
-    <string name="neighborhood">شماره آپارتمان یا سوئیت</string>
-    <string name="city">شهر</string>
-    <string name="postcode">کد پستی</string>
-    <string name="pobox">صندوق</string>
-    <string name="region">منطقه</string>
+    <string name="show_private_contacts_g">نمایش مخاطبین خصوصی در شماره‌گیر سمت راست و پیام‌های سمت راست</string>
 </resources>

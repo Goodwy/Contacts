@@ -35,7 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/contact_edit_height"
         android:layout_centerVertical="true"
-        android:layout_toStartOf="@+id/contact_email_remove"
+        android:layout_toStartOf="@+id/contactEmailRemove"
         android:layout_toEndOf="@+id/contact_email_type"
         android:background="@null"
         android:hint="@string/email"
@@ -49,7 +49,7 @@
         android:textSize="@dimen/bigger_text_size" />
 
     <ImageView
-        android:id="@+id/contact_email_remove"
+        android:id="@+id/contactEmailRemove"
         android:layout_width="@dimen/edit_contact_add_icon"
         android:layout_height="@dimen/edit_contact_add_icon"
         android:layout_alignParentEnd="true"

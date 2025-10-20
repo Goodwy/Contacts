@@ -6,15 +6,18 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import com.goodwy.commons.dialogs.ConfirmationDialog
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.ContactsHelper
 import com.goodwy.commons.helpers.NavigationIcon
+import com.goodwy.commons.helpers.TAB_GROUPS
 import com.goodwy.commons.helpers.ensureBackgroundThread
 import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.commons.models.contacts.Group
 import com.goodwy.contacts.R
 import com.goodwy.contacts.adapters.ContactsAdapter
 import com.goodwy.contacts.databinding.ActivityGroupContactsBinding
+import com.goodwy.contacts.dialogs.RenameGroupDialog
 import com.goodwy.contacts.dialogs.SelectContactsDialog
 import com.goodwy.contacts.extensions.handleGenericContactClick
 import com.goodwy.contacts.helpers.GROUP
@@ -40,8 +43,19 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
         updateTextColors(binding.groupContactsCoordinator)
         setupOptionsMenu()
 
-        updateMaterialActivityViews(binding.groupContactsCoordinator, binding.groupContactsList, useTransparentNavigation = true, useTopSearchMenu = false)
-        setupMaterialScrollListener(binding.groupContactsList, binding.groupContactsToolbar)
+        updateMaterialActivityViews(
+            mainCoordinatorLayout = binding.groupContactsCoordinator,
+            nestedView = binding.groupContactsList,
+            useTransparentNavigation = true,
+            useTopSearchMenu = false
+        )
+
+        val useSurfaceColor = isDynamicTheme() && !isSystemInDarkMode()
+        setupMaterialScrollListener(binding.groupContactsList, binding.groupContactsToolbar, useSurfaceColor)
+
+        val backgroundColor = if (useSurfaceColor) getSurfaceColor() else getProperBackgroundColor()
+        binding.groupContactsCoordinator.setBackgroundColor(backgroundColor)
+        binding.groupContactsToolbar
 
         group = intent.extras?.getSerializable(GROUP) as Group
         binding.groupContactsToolbar.title = group.title
@@ -65,7 +79,14 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
     override fun onResume() {
         super.onResume()
         refreshContacts()
-        setupToolbar(binding.groupContactsToolbar, NavigationIcon.Arrow)
+
+        val useSurfaceColor = isDynamicTheme() && !isSystemInDarkMode()
+        val backgroundColor = if (useSurfaceColor) getSurfaceColor() else getProperBackgroundColor()
+        setupToolbar(
+            toolbar = binding.groupContactsToolbar,
+            toolbarNavigationIcon = NavigationIcon.Arrow,
+            statusBarColor = backgroundColor,
+        )
         (binding.groupContactsFab.layoutParams as CoordinatorLayout.LayoutParams).bottomMargin =
             navigationBarHeight + resources.getDimension(com.goodwy.commons.R.dimen.activity_margin).toInt()
     }
@@ -76,6 +97,8 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
                 R.id.send_sms_to_group -> sendSMSToGroup()
                 R.id.send_email_to_group -> sendEmailToGroup()
                 R.id.assign_ringtone_to_group -> assignRingtoneToGroup()
+                R.id.rename_group -> renameGroup()
+                R.id.delete_group -> askConfirmDelete()
                 else -> return@setOnMenuItemClickListener false
             }
             return@setOnMenuItemClickListener true
@@ -98,7 +121,13 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
     }
 
     private fun fabClicked() {
-        SelectContactsDialog(this, allContacts, true, false, groupContacts) { addedContacts, removedContacts ->
+        SelectContactsDialog(
+            this,
+            allContacts,
+            true,
+            false,
+            groupContacts
+        ) { addedContacts, removedContacts ->
             ensureBackgroundThread {
                 addContactsToGroup(addedContacts, group.id!!)
                 removeContactsFromGroup(removedContacts, group.id!!)
@@ -142,6 +171,36 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
             startActivityForResult(ringtonePickerIntent, INTENT_SELECT_RINGTONE)
         } catch (e: Exception) {
             toast(e.toString())
+        }
+    }
+
+    private fun renameGroup() {
+        RenameGroupDialog(this, group) {
+            binding.groupContactsToolbar.title = group.title
+        }
+    }
+
+    private fun askConfirmDelete() {
+        val item = "\"${group.title}\""
+        val baseString = com.goodwy.commons.R.string.deletion_confirmation
+        val question = String.format(resources.getString(baseString), item)
+
+        ConfirmationDialog(this, question) {
+            ensureBackgroundThread {
+                deleteGroup()
+            }
+        }
+    }
+
+    private fun deleteGroup() {
+        if (group.isPrivateSecretGroup()) {
+            groupsDB.deleteGroupId(group.id!!)
+        } else {
+            ContactsHelper(this).deleteGroup(group.id!!)
+        }
+        runOnUiThread {
+            onBackPressedDispatcher.onBackPressed()
+//            onBackPressed()
         }
     }
 
