@@ -45,6 +45,7 @@
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/top_view_holder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="@dimen/activity_padding_left_right"

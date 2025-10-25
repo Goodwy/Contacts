@@ -6,7 +6,6 @@ import android.content.ContentUris
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PorterDuff
-import android.graphics.drawable.LayerDrawable
 import android.media.AudioManager
 import android.media.RingtoneManager
 import android.net.Uri
@@ -17,7 +16,6 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
@@ -38,7 +36,6 @@ import com.goodwy.contacts.dialogs.ManageVisibleFieldsDialog
 import com.goodwy.contacts.extensions.*
 import com.goodwy.contacts.helpers.*
 import java.util.Locale
-import kotlin.math.abs
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 
@@ -149,11 +146,13 @@ class ViewContactActivity : ContactActivity() {
             window.decorView.setBackgroundColor(colorToWhite)
             window.statusBarColor = colorToWhite
             //window.navigationBarColor = colorToWhite
-            binding.contactAppbar.setBackgroundColor(colorToWhite)
+            binding.topViewHolder.setBackgroundColor(colorToWhite)
+            binding.collapsingToolbar.setBackgroundColor(colorToWhite)
         } else {
             val properBackgroundColor = getProperBackgroundColor()
             window.decorView.setBackgroundColor(properBackgroundColor)
-            binding.contactAppbar.setBackgroundColor(properBackgroundColor)
+            binding.topViewHolder.setBackgroundColor(properBackgroundColor)
+            binding.collapsingToolbar.setBackgroundColor(properBackgroundColor)
         }
 
         binding.apply {
@@ -308,13 +307,7 @@ class ViewContactActivity : ContactActivity() {
             val fullName = contact?.getNameToDisplay() ?: "A"
             val placeholderImage =
                 if (contact?.isABusinessContact() == true) {
-                    val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, theme)
-                    if (baseConfig.useColoredContacts) {
-                        val letterBackgroundColors = getLetterBackgroundColors()
-                        val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
-                        (drawable as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
-                    }
-                    drawable
+                    SimpleContactsHelper(this).getColoredCompanyIcon(fullName)
                 } else {
                     SimpleContactsHelper(this).getContactLetterIcon(fullName).toDrawable(resources)
                 }

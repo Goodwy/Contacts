@@ -154,11 +154,11 @@ class EditContactActivity : ContactActivity() {
             window.decorView.setBackgroundColor(colorToWhite)
             window.statusBarColor = colorToWhite
             //window.navigationBarColor = colorToWhite
-            binding.contactAppbar.setBackgroundColor(colorToWhite)
+            binding.collapsingToolbar.setBackgroundColor(colorToWhite)
         } else {
             val properBackgroundColor = getProperBackgroundColor()
             window.decorView.setBackgroundColor(properBackgroundColor)
-            binding.contactAppbar.setBackgroundColor(properBackgroundColor)
+            binding.collapsingToolbar.setBackgroundColor(properBackgroundColor)
         }
     }
 

@@ -5,13 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.LayerDrawable
 import android.media.RingtoneManager
 import android.net.Uri
 import android.provider.ContactsContract.CommonDataKinds.*
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.content.res.ResourcesCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -30,8 +28,6 @@ import com.goodwy.commons.models.contacts.Contact
 import com.goodwy.contacts.R
 import com.goodwy.contacts.extensions.shareContacts
 import com.goodwy.contacts.extensions.config
-import com.goodwy.contacts.helpers.*
-import kotlin.math.abs
 import androidx.core.net.toUri
 import androidx.core.graphics.drawable.toDrawable
 
@@ -68,13 +64,7 @@ abstract class ContactActivity : SimpleActivity() {
         val fullName = contact?.getNameToDisplay() ?: "A"
         val placeholderImage =
             if (contact?.isABusinessContact() == true) {
-                val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, theme)
-                if (baseConfig.useColoredContacts) {
-                    val letterBackgroundColors = getLetterBackgroundColors()
-                    val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
-                    (drawable as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
-                }
-                drawable
+                SimpleContactsHelper(this).getColoredCompanyIcon(fullName)
             } else {
                 SimpleContactsHelper(this).getContactLetterIcon(fullName).toDrawable(resources)
             }

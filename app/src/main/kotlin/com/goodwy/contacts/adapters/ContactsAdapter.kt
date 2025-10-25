@@ -18,7 +18,6 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.behaviorule.arturdumchev.library.pixels
@@ -395,11 +394,7 @@ class ContactsAdapter(
         (drawable as LayerDrawable).findDrawableByLayerId(R.id.shortcut_contact_background).applyColorFilter(color)
         val placeholderImage =
             if (contact.isABusinessContact()) {
-                val drawablePlaceholder = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, activity.theme)
-                if (baseConfig.useColoredContacts) {
-                    (drawablePlaceholder as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
-                }
-                drawablePlaceholder
+                SimpleContactsHelper(activity).getColoredCompanyIcon(fullName)
             } else {
                 SimpleContactsHelper(activity).getContactLetterIcon(fullName).toDrawable(resources)
             }
@@ -501,12 +496,7 @@ class ContactsAdapter(
                 val placeholderImage = SimpleContactsHelper(context).getContactLetterIcon(fullName).toDrawable(resources)
                 if (contact.photoUri.isEmpty() && contact.photo == null) {
                     if (contact.isABusinessContact()) {
-                        val drawable = ResourcesCompat.getDrawable(resources, R.drawable.placeholder_company, activity.theme)
-                        if (baseConfig.useColoredContacts) {
-                            val letterBackgroundColors = activity.getLetterBackgroundColors()
-                            val color = letterBackgroundColors[abs(fullName.hashCode()) % letterBackgroundColors.size].toInt()
-                            (drawable as LayerDrawable).findDrawableByLayerId(R.id.placeholder_contact_background).applyColorFilter(color)
-                        }
+                        val drawable = SimpleContactsHelper(context).getColoredCompanyIcon(fullName)
                         findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).setImageDrawable(drawable)
                     } else {
                         findViewById<ImageView>(com.goodwy.commons.R.id.item_contact_image).setImageDrawable(placeholderImage)
