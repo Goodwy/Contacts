@@ -179,21 +179,29 @@ class SelectContactsAdapter(
                     if (contact.photoUri.isEmpty() && contact.photo == null) {
                         contactTmb.setImageDrawable(placeholderImage)
                     } else {
-                        val options = RequestOptions()
-                            .signature(ObjectKey(contact.getSignatureKey()))
-                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                            .error(placeholderImage)
-                            .centerCrop()
+                        if (!activity.isDestroyed && !activity.isFinishing) {
+                            val options = RequestOptions()
+                                .signature(ObjectKey(contact.getSignatureKey()))
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .error(placeholderImage)
+                                .centerCrop()
 
-                        val itemToLoad: Any? = contact.photoUri.ifEmpty {
-                            contact.photo
+                            val itemToLoad: Any? = contact.photoUri.ifEmpty {
+                                contact.photo
+                            }
+
+                            try {
+                                Glide.with(activity)
+                                    .load(itemToLoad)
+                                    .apply(options)
+                                    .apply(RequestOptions.circleCropTransform())
+                                    .into(contactTmb)
+                            } catch (e: IllegalArgumentException) {
+                                contactTmb.setImageDrawable(placeholderImage)
+                            }
+                        } else {
+                            contactTmb.setImageDrawable(placeholderImage)
                         }
-
-                        Glide.with(activity)
-                            .load(itemToLoad)
-                            .apply(options)
-                            .apply(RequestOptions.circleCropTransform())
-                            .into(contactTmb)
                     }
                 }
             }

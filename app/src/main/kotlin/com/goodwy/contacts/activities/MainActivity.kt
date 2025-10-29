@@ -933,6 +933,7 @@ class MainActivity : SimpleActivity(), RefreshContactsListener {
             add(Release(620, R.string.release_620))
             add(Release(621, R.string.release_621))
             add(Release(700, R.string.release_700))
+            add(Release(701, R.string.release_701))
             checkWhatsNew(this, BuildConfig.VERSION_CODE)
         }
     }

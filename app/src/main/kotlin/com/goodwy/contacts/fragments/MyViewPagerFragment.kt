@@ -6,16 +6,13 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.recyclerview.widget.RecyclerView
 import com.qtalk.recyclerviewfastscroller.RecyclerViewFastScroller
-import com.reddit.indicatorfastscroll.FastScrollItemIndicator
 import com.reddit.indicatorfastscroll.FastScrollerThumbView
 import com.reddit.indicatorfastscroll.FastScrollerView
 import com.goodwy.commons.adapters.MyRecyclerViewAdapter
 import com.goodwy.commons.extensions.*
 import com.goodwy.commons.helpers.*
 import com.goodwy.commons.models.contacts.Contact
-import com.goodwy.commons.models.contacts.Contact.Companion.showNicknameInsteadNames
 import com.goodwy.commons.models.contacts.Group
 import com.goodwy.commons.views.MyFloatingActionButton
 import com.goodwy.commons.views.MyRecyclerView
@@ -235,12 +232,16 @@ abstract class MyViewPagerFragment<Binding : MyViewPagerFragment.InnerBinding>(c
             innerBinding.fragmentPlaceholder.beVisibleIf(storedGroups.isEmpty())
             innerBinding.letterFastscroller?.beVisibleIf(storedGroups.isNotEmpty())
 
-            innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    activity?.hideKeyboard()
-                }
-            })
+//            innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+//                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+//                    super.onScrollStateChanged(recyclerView, newState)
+//                    activity?.hideKeyboard()
+//                }
+//            })
+            innerBinding.fragmentList.setOnTouchListener { _, _ ->
+                activity?.hideKeyboard()
+                false
+            }
 
             val currAdapter = innerBinding.fragmentList.adapter
             if (currAdapter == null) {

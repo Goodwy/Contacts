@@ -4,6 +4,9 @@
     <string name="app_name" translatable="false">Right Contacts</string>
 
     <!-- Release notes -->
+    <string name="release_701">
+        Fixed bugs, improved stability
+    </string>
     <string name="release_700">
         Changed color schemes and theme behavior\n
         Added an auto dark/light theme\n

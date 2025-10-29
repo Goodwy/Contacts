@@ -245,7 +245,14 @@ class GroupContactsActivity : SimpleActivity(), RemoveFromGroupListener, Refresh
         }
     }
 
-    private fun getDefaultRingtoneUri() = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE)
+    private fun getDefaultRingtoneUri(): Uri {
+        return try {
+            RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_RINGTONE)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        } catch (_: SecurityException) {
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        }
+    }
 
     private fun getRingtonePickerIntent(): Intent {
         val defaultRingtoneUri = getDefaultRingtoneUri()

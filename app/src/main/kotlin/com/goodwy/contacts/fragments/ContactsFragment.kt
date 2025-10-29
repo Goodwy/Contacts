@@ -49,12 +49,16 @@ class ContactsFragment(context: Context, attributeSet: AttributeSet) : MyViewPag
         val currAdapter = innerBinding.fragmentList.adapter
         val showFastscroller = contacts.size > 10
         innerBinding.letterFastscroller.beVisibleIf(showFastscroller)
-        innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                activity?.hideKeyboard()
-            }
-        })
+//        innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+//            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+//                super.onScrollStateChanged(recyclerView, newState)
+//                activity?.hideKeyboard()
+//            }
+//        })
+        innerBinding.fragmentList.setOnTouchListener { _, _ ->
+            activity?.hideKeyboard()
+            false
+        }
 
         if (showFastscroller) {
             try {

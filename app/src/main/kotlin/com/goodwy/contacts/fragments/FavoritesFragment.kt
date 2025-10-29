@@ -66,12 +66,16 @@ class FavoritesFragment(context: Context, attributeSet: AttributeSet) : MyViewPa
         setFavoritesViewType(viewType, contacts.size)
         initZoomListener(viewType)
 
-        innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                activity?.hideKeyboard()
-            }
-        })
+//        innerBinding.fragmentList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+//            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+//                super.onScrollStateChanged(recyclerView, newState)
+//                activity?.hideKeyboard()
+//            }
+//        })
+        innerBinding.fragmentList.setOnTouchListener { _, _ ->
+            activity?.hideKeyboard()
+            false
+        }
 
         if (currAdapter == null || forceListRedraw) {
             forceListRedraw = false
